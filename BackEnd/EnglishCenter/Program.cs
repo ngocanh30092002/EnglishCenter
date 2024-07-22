@@ -1,6 +1,6 @@
 using EnglishCenter.Extensions.Database;
 using EnglishCenter.Extensions.Identity;
-using EnglishCenter.Global;
+using EnglishCenter.Extensions.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +8,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDatabaseConfiguration(builder);
+builder.Services.AddRepositories();
 builder.Services.AddIdentityConfiguration(builder);
 
 var app = builder.Build();

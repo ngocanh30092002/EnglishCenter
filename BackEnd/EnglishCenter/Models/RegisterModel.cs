@@ -18,6 +18,9 @@ namespace EnglishCenter.Models
         public string UserName { set; get; }
 
         [Required]
+        public string Password { set; get; }    
+
+        [Required]
         public Gender Gender { set; get; }
 
         [Required]
