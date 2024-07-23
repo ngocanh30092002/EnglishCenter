@@ -2,4 +2,7 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
-/BackEnd/EnglishCenter
+/BackEnd/EnglishCenter/.vs
+/BackEnd/EnglishCenter/bin/Debug/net8.0
+/BackEnd/EnglishCenter/obj
+/.vs
