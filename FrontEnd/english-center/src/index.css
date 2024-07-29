@@ -1,3 +1,28 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+*{
+    box-sizing: border-box;
+    overflow-x: hidden;
+    margin: 0;
+    padding:0;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+}
+
+:root{
+    --primary-color: #1e1f6f;
+    --light-background-color: #e6f2ff;
+    --dark-background-color: #141549;
+    --border-color: #cccccc;
+    --text-gray-color: #b7b7b7;
+    --border-focus-color:  #57a8ff;
+    --white-color: #ffffff;
+    --text-color: #000000;
+    --light-blue-color: #e6f2ff;
+}
+
+#root{
+   
+}
