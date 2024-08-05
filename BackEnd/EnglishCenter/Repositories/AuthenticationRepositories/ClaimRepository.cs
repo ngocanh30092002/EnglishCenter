@@ -7,16 +7,16 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
 {
     public class ClaimRepository : IClaimRepository
     {
-        private readonly UserManager<UserAccount> _useManager;
+        private readonly UserManager<User> _useManager;
         private readonly RoleManager<IdentityRole> _roleManager;
 
-        public ClaimRepository(UserManager<UserAccount> userManager, RoleManager<IdentityRole> roleManager) 
+        public ClaimRepository(UserManager<User> userManager, RoleManager<IdentityRole> roleManager) 
         {
             _useManager = userManager;
             _roleManager = roleManager;
         }
 
-        public async Task<bool> AddClaimToUser(UserAccount user, string claimName, string claimValue)
+        public async Task<bool> AddClaimToUser(User user, string claimName, string claimValue)
         {
             var userInDatabase = await _useManager.FindByEmailAsync(user.Email!);
 
@@ -29,7 +29,7 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
             return result.Succeeded;
         }
 
-        public async Task<List<Claim>> GetClaims(UserAccount user)
+        public async Task<List<Claim>> GetClaims(User user)
         {
             var roleClaims = await GetRoleClaims(user);
             var userClaims = await GetUserClaims(user);
@@ -42,7 +42,7 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
             return claims;
         }
 
-        public async Task<List<Claim>> GetRoleClaims(UserAccount user)
+        public async Task<List<Claim>> GetRoleClaims(User user)
         {
             var claims = new List<Claim>();
             var userRoles = await _useManager.GetRolesAsync(user);
@@ -59,7 +59,7 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
             return claims;
         }
 
-        public async Task<List<Claim>> GetUserClaims(UserAccount user)
+        public async Task<List<Claim>> GetUserClaims(User user)
         {
             var userClaims = await _useManager.GetClaimsAsync(user);
 

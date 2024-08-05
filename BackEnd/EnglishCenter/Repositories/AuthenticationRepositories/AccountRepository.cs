@@ -15,15 +15,15 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
 {
     public class AccountRepository : IAccountRepository
     {
-        private readonly UserManager<UserAccount> _userManager;
-        private readonly SignInManager<UserAccount> _signInManager;
+        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IClaimRepository _claimRepo;
         private readonly IConfiguration _configuration;
 
         public AccountRepository(
-            UserManager<UserAccount> userManager,
-            SignInManager<UserAccount> signInManager,
+            UserManager<User> userManager,
+            SignInManager<User> signInManager,
             RoleManager<IdentityRole> roleManager,
             IClaimRepository claimRepo,
             IConfiguration configuration
@@ -79,7 +79,7 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
                 };
             }
 
-            var newUser = new UserAccount()
+            var newUser = new User()
             {
                 UserName = model.UserName,
                 Email = model.Email,
@@ -113,7 +113,7 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
             };
         }
 
-        private async Task<string> GenerateToken(UserAccount user)
+        private async Task<string> GenerateToken(User user)
         {
             var jwtTokenHandler = new JwtSecurityTokenHandler();
             var claims = await _claimRepo.GetClaims(user);

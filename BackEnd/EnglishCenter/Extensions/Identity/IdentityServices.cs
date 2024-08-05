@@ -11,7 +11,7 @@ namespace EnglishCenter.Extensions.Identity
     {
         public static IServiceCollection AddIdentityConfiguration(this IServiceCollection services, WebApplicationBuilder builder )
         {
-            services.AddIdentity<UserAccount, IdentityRole>(options =>
+            services.AddIdentity<User, IdentityRole>(options =>
             {
                 options.SignIn.RequireConfirmedAccount = true;
             })
