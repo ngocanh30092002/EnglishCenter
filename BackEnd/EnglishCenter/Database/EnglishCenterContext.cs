@@ -1,11 +1,18 @@
-﻿using EnglishCenter.Models;
+﻿using System;
+using System.Collections.Generic;
+using EnglishCenter.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.Database;
 
-public partial class EnglishCenterContext : DbContext
+public partial class EnglishCenterContext : IdentityDbContext<User>
 {
-    public EnglishCenterContext() { }
+    public EnglishCenterContext()
+    {
+    }
+
     public EnglishCenterContext(DbContextOptions<EnglishCenterContext> options)
         : base(options)
     {
@@ -20,10 +27,6 @@ public partial class EnglishCenterContext : DbContext
     public virtual DbSet<Enrollment> Enrollments { get; set; }
 
     public virtual DbSet<PreExamScore> PreExamScores { get; set; }
-
-    public virtual DbSet<Role> Roles { get; set; }
-
-    public virtual DbSet<RoleClaim> RoleClaims { get; set; }
 
     public virtual DbSet<Student> Students { get; set; }
 
@@ -53,19 +56,22 @@ public partial class EnglishCenterContext : DbContext
 
     public virtual DbSet<ToeicPart7> ToeicPart7s { get; set; }
 
-    public virtual DbSet<User> Users { get; set; }
-
-    public virtual DbSet<UserClaim> UserClaims { get; set; }
-
-    public virtual DbSet<UserLogin> UserLogins { get; set; }
-
-    public virtual DbSet<UserToken> UserTokens { get; set; }
-
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("Name=ConnectionStrings:EnglishCenter");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            var tableName = entityType.GetTableName();
+            if (tableName.StartsWith("AspNet"))
+            {
+                entityType.SetTableName(tableName.Substring(6));
+            }
+        }
+
         modelBuilder.Entity<Attendance>(entity =>
         {
             entity.HasOne(d => d.StuClass).WithMany(p => p.Attendances)
@@ -109,20 +115,13 @@ public partial class EnglishCenterContext : DbContext
                 .HasConstraintName("FK_PreExamScores_Students");
         });
 
-        modelBuilder.Entity<Role>(entity =>
-        {
-            entity.HasIndex(e => e.NormalizedName, "RoleNameIndex")
-                .IsUnique()
-                .HasFilter("([NormalizedName] IS NOT NULL)");
-        });
-
         modelBuilder.Entity<Student>(entity =>
         {
             entity.HasKey(e => e.UserId).HasName("PK_Student_ID");
 
             entity.HasOne(d => d.User).WithOne(p => p.Student)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_StudentUser");
+               .OnDelete(DeleteBehavior.ClientSetNull)
+               .HasConstraintName("FK_StudentUser");
         });
 
         modelBuilder.Entity<StudentInClass>(entity =>
@@ -205,27 +204,6 @@ public partial class EnglishCenterContext : DbContext
         modelBuilder.Entity<ToeicPart7>(entity =>
         {
             entity.HasOne(d => d.Toeic).WithMany(p => p.ToeicPart7s).HasConstraintName("FK_Toeic_Part_7_ToeicExams");
-        });
-
-        modelBuilder.Entity<User>(entity =>
-        {
-            entity.HasIndex(e => e.NormalizedUserName, "UserNameIndex")
-                .IsUnique()
-                .HasFilter("([NormalizedUserName] IS NOT NULL)");
-
-            entity.HasMany(d => d.Roles).WithMany(p => p.Users)
-                .UsingEntity<Dictionary<string, object>>(
-                    "UserRole",
-                    r => r.HasOne<Role>().WithMany().HasForeignKey("RoleId"),
-                    l => l.HasOne<User>().WithMany().HasForeignKey("UserId"),
-                    j =>
-                    {
-                        j.HasKey("UserId", "RoleId");
-                        j.ToTable("UserRoles");
-                        j.HasIndex(new[] { "RoleId" }, "IX_UserRoles_RoleId");
-                        j.IndexerProperty<string>("UserId").HasMaxLength(100);
-                        j.IndexerProperty<string>("RoleId").HasMaxLength(100);
-                    });
         });
 
         OnModelCreatingPartial(modelBuilder);

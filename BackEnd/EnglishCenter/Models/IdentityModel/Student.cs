@@ -36,6 +36,5 @@ public partial class Student
     public virtual ICollection<PreExamScore> PreExamScores { get; set; } = new List<PreExamScore>();
 
     [ForeignKey("UserId")]
-    [InverseProperty("Student")]
     public virtual User User { get; set; } = null!;
 }
