@@ -20,12 +20,14 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IClaimRepository _claimRepo;
         private readonly IConfiguration _configuration;
+        private readonly IJsonWebTokenRepository _jwtRepo;
 
         public AccountRepository(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
             RoleManager<IdentityRole> roleManager,
             IClaimRepository claimRepo,
+            IJsonWebTokenRepository jwtRepo,
             IConfiguration configuration
         ) 
         {
@@ -34,6 +36,7 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
             _roleManager = roleManager;
             _claimRepo = claimRepo;
             _configuration = configuration;
+            _jwtRepo = jwtRepo;
         }
 
         public async Task<Response> LoginAsync(LoginModel model)
@@ -57,7 +60,7 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
                 };
             }
 
-            var tokenKey = await GenerateToken(user);
+            var tokenKey = await _jwtRepo.GenerateUserTokenAsync(user, DateTime.UtcNow.AddMinutes(10));
 
             return new Response() { 
                 Success = true,
@@ -111,29 +114,6 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
                 Message = "Registered successfully",
                 StatusCode = HttpStatusCode.OK
             };
-        }
-
-        private async Task<string> GenerateToken(User user)
-        {
-            var jwtTokenHandler = new JwtSecurityTokenHandler();
-            var claims = await _claimRepo.GetClaims(user);
-            var authenKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
-
-            claims.Add(new Claim(ClaimTypes.Name, user.UserName));
-            claims.Add(new Claim("Id", user.Id));
-            claims.Add(new Claim(JwtRegisteredClaimNames.Email, user.Email));
-            claims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
-
-            var tokenDes = new SecurityTokenDescriptor()
-            {
-                Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddDays(1),
-                SigningCredentials = new SigningCredentials(authenKey, SecurityAlgorithms.HmacSha512)
-            };
-
-            var securityToken = jwtTokenHandler.CreateToken(tokenDes);
-
-            return jwtTokenHandler.WriteToken(securityToken);
         }
     }
 }
