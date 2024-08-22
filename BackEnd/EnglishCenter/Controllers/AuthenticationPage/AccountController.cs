@@ -1,4 +1,6 @@
-﻿using EnglishCenter.Models;
+﻿using EnglishCenter.Global.Enum;
+using EnglishCenter.Helpers;
+using EnglishCenter.Models;
 using EnglishCenter.Repositories.IRepositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -27,19 +29,37 @@ namespace EnglishCenter.Controllers.Account
                                              .Select(err => err.ErrorMessage)
                                              .ToList();
 
-                return new Response()
+                var response = new Response()
                 {
                     Success = false,
                     Message = string.Join("<br>", errorMessage),
                     StatusCode = System.Net.HttpStatusCode.BadRequest
                 };
+
+                return await response.ChangeActionAsync();
             }
 
-            return await _accountRepo.LoginAsync(model);
+            var loginResponse =  await _accountRepo.LoginAsync(model);
+
+            if(loginResponse.Success)
+            {
+                CookieOptions options = new CookieOptions()
+                {
+                    HttpOnly = false,
+                    Secure = true,
+                    Expires = DateTime.UtcNow.AddHours(1),
+                    Path = "/"
+                };
+
+                CookieHelper.AddCookie(HttpContext, "access-token", loginResponse.Token, options);
+                CookieHelper.AddCookie(HttpContext, "refresh-token", loginResponse.RefreshToken, options);
+            }
+
+            return await loginResponse.ChangeActionAsync();
         }
 
         [HttpPost("Register")]
-        public async Task<IActionResult> RegisterAsync(RegisterModel model)
+        public async Task<IActionResult> RegisterAsync([FromForm] RegisterModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -48,15 +68,13 @@ namespace EnglishCenter.Controllers.Account
                                              .Select(err => err.ErrorMessage)
                                              .ToList();
 
-                return new Response()
-                {
-                    Success = false,
-                    Message = string.Join("<br>", errorMessage),
-                    StatusCode = System.Net.HttpStatusCode.BadRequest
-                };
+                var response = new Response() { Success = false, Message = string.Join("<br>", errorMessage), StatusCode = System.Net.HttpStatusCode.BadRequest };
+                return await response.ChangeActionAsync();
             }
 
-            return await _accountRepo.RegisterAsync(model);
+            var registerResponse = await _accountRepo.RegisterAsync(model);
+
+            return await registerResponse.ChangeActionAsync();
         }
     }
 }

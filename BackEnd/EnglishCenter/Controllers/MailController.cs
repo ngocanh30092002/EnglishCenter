@@ -1,4 +1,5 @@
-﻿using EnglishCenter.Helpers;
+﻿using EnglishCenter.Global;
+using EnglishCenter.Helpers;
 using EnglishCenter.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -27,12 +28,14 @@ namespace EnglishCenter.Controllers
                                              .Select(err => err.ErrorMessage)
                                              .ToList();
 
-                return new Response()
+                var response = new Response()
                 {
                     Success = false,
                     Message = string.Join("<br>", errorMessage),
                     StatusCode = System.Net.HttpStatusCode.BadRequest
                 };
+
+                return await response.ChangeActionAsync();
             }
 
             var result = await _mailHelper.SendHtmlMailAsync(mailContent);
@@ -50,12 +53,14 @@ namespace EnglishCenter.Controllers
                                              .Select(err => err.ErrorMessage)
                                              .ToList();
 
-                return new Response()
+                var response = new Response()
                 {
                     Success = false,
                     Message = string.Join("<br>", errorMessage),
                     StatusCode = System.Net.HttpStatusCode.BadRequest
                 };
+
+                return await response.ChangeActionAsync();
             }
 
             var result = await _mailHelper.SendMailAsync(mailContent);

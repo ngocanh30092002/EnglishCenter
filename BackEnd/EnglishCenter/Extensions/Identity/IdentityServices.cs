@@ -15,7 +15,11 @@ namespace EnglishCenter.Extensions.Identity
         {
             services.AddIdentity<User, IdentityRole>(options =>
             {
+                options.Lockout.AllowedForNewUsers = true;
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(GlobalVariable.MAX_FAILED_ACCESS);
+                options.Lockout.MaxFailedAccessAttempts = GlobalVariable.MAX_FAILED_ACCESS;
                 options.SignIn.RequireConfirmedAccount = true;
+                options.SignIn.RequireConfirmedEmail = true;
             })
             .AddDefaultTokenProviders()
             .AddEntityFrameworkStores<EnglishCenterContext>();
@@ -39,6 +43,16 @@ namespace EnglishCenter.Extensions.Identity
                     ValidAudience = builder.Configuration["JWT:ValidAudience"], 
                     ValidIssuer = builder.Configuration["JWT:ValidIssuer"], 
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secret"]!))
+                };
+
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        // Lấy token từ cookie (cookie HttpOnly và Secure)
+                        context.Token = context.Request.Cookies["access-token"];
+                        return Task.CompletedTask;
+                    }
                 };
             })
             .AddCookie()

@@ -18,8 +18,9 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
 
         public async Task<bool> AddClaimToUser(User user, string claimName, string claimValue)
         {
+            if (string.IsNullOrEmpty(claimName) || string.IsNullOrEmpty(claimValue)) return false;
+            
             var userInDatabase = await _useManager.FindByEmailAsync(user.Email!);
-
             if (userInDatabase == null) return false;
 
             var userClaim = new Claim(claimName, claimValue);

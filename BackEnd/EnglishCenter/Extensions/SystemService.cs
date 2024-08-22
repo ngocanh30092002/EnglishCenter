@@ -47,8 +47,12 @@ namespace EnglishCenter.Extensions
                 });
             });
 
+            builder.Services.AddRouting();
+            builder.Services.AddHttpContextAccessor();
             builder.Services.Configure<MailSetting>(builder.Configuration.GetSection("MailSettings"));
-            
+            builder.Services.AddSession();
+            builder.Services.AddMvc();
+
             return services;
         }
     }

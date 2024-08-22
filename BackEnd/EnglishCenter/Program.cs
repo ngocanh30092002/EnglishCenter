@@ -10,9 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddSystemServices(builder);
 builder.Services.AddDatabaseConfiguration(builder);
-builder.Services.AddRepositories();
 builder.Services.AddIdentityConfiguration(builder);
-
+builder.Services.AddRepositories();
 
 var app = builder.Build();
 
@@ -27,9 +26,9 @@ app.UseCors("AllPolicy");
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
+app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();

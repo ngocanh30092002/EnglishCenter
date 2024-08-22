@@ -210,4 +210,9 @@ public partial class EnglishCenterContext : IdentityDbContext<User>
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+
+    public static implicit operator EnglishCenterContext(UserManager<User> v)
+    {
+        throw new NotImplementedException();
+    }
 }

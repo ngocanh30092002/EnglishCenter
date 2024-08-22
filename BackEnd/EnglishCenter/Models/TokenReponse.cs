@@ -1,25 +1,25 @@
-﻿using System.Text.Json.Serialization;
+﻿using Newtonsoft.Json;
 
 namespace EnglishCenter.Models
 {
     public class TokenReponse
     {
-        [JsonPropertyName("access_token")]
+        [JsonProperty("access_token")]
         public string Access_Token { set; get; }
 
-        [JsonPropertyName("expires_in")]
+        [JsonProperty("expires_in")]
         public int Expires_In { set; get; }
 
-        [JsonPropertyName("refresh_token")]
+        [JsonProperty("refresh_token")]
         public string Refresh_Token { set; get; }
 
-        [JsonPropertyName("scope")]
+        [JsonProperty("scope")]
         public string Scope { set; get; }
 
-        [JsonPropertyName("token_type")]
+        [JsonProperty("token_type")]
         public string Token_Type { set; get; }
 
-        [JsonPropertyName("id_token")]
+        [JsonProperty("id_token")]
         public string Token_Id { set; get; }
     }
 }

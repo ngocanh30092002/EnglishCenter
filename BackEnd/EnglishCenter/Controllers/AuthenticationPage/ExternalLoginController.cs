@@ -2,6 +2,8 @@
 using System.Text.Json;
 using Azure.Core;
 using EnglishCenter.Global;
+using EnglishCenter.Global.Enum;
+using EnglishCenter.Helpers;
 using EnglishCenter.Models;
 using EnglishCenter.Repositories.IRepositories;
 using Microsoft.AspNetCore.Authorization;
@@ -9,6 +11,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Newtonsoft.Json.Linq;
+using NuGet.Protocol.Plugins;
 
 namespace EnglishCenter.Controllers.AuthenticationPage
 {
@@ -46,13 +49,25 @@ namespace EnglishCenter.Controllers.AuthenticationPage
                 { "grant_type" , "authorization_code"},
                 { "redirect_uri", $"{Request.Scheme}://{Request.Host}{Request.Path}" },
             };
-
             var response = await _repo.SignInGoogleAsync(requestParams, _googleTokenUrl);
 
-            return BadRequest(new
+            if (response.Success)
             {
-                response.Message
-            });
+                CookieOptions options = new CookieOptions()
+                {
+                    HttpOnly = false,
+                    Secure = true,
+                    Expires = DateTime.UtcNow.AddHours(1),
+                    Path = "/"
+                };
+
+                CookieHelper.AddCookie(HttpContext, "access-token", response.Token, options);
+                CookieHelper.AddCookie(HttpContext, "refresh-token", response.RefreshToken, options);
+                return Redirect(GlobalVariable.CLIENT_URL);
+            }
+
+            return await response.ChangeActionAsync();
         }
+
     }
 }
