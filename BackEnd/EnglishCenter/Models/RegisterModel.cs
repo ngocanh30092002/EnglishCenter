@@ -27,16 +27,14 @@ namespace EnglishCenter.Models
         [Required]
         public Gender Gender { set; get; }
 
-        [Required]
         [MinAge(18)]
-        public DateTime DateOfBirth { set; get; }
+        public DateTime ?DateOfBirth { set; get; }
 
-        [Required, Phone]
-        public string PhoneNumber {  set; get; }
+        [Phone]
+        public string ?PhoneNumber {  set; get; }
         
-        [Required]
         [MaxLength(200)]
-        public string Address { set; get; }
+        public string ? Address { set; get; }
         
         [Required,EmailAddress]        
         public string Email { set; get; }

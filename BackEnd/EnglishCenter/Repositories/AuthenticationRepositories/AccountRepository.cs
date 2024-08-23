@@ -122,7 +122,7 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
             {
                 UserName = model.UserName,
                 Email = model.Email,
-                PhoneNumber = model.PhoneNumber
+                PhoneNumber = model?.PhoneNumber
             };
 
             var result = await _userManager.CreateAsync(newUser, model.Password);
@@ -146,12 +146,21 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
             await _userManager.AddToRoleAsync(newUser, AppRole.STUDENT);
             await _claimRepo.AddClaimToUser(newUser, ClaimTypes.Email, newUser.Email);
             await _claimRepo.AddClaimToUser(newUser, ClaimTypes.Gender, model.Gender.ToString());
-            await _claimRepo.AddClaimToUser(newUser, ClaimTypes.DateOfBirth, model.DateOfBirth.ToString());
-            await _claimRepo.AddClaimToUser(newUser, ClaimTypes.MobilePhone, model.PhoneNumber.ToString());
+           
+            if(model.DateOfBirth != null)
+            {
+                await _claimRepo.AddClaimToUser(newUser, ClaimTypes.DateOfBirth, model.DateOfBirth.ToString());
+            }
 
-            // Verify phone number
-            var phoneCode = await _userManager.GenerateChangePhoneNumberTokenAsync(newUser, model.PhoneNumber);
-            var isConfirmPhone = await _userManager.VerifyChangePhoneNumberTokenAsync(newUser,phoneCode, model.PhoneNumber);
+            if (model.PhoneNumber != null)
+            {
+                await _claimRepo.AddClaimToUser(newUser, ClaimTypes.MobilePhone, model.PhoneNumber.ToString());
+
+                // Verify phone number
+                var phoneCode = await _userManager.GenerateChangePhoneNumberTokenAsync(newUser, model.PhoneNumber);
+                var isConfirmPhone = await _userManager.VerifyChangePhoneNumberTokenAsync(newUser,phoneCode, model.PhoneNumber);
+            }
+
 
             // Send Email to User
             var sendEmailResult = SendEmailToUserAsync(newUser, provider, model);
@@ -189,9 +198,9 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
                 FirstName = model.FirstName,
                 LastName = model.LastName,
                 Gender = Convert.ToBoolean(model.Gender),
-                Address = model.Address,
-                DateOfBirth = model.DateOfBirth,
-                PhoneNumber = model.PhoneNumber,
+                Address = model?.Address,
+                DateOfBirth = model?.DateOfBirth,
+                PhoneNumber = model?.PhoneNumber,
                 UserId = newUser.Id,
             };
 

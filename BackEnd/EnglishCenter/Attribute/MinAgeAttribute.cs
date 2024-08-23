@@ -15,6 +15,11 @@ namespace EnglishCenter.Attribute
         protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
         {
 
+            if(value == null)
+            {
+                return ValidationResult.Success;
+            }
+
             if(value is DateTime dateOfBirth)
             {
                 var age = DateTime.Today.Year - dateOfBirth.Year;
