@@ -1,4 +1,5 @@
-﻿using EnglishCenter.Global.Enum;
+﻿using System.Net;
+using EnglishCenter.Global.Enum;
 using EnglishCenter.Helpers;
 using EnglishCenter.Models;
 using EnglishCenter.Repositories.IRepositories;
