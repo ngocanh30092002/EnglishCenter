@@ -183,7 +183,7 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
         public async Task<Response> CreateStudentWithUser(User newUser, RegisterModel model)
         {
             var isExistUser = _context.Students.FirstOrDefault(u => u.UserId == newUser.Id);
-            if(isExistUser != null)
+            if (isExistUser != null)
             {
                 return new Response
                 {
@@ -197,7 +197,7 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
             {
                 FirstName = model.FirstName,
                 LastName = model.LastName,
-                Gender = Convert.ToBoolean(model.Gender),
+                Gender = (int) model.Gender,
                 Address = model?.Address,
                 DateOfBirth = model?.DateOfBirth,
                 PhoneNumber = model?.PhoneNumber,

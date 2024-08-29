@@ -6,28 +6,32 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.Models;
 
-[PrimaryKey("UserId", "CourseId")]
+[PrimaryKey("EnrollId", "UserId", "ClassId")]
 [Table("Enrollment")]
 public partial class Enrollment
 {
+    [Key]
+    public long EnrollId { get; set; }
+
     [Key]
     [StringLength(100)]
     public string UserId { get; set; } = null!;
 
     [Key]
-    [StringLength(5)]
-    public string CourseId { get; set; } = null!;
+    [StringLength(10)]
+    public string ClassId { get; set; } = null!;
 
-    [Column(TypeName = "datetime")]
-    public DateTime? EnrollDate { get; set; }
+    public DateOnly? EnrollDate { get; set; }
 
-    public bool? IsCompleted { get; set; }
+    public int? StatusId { get; set; }
 
-    public bool? IsPaid { get; set; }
-
-    [ForeignKey("CourseId")]
+    [ForeignKey("ClassId")]
     [InverseProperty("Enrollments")]
-    public virtual Course Course { get; set; } = null!;
+    public virtual Class Class { get; set; } = null!;
+
+    [ForeignKey("StatusId")]
+    [InverseProperty("Enrollments")]
+    public virtual EnrollStatus? Status { get; set; }
 
     [ForeignKey("UserId")]
     [InverseProperty("Enrollments")]

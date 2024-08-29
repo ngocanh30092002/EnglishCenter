@@ -205,7 +205,7 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
                     UserName = email,
                     Email = email,
                     Address = googleInfo?.Address,
-                    DateOfBirth = googleInfo?.DayOfBirth == null ? DateTime.MinValue : googleInfo.DayOfBirth,
+                    DateOfBirth = googleInfo?.DayOfBirth == null ? DateOnly.MinValue : DateOnly.FromDateTime(googleInfo.DayOfBirth),
                     Gender = googleInfo?.Gender == null ? Gender.Male : googleInfo.Gender,
                     Password = GeneratePassword(10),
                     PhoneNumber = googleInfo?.PhoneNumber?.Replace(" ", "")

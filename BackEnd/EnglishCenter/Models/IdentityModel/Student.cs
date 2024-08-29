@@ -18,10 +18,7 @@ public partial class Student
     [StringLength(100)]
     public string? LastName { get; set; }
 
-    public bool? Gender { get; set; }
-
-    [Column(TypeName = "datetime")]
-    public DateTime? DateOfBirth { get; set; }
+    public int? Gender { get; set; }
 
     [StringLength(50)]
     public string? PhoneNumber { get; set; }
@@ -29,12 +26,18 @@ public partial class Student
     [StringLength(200)]
     public string? Address { get; set; }
 
+    [StringLength(200)]
+    public string? Image { get; set; }
+
+    public DateOnly? DateOfBirth { get; set; }
+
     [InverseProperty("User")]
     public virtual ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
 
     [InverseProperty("User")]
-    public virtual ICollection<PreExamScore> PreExamScores { get; set; } = new List<PreExamScore>();
+    public virtual ICollection<StuInClass> StuInClasses { get; set; } = new List<StuInClass>();
 
     [ForeignKey("UserId")]
+    [InverseProperty("Student")]
     public virtual User User { get; set; } = null!;
 }

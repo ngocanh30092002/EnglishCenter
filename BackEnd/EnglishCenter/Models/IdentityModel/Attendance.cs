@@ -6,16 +6,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.Models;
 
-[PrimaryKey("AttendDate", "StuClassId")]
+[PrimaryKey("AttendDate", "StuClassInId")]
 [Table("Attendance")]
 public partial class Attendance
 {
     [Key]
-    [Column(TypeName = "datetime")]
-    public DateTime AttendDate { get; set; }
+    public DateOnly AttendDate { get; set; }
 
     [Key]
-    public int StuClassId { get; set; }
+    public long StuClassInId { get; set; }
+
+    public int? LessionNum { get; set; }
 
     public bool? IsAttended { get; set; }
 
@@ -25,13 +26,22 @@ public partial class Attendance
 
     public bool? IsLeaved { get; set; }
 
-    [StringLength(5)]
-    public string? StatusAssignment { get; set; }
+    public int? StatusAssignment { get; set; }
 
-    [StringLength(100)]
-    public string? LinkAssignment { get; set; }
+    [StringLength(15)]
+    public string? AssignmentId { get; set; }
 
-    [ForeignKey("StuClassId")]
+    [Column(TypeName = "datetime")]
+    public DateTime? Deadline { get; set; }
+
+    [InverseProperty("Attendance")]
+    public virtual ICollection<AnswerSheet> AnswerSheets { get; set; } = new List<AnswerSheet>();
+
+    [ForeignKey("AssignmentId")]
     [InverseProperty("Attendances")]
-    public virtual StudentInClass StuClass { get; set; } = null!;
+    public virtual Assignment? Assignment { get; set; }
+
+    [ForeignKey("StuClassInId")]
+    [InverseProperty("Attendances")]
+    public virtual StuInClass StuClassIn { get; set; } = null!;
 }

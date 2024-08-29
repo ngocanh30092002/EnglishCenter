@@ -28,7 +28,7 @@ namespace EnglishCenter.Models
         public Gender Gender { set; get; }
 
         [MinAge(18)]
-        public DateTime ?DateOfBirth { set; get; }
+        public DateOnly ?DateOfBirth { set; get; }
 
         [Phone]
         public string ?PhoneNumber {  set; get; }
