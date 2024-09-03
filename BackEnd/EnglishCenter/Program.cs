@@ -1,9 +1,8 @@
+using EnglishCenter;
 using EnglishCenter.Extensions;
 using EnglishCenter.Extensions.Database;
 using EnglishCenter.Extensions.Identity;
 using EnglishCenter.Extensions.Repository;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +21,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseRouting();
+app.MapHub<NotificationHub>("api/noti");
+
 app.UseCors("AllPolicy");
 app.UseHttpsRedirection();
 app.UseStaticFiles();

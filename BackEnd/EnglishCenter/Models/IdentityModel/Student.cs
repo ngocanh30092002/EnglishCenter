@@ -40,4 +40,8 @@ public partial class Student
     [ForeignKey("UserId")]
     [InverseProperty("Student")]
     public virtual User User { get; set; } = null!;
+
+    public virtual ICollection<Group> Groups { get; set; } = new List<Group>();
+
+    public virtual ICollection<Notification> Notifications { set; get; } = new List<Notification>();
 }

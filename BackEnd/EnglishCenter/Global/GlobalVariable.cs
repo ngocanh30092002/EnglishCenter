@@ -12,7 +12,7 @@
         public const string REFRESH_TOKEN = "Refresh Token";
 
         // Token Expire
-        public const int TOKEN_EXPIRED = 1;
+        public const int TOKEN_EXPIRED = 60;
     
     }
 }

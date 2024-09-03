@@ -20,11 +20,11 @@ namespace EnglishCenter.Attribute
                 return ValidationResult.Success;
             }
 
-            if(value is DateTime dateOfBirth)
+            if(value is DateOnly dateOfBirth)
             {
                 var age = DateTime.Today.Year - dateOfBirth.Year;
 
-                if (dateOfBirth > DateTime.Today.AddYears(-age))
+                if (dateOfBirth.ToDateTime(TimeOnly.MinValue) > DateTime.Today.AddYears(-age))
                 {
                     age--;
                 }

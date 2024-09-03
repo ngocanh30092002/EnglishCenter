@@ -31,6 +31,8 @@ public partial class EnglishCenterContext : IdentityDbContext<User>
 
     public virtual DbSet<EnrollStatus> EnrollStatuses { get; set; }
 
+    public virtual DbSet<Notification> Notifications { set; get; }
+
     public virtual DbSet<Enrollment> Enrollments { get; set; }
 
     public virtual DbSet<QuesLcAudio> QuesLcAudios { get; set; }
@@ -58,6 +60,8 @@ public partial class EnglishCenterContext : IdentityDbContext<User>
     public virtual DbSet<SubRcDouble> SubRcDoubles { get; set; }
 
     public virtual DbSet<SubRcTriple> SubRcTriples { get; set; }
+
+    public virtual DbSet<Group> Groups { set; get; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("Name=ConnectionStrings:EnglishCenter");
@@ -136,34 +140,22 @@ public partial class EnglishCenterContext : IdentityDbContext<User>
             entity.HasOne(d => d.User).WithMany(p => p.Enrollments).HasConstraintName("FK_Enrollment_Students");
         });
 
-        modelBuilder.Entity<QuesLcAudio>(entity =>
+        modelBuilder.Entity<Notification>(entity =>
         {
-            entity.Property(e => e.QuesId).ValueGeneratedNever();
-        });
-
-        modelBuilder.Entity<QuesLcConversation>(entity =>
-        {
-            entity.Property(e => e.QuesId).ValueGeneratedNever();
-        });
-
-        modelBuilder.Entity<QuesLcImage>(entity =>
-        {
-            entity.Property(e => e.QuesId).ValueGeneratedNever();
-        });
-
-        modelBuilder.Entity<QuesRcDouble>(entity =>
-        {
-            entity.Property(e => e.QuesId).ValueGeneratedNever();
-        });
-
-        modelBuilder.Entity<QuesRcSingle>(entity =>
-        {
-            entity.Property(e => e.QuesId).ValueGeneratedNever();
-        });
-
-        modelBuilder.Entity<QuesRcTriple>(entity =>
-        {
-            entity.Property(e => e.QuesId).ValueGeneratedNever();
+            entity.HasMany(n => n.Students)
+                  .WithMany(s => s.Notifications)
+                  .UsingEntity<Dictionary<string, object>>(
+                    "NotiStudents",
+                    j => j.HasOne<Student>()
+                          .WithMany()
+                          .HasForeignKey("UserId"),
+                    j => j.HasOne<Notification>()
+                          .WithMany()
+                          .HasForeignKey("NotiId"),
+                    c => {
+                        c.HasKey("NotiId", "UserId");
+                        c.ToTable("NotiStudents");
+                    });
         });
 
         modelBuilder.Entity<QuestionType>(entity =>
@@ -192,6 +184,27 @@ public partial class EnglishCenterContext : IdentityDbContext<User>
             entity.HasOne(d => d.User).WithOne(p => p.Student).HasConstraintName("FK_Students_Users");
         });
 
+        modelBuilder.Entity<Group>(entity =>
+        {
+            entity.HasMany(g => g.Students)
+                  .WithMany(s => s.Groups)
+                  .UsingEntity<Dictionary<string, object>>(
+                    "GroupStudent",
+                    j => j
+                        .HasOne<Student>()
+                        .WithMany()
+                        .HasForeignKey("UserId"),
+                    j => j
+                        .HasOne<Group>()
+                        .WithMany()
+                        .HasForeignKey("GroupId"),
+                    j =>
+                    {
+                        j.HasKey("GroupId", "UserId");
+                        j.ToTable("GroupStudent");
+                    });
+        });
+
         modelBuilder.Entity<SubLcConversation>(entity =>
         {
             entity.HasOne(d => d.PreQues).WithMany(p => p.SubLcConversations)
@@ -201,8 +214,6 @@ public partial class EnglishCenterContext : IdentityDbContext<User>
 
         modelBuilder.Entity<SubRcDouble>(entity =>
         {
-            entity.Property(e => e.SubId).ValueGeneratedNever();
-
             entity.HasOne(d => d.PreQues).WithMany(p => p.SubRcDoubles)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Sub_RC_Double_Ques_RC_Double");

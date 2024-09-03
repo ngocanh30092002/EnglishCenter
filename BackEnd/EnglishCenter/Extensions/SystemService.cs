@@ -51,7 +51,17 @@ namespace EnglishCenter.Extensions
             builder.Services.AddHttpContextAccessor();
             builder.Services.Configure<MailSetting>(builder.Configuration.GetSection("MailSettings"));
             builder.Services.AddSession();
+            builder.Services.AddSignalR(e =>
+            {
+                e.MaximumReceiveMessageSize = 102400000;
+            });
+
             builder.Services.AddMvc();
+            builder.Services.AddControllers().AddNewtonsoftJson(options =>
+                options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+            );
+
+            builder.Services.AddAutoMapper(typeof(AutoMapperProfile).Assembly);
 
             return services;
         }
