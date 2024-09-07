@@ -1,6 +1,5 @@
 ﻿using EnglishCenter.Database;
 using EnglishCenter.Models;
-using EnglishCenter.Models.RequestModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -47,9 +46,9 @@ namespace EnglishCenter
             await Clients.Group(groupName).ReceiveMessage(groupName, message);
         }
 
-        public async Task SendNotiToGroup(string groupName, Notification model)
+        public async Task SendNotiToGroup(string groupName)
         {
-            await Clients.Group(groupName).ReceiveNotification(model);
+            await Clients.Group(groupName).ReceiveNotification();
         }
 
         public async Task JoinGroup(string groupName)

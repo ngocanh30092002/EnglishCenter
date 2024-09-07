@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Net;
 using EnglishCenter.Global.Enum;
 using EnglishCenter.Helpers;
 using EnglishCenter.Models;
@@ -20,7 +21,7 @@ namespace EnglishCenter.Controllers.Account
             _accountRepo = accountRepo;
         }
 
-        [HttpPost("Login")]
+        [HttpPost("login")]
         public async Task<IActionResult> LoginAsync([FromBody]LoginModel model)
         {
             if (!ModelState.IsValid)
@@ -33,7 +34,7 @@ namespace EnglishCenter.Controllers.Account
                 var response = new Response()
                 {
                     Success = false,
-                    Message = string.Join("<br>", errorMessage),
+                    Message = errorMessage,
                     StatusCode = System.Net.HttpStatusCode.BadRequest
                 };
 
@@ -59,7 +60,7 @@ namespace EnglishCenter.Controllers.Account
             return await loginResponse.ChangeActionAsync();
         }
 
-        [HttpPost("Register")]
+        [HttpPost("register")]
         public async Task<IActionResult> RegisterAsync([FromForm] RegisterModel model)
         {
             if (!ModelState.IsValid)
@@ -69,13 +70,32 @@ namespace EnglishCenter.Controllers.Account
                                              .Select(err => err.ErrorMessage)
                                              .ToList();
 
-                var response = new Response() { Success = false, Message = string.Join("<br>", errorMessage), StatusCode = System.Net.HttpStatusCode.BadRequest };
+                var response = new Response() { Success = false, Message = errorMessage, StatusCode = System.Net.HttpStatusCode.BadRequest };
                 return await response.ChangeActionAsync();
             }
 
             var registerResponse = await _accountRepo.RegisterAsync(model);
 
             return await registerResponse.ChangeActionAsync();
+        }
+
+        [HttpPost("Forgot-Password")]
+        public async Task<IActionResult> ForgotPasswordAsync([FromBody] string email)
+        {
+            if (string.IsNullOrEmpty(email))
+            {
+                return BadRequest(new { Message = "Email is required" });
+            }
+
+            var emailAttribute = new EmailAddressAttribute();
+            if (!emailAttribute.IsValid(email))
+            {
+                return BadRequest(new { Message = "Invalid email format" });
+            }
+
+            var response = await _accountRepo.ForgotPasswordAsync(email);
+
+            return await response.ChangeActionAsync();
         }
     }
 }

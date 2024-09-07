@@ -2,13 +2,11 @@
 using EnglishCenter.Database;
 using EnglishCenter.Models;
 using EnglishCenter.Models.DTO;
-using EnglishCenter.Models.RequestModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using NuGet.Protocol;
 
 namespace EnglishCenter.Controllers.HomePage
 {
@@ -32,7 +30,7 @@ namespace EnglishCenter.Controllers.HomePage
 
         [Authorize]
         [HttpPost("send-noti")]
-        public async Task<IActionResult> SendNotification([FromBody] NotiModel model, [FromQuery] string groupName)
+        public async Task<IActionResult> SendNotification([FromBody] NotiDtoModel model, [FromQuery] string groupName)
         {
             var group = _context.Groups
                                 .Include(g => g.Students)
@@ -52,19 +50,20 @@ namespace EnglishCenter.Controllers.HomePage
             await _context.SaveChangesAsync();
 
             var newNotiModel = _context.Notifications
-                                       .Include(g => g.Students)
-                                       .OrderByDescending(n => n.Time)
-                                       .FirstOrDefault(n => n.Title == model.Title);
-
+                                    .OrderByDescending(n => n.Time)
+                                    .FirstOrDefault(n => n.Title == model.Title);
             foreach (var student in group.Students)
             {
-                newNotiModel.Students.Add(student);
+                _context.NotiStudents.Add(new NotiStudent()
+                {
+                    IsRead = false,
+                    Student = student,
+                    Notification = newNotiModel
+                });
             }
 
             await _context.SaveChangesAsync();
-            var notiDto = _mapper.Map<NotiDtoModel>(newNotiModel);
-
-            await _hubContext.Clients.Group(groupName).SendAsync("ReceiveNotification", JsonConvert.SerializeObject(notiDto));
+            await _hubContext.Clients.Group(groupName).SendAsync("ReceiveNotification");
             return Ok();
         }
         
@@ -74,29 +73,41 @@ namespace EnglishCenter.Controllers.HomePage
         {
             var userId = User.FindFirst("Id")?.Value;
 
-            var userNoties = await _context.Students
-                                        .Include(s => s.Notifications)
-                                        .FirstOrDefaultAsync(s => s.UserId == userId);
+            var userNoties = await _context.NotiStudents
+                                        .Where(ns => ns.UserId == userId)
+                                        .Include(ns => ns.Notification)
+                                        .Select(ns => new NotiDtoModel
+                                        {
+                                            NotiStuId = ns.NotiStuId,
+                                            Title = ns.Notification.Title,
+                                            Description = ns.Notification.Description,
+                                            Image = ns.Notification.Image,
+                                            IsRead = ns.IsRead,
+                                            LinkUrl= ns.Notification.LinkUrl,
+                                            Time = ns.Notification.Time
+                                        })
+                                        .ToListAsync();
 
-            if(userNoties == null)
+            if (userNoties == null)
             {
                 return NotFound();
             }
 
-            return Ok(JsonConvert.SerializeObject(_mapper.Map<List<NotiDtoModel>>(userNoties.Notifications.OrderByDescending(n => n.Time))));
+            return Ok(JsonConvert.SerializeObject(userNoties.OrderByDescending(un => un.Time)));
+
         }
 
-        [HttpPatch("mark-read/{notiId}")]
-        public async Task<IActionResult> MarkReadNotification(long notiId)
+        [HttpPatch("mark-read/{notiStuId}")]
+        public async Task<IActionResult> MarkReadNotification(long notiStuId)
         {
-            var notification = await _context.Notifications.FindAsync(notiId);
+            var notiStudent = await _context.NotiStudents.FindAsync(notiStuId);
 
-            if (notification == null)
+            if (notiStudent == null)
             {
                 return NotFound();
             }
 
-            notification.IsRead = true;
+            notiStudent.IsRead = true;
             await _context.SaveChangesAsync();
 
             return Ok();
@@ -107,16 +118,16 @@ namespace EnglishCenter.Controllers.HomePage
         {
             var userId = User.FindFirst("Id")?.Value;
 
-            var userInfo = await _context.Students
-                                   .Include(s => s.Notifications)
-                                   .FirstOrDefaultAsync(s => s.UserId == userId);
+            var notiStudents = await _context.NotiStudents
+                                   .Where(ns => ns.UserId == userId)
+                                   .ToListAsync();
 
-            if(userInfo == null)
+            if (notiStudents == null || !notiStudents.Any())
             {
                 return NotFound();
             }
 
-            foreach(var noti in userInfo.Notifications)
+            foreach (var noti in notiStudents)
             {
                 noti.IsRead = true;
             }

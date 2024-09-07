@@ -3,7 +3,7 @@ namespace EnglishCenter.Models.DTO
 {
     public class NotiDtoModel
     {
-        public long NotiId { get; set; }
+        public long? NotiStuId { get; set; }
 
         public string Title { get; set; }
 

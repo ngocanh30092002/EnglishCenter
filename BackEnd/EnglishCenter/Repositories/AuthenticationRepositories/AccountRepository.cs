@@ -3,6 +3,7 @@
 using System.Net;
 using System.Security.Claims;
 using System.Web;
+using Azure.Core;
 using EnglishCenter.Controllers.AuthenticationPage;
 using EnglishCenter.Database;
 using EnglishCenter.Global;
@@ -53,6 +54,58 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
             _mailHelper = mailHelper;
             _linkGenerator = linkGenerator;
             _httpContextAccessor = httpContextAccessor;
+        }
+
+        public async Task<Response> ForgotPasswordAsync(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if(user == null)
+            {
+                return new Response
+                {
+                    StatusCode = HttpStatusCode.NotFound,
+                    Message = "User isn't exits"
+                };
+            }
+
+            var passwordToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var newPassword = GlobalMethods.GeneratePassword(10);
+
+            var result = await _userManager.ResetPasswordAsync(user, passwordToken, newPassword);
+
+            if (!result.Succeeded)
+            {
+                return new Response
+                {
+                    StatusCode = HttpStatusCode.BadRequest,
+                    Message = result.Errors.Select(e => e.Description).ToList(),
+                };
+            }
+
+
+            // Send Verify code to personal email
+
+            if (_httpContextAccessor.HttpContext != null)
+            {
+                string htmlCode = $@"Your new password is {newPassword} Please change your password as soon as possible..";
+                string subjectTitle = "Renew Password";
+
+                _ = _mailHelper.SendHtmlMailAsync(new MailContent()
+                {
+                    Body = htmlCode,
+                    From = _configuration["MailSettings:Mail"] ?? "",
+                    To = email,
+                    Subject = subjectTitle
+                });
+            }
+
+            return new Response
+            {
+                StatusCode = HttpStatusCode.OK,
+                Success = true,
+                Message = "Success",
+            };
         }
 
         public async Task<Response> LoginAsync(LoginModel model)
@@ -131,7 +184,7 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
             {
                 return new Response()
                 {
-                    Message = string.Join("<br>", result.Errors.Select(e => e.Description).ToList()),
+                    Message = result.Errors.Select(e => e.Description).ToList(),
                     StatusCode = HttpStatusCode.InternalServerError
                 };
             }

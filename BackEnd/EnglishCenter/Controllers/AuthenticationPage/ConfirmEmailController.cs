@@ -38,7 +38,7 @@ namespace EnglishCenter.Controllers.AuthenticationPage
             {
                 var response = new Models.Response()
                 {
-                    Message = string.Join("<br>", result.Errors.Select(e => e.Description).ToList()),
+                    Message = result.Errors.Select(e => e.Description).ToList(),
                     StatusCode = HttpStatusCode.BadRequest
                 };
 

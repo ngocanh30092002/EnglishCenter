@@ -31,7 +31,7 @@ namespace EnglishCenter.Controllers
                 var response = new Response()
                 {
                     Success = false,
-                    Message = string.Join("<br>", errorMessage),
+                    Message = errorMessage,
                     StatusCode = System.Net.HttpStatusCode.BadRequest
                 };
 
@@ -56,7 +56,7 @@ namespace EnglishCenter.Controllers
                 var response = new Response()
                 {
                     Success = false,
-                    Message = string.Join("<br>", errorMessage),
+                    Message = errorMessage,
                     StatusCode = System.Net.HttpStatusCode.BadRequest
                 };
 

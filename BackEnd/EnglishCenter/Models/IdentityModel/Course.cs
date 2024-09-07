@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.Models;
 
@@ -18,7 +15,7 @@ public partial class Course
     [StringLength(200)]
     public string? Description { get; set; }
 
-    public int? NumLession { get; set; }
+    public int? NumLesson { get; set; }
 
     public int? EntryPoint { get; set; }
 

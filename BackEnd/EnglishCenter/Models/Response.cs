@@ -9,7 +9,7 @@ namespace EnglishCenter.Models
         public bool Success { set; get; } = false;
         public string Token { set; get; } = string.Empty;
         public string RefreshToken { set; get; } = string.Empty;
-        public string Message { set; get; } = string.Empty;
+        public object Message { set; get; } = string.Empty;
         public string RedirectLink { set; get; }  = string.Empty;
         public Dictionary<string,string> UrlQueryParams { set; get; }
 

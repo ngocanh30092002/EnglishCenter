@@ -33,6 +33,8 @@ public partial class EnglishCenterContext : IdentityDbContext<User>
 
     public virtual DbSet<Notification> Notifications { set; get; }
 
+    public virtual DbSet<NotiStudent> NotiStudents { set; get; }
+
     public virtual DbSet<Enrollment> Enrollments { get; set; }
 
     public virtual DbSet<QuesLcAudio> QuesLcAudios { get; set; }
@@ -140,22 +142,16 @@ public partial class EnglishCenterContext : IdentityDbContext<User>
             entity.HasOne(d => d.User).WithMany(p => p.Enrollments).HasConstraintName("FK_Enrollment_Students");
         });
 
-        modelBuilder.Entity<Notification>(entity =>
+        modelBuilder.Entity<NotiStudent>(entity =>
         {
-            entity.HasMany(n => n.Students)
-                  .WithMany(s => s.Notifications)
-                  .UsingEntity<Dictionary<string, object>>(
-                    "NotiStudents",
-                    j => j.HasOne<Student>()
-                          .WithMany()
-                          .HasForeignKey("UserId"),
-                    j => j.HasOne<Notification>()
-                          .WithMany()
-                          .HasForeignKey("NotiId"),
-                    c => {
-                        c.HasKey("NotiId", "UserId");
-                        c.ToTable("NotiStudents");
-                    });
+            entity.Property(e => e.NotiStuId).ValueGeneratedOnAdd();
+
+            entity.HasOne(n => n.Student).WithMany(s => s.NotiStudents)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_NotiStudent_Students");
+
+            entity.HasOne(n => n.Notification).WithMany(n => n.NotiStudents)
+                .HasConstraintName("FK_NotiStudent_Notifications");
         });
 
         modelBuilder.Entity<QuestionType>(entity =>

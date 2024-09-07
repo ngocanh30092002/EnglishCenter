@@ -1,5 +1,4 @@
 ﻿using EnglishCenter.Models;
-using EnglishCenter.Models.RequestModel;
 
 namespace EnglishCenter
 {
@@ -8,7 +7,7 @@ namespace EnglishCenter
         Task JoinGroup(string groupName);
         Task LeaveGroup(string groupName);
         Task ReceiveMessage(string groupName, string messsage);
-        Task ReceiveNotification(Notification model);
+        Task ReceiveNotification();
         Task ReceiveError(string errorMessage);
     }
 }
