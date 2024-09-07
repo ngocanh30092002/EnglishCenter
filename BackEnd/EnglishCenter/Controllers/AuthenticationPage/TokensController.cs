@@ -9,12 +9,12 @@ namespace EnglishCenter.Controllers.AuthenticationPage
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class TokenController : ControllerBase
+    public class TokensController : ControllerBase
     {
         private readonly IJsonWebTokenRepository _jwtRepo;
         private readonly UserManager<User> _userManager;
 
-        public TokenController(
+        public TokensController(
             IJsonWebTokenRepository jwtRepo,
             UserManager<User> userManager) 
         {
@@ -22,7 +22,7 @@ namespace EnglishCenter.Controllers.AuthenticationPage
             _userManager = userManager;
         }
 
-        [HttpPost("renew-token")]
+        [HttpPost("renew")]
         public async Task<IActionResult> RenewAccessTokenAsync([FromBody] TokenRequest token)
         {
             if (token == null) return NotFound();
@@ -51,7 +51,7 @@ namespace EnglishCenter.Controllers.AuthenticationPage
             return await renewResult.ChangeActionAsync();
         }
 
-        [HttpPost("verify-token")]
+        [HttpPost("verify")]
         public async Task<IActionResult> VerifyAccessTokenAsync([FromBody] string accessToken)
         {
             var isValid = _jwtRepo.VerifyAccessToken(accessToken);

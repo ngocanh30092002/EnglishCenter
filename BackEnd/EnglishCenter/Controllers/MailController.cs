@@ -18,7 +18,7 @@ namespace EnglishCenter.Controllers
             _mailHelper = mailHelper;
         }
 
-        [HttpPost("send-html-mail")]
+        [HttpPost("send-html")]
         public async Task<IActionResult> SendHtmlMail(MailContent mailContent)
         {
             if (!ModelState.IsValid)
@@ -43,7 +43,7 @@ namespace EnglishCenter.Controllers
             return result ? Ok() : BadRequest();
         }
 
-        [HttpPost("send-mail")]
+        [HttpPost("send-text")]
         public async Task<IActionResult> SendMail(MailContent mailContent)
         {
             if (!ModelState.IsValid)

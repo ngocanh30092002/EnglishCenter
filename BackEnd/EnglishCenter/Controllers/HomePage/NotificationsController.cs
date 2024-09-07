@@ -10,15 +10,16 @@ using Newtonsoft.Json;
 
 namespace EnglishCenter.Controllers.HomePage
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
-    public class NotificationController : ControllerBase
+    public class NotificationsController : ControllerBase
     {
         private readonly EnglishCenterContext _context;
         private readonly IHubContext<NotificationHub> _hubContext;
         private readonly IMapper _mapper;
 
-        public NotificationController(
+        public NotificationsController(
             IHubContext<NotificationHub> hubContext,
             EnglishCenterContext context,
             IMapper mapper) 
@@ -28,8 +29,7 @@ namespace EnglishCenter.Controllers.HomePage
             _mapper = mapper;
         }
 
-        [Authorize]
-        [HttpPost("send-noti")]
+        [HttpPost("")]
         public async Task<IActionResult> SendNotification([FromBody] NotiDtoModel model, [FromQuery] string groupName)
         {
             var group = _context.Groups
@@ -67,8 +67,7 @@ namespace EnglishCenter.Controllers.HomePage
             return Ok();
         }
         
-        [Authorize]
-        [HttpGet("get-all-notifications")]
+        [HttpGet("")]
         public async Task<IActionResult> GetNotifications()
         {
             var userId = User.FindFirst("Id")?.Value;
@@ -97,7 +96,7 @@ namespace EnglishCenter.Controllers.HomePage
 
         }
 
-        [HttpPatch("mark-read/{notiStuId}")]
+        [HttpPatch("{notiStuId}/read")]
         public async Task<IActionResult> MarkReadNotification(long notiStuId)
         {
             var notiStudent = await _context.NotiStudents.FindAsync(notiStuId);
@@ -113,7 +112,7 @@ namespace EnglishCenter.Controllers.HomePage
             return Ok();
         }
 
-        [HttpPatch("mark-read-all")]
+        [HttpPatch("read-all")]
         public async Task<IActionResult> MarkReadAllNotification()
         {
             var userId = User.FindFirst("Id")?.Value;

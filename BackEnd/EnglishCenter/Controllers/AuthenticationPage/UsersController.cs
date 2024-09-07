@@ -8,16 +8,16 @@ namespace EnglishCenter.Controllers.AuthenticationPage
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
-    public class UserController : ControllerBase
+    public class UsersController : ControllerBase
     {
         private readonly IUserRepository _userRepo;
 
-        public UserController(IUserRepository userRepo) 
+        public UsersController(IUserRepository userRepo) 
         {
             _userRepo = userRepo;
         }
 
-        [HttpPost("uploads/profile-image")]
+        [HttpPost("profile-image")]
         public async Task<IActionResult> ChangeUserImageAsync(IFormFile file)
         {
             var userId = User.FindFirst("Id")?.Value ?? "";
@@ -36,7 +36,7 @@ namespace EnglishCenter.Controllers.AuthenticationPage
             return await response.ChangeActionAsync();
         }
 
-        [HttpPost("uploads/background-image")]
+        [HttpPost("background-image")]
         public async Task<IActionResult> ChangeBackgroundImageAsync(IFormFile file)
         {
             var userId = User.FindFirst("Id")?.Value ?? "";
@@ -55,7 +55,7 @@ namespace EnglishCenter.Controllers.AuthenticationPage
             return await response.ChangeActionAsync();
         }
 
-        [HttpPost("change-user-info")]
+        [HttpPost("user-info")]
         public async Task<IActionResult> ChangeUserInfoAsync([FromForm] UserInfoDtoModel model)
         {
             var userId = User.FindFirst("Id")?.Value ?? "";
@@ -65,7 +65,7 @@ namespace EnglishCenter.Controllers.AuthenticationPage
             return await response.ChangeActionAsync();
         }
 
-        [HttpPost("change-user-background")]
+        [HttpPost("user-background")]
         public async Task<IActionResult> ChangeUserBackgroundAsync([FromForm] UserBackgroundDtoModel model)
         {
             var userId = User.FindFirst("Id")?.Value ?? "";
@@ -75,7 +75,7 @@ namespace EnglishCenter.Controllers.AuthenticationPage
             return await response.ChangeActionAsync();
         }
 
-        [HttpGet("get-user-infor")]
+        [HttpGet("user-info")]
         public async Task<IActionResult> GetUserInforAsync()
         {
             var userId = User.FindFirst("Id")?.Value ?? "";
@@ -85,7 +85,7 @@ namespace EnglishCenter.Controllers.AuthenticationPage
             return await response.ChangeActionAsync();
         }
 
-        [HttpGet("get-user-background-info")]
+        [HttpGet("user-background-info")]
         public async Task<IActionResult> GetUserBackgroundInfoAsync()
         {
             var userId = User.FindFirst("Id")?.Value ?? "";
@@ -95,7 +95,7 @@ namespace EnglishCenter.Controllers.AuthenticationPage
             return await response.ChangeActionAsync();
         }
 
-        [HttpPost("change-password")]
+        [HttpPost("password")]
         public async Task<IActionResult> ChangePasswordAsync([FromForm] string currentPassword, [FromForm] string newPassword)
         {
             var userId = User.FindFirst("Id")?.Value ?? "";

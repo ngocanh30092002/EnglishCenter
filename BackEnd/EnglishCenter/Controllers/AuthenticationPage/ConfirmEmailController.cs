@@ -23,7 +23,7 @@ namespace EnglishCenter.Controllers.AuthenticationPage
         }
 
 
-        [HttpGet("confirm-email")]
+        [HttpGet("confirm")]
         public async Task<IActionResult> ExecuteConfirmEmailAsync(string userId, string code, string returnUrl)
         {
             var currentUser = await _userManager.FindByIdAsync(userId);

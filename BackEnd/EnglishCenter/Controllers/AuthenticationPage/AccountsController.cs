@@ -1,22 +1,18 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.Net;
-using EnglishCenter.Global.Enum;
 using EnglishCenter.Helpers;
 using EnglishCenter.Models;
 using EnglishCenter.Repositories.IRepositories;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
-namespace EnglishCenter.Controllers.Account
+namespace EnglishCenter.Controllers.AuthenticationPage
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AccountController : ControllerBase
+    public class AccountsController : ControllerBase
     {
         private readonly IAccountRepository _accountRepo;
 
-        public AccountController(IAccountRepository accountRepo)
+        public AccountsController(IAccountRepository accountRepo)
         {
             _accountRepo = accountRepo;
         }
@@ -79,8 +75,8 @@ namespace EnglishCenter.Controllers.Account
             return await registerResponse.ChangeActionAsync();
         }
 
-        [HttpPost("Forgot-Password")]
-        public async Task<IActionResult> ForgotPasswordAsync([FromBody] string email)
+        [HttpPost("renew-password")]
+        public async Task<IActionResult> RenewPasswordAsync([FromBody] string email)
         {
             if (string.IsNullOrEmpty(email))
             {
@@ -93,7 +89,7 @@ namespace EnglishCenter.Controllers.Account
                 return BadRequest(new { Message = "Invalid email format" });
             }
 
-            var response = await _accountRepo.ForgotPasswordAsync(email);
+            var response = await _accountRepo.RenewPasswordAsync(email);
 
             return await response.ChangeActionAsync();
         }

@@ -10,18 +10,18 @@ namespace EnglishCenter.Controllers.CoursePage
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CourseController : ControllerBase
+    public class CoursesController : ControllerBase
     {
         private readonly IMapper _mapper;
         private readonly ICourseRepository _courseRepo;
 
-        public CourseController(ICourseRepository courseRepo ,IMapper mapper)
+        public CoursesController(ICourseRepository courseRepo ,IMapper mapper)
         {
             _mapper = mapper;
             _courseRepo = courseRepo;
         }
 
-        [HttpGet("get-courses")]
+        [HttpGet("")]
         public async Task<IActionResult> GetCoursesAsync()
         {
             var courses = await _courseRepo.GetCoursesAsync();
@@ -31,7 +31,7 @@ namespace EnglishCenter.Controllers.CoursePage
             return Ok(coursesDto);
         }
 
-        [HttpGet("get-courses/{courseId}")]
+        [HttpGet("{courseId}")]
         public async Task<IActionResult> GetCourseAsync([FromRoute] string courseId)
         {
             var course = await _courseRepo.GetCourseAsync(courseId);
@@ -49,7 +49,7 @@ namespace EnglishCenter.Controllers.CoursePage
             return Ok(courseDto);
         }
 
-        [HttpPost("add-course")]
+        [HttpPost("")]
         public async Task<IActionResult> CreateCourseAsync([FromBody] CourseDtoModel model)
         {
             var courseInfo = _mapper.Map<Course>(model);
@@ -59,7 +59,7 @@ namespace EnglishCenter.Controllers.CoursePage
             return await response.ChangeActionAsync();
         }
 
-        [HttpPatch("update-course/{courseId}")]
+        [HttpPut("{courseId}")]
         public async Task<IActionResult> UpdateCourseAsync([FromRoute] string courseId, [FromBody] CourseDtoModel model)
         {
             var courseInfo = _mapper.Map<Course>(model);
@@ -69,7 +69,7 @@ namespace EnglishCenter.Controllers.CoursePage
             return await response.ChangeActionAsync();
         }
 
-        [HttpDelete("delete-course/{courseId}")]
+        [HttpDelete("{courseId}")]
         public async Task<IActionResult> DeleteCourseAsync([FromRoute] string courseId)
         {
             var response = await _courseRepo.DeleteCourseAsync(courseId);
@@ -77,8 +77,8 @@ namespace EnglishCenter.Controllers.CoursePage
             return await response.ChangeActionAsync();
         }
 
-        [HttpPatch("change-priority")]
-        public async Task<IActionResult> ChangePriorityAsync([FromQuery] string courseId, [FromQuery] int priority)
+        [HttpPatch("{courseId}/priority/{priority}")]
+        public async Task<IActionResult> ChangePriorityAsync([FromRoute] string courseId, [FromRoute] int priority)
         {
             var response = await _courseRepo.ChangePriorityAsync(courseId, priority);
 

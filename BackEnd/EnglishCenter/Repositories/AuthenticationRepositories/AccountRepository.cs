@@ -56,7 +56,7 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<Response> ForgotPasswordAsync(string email)
+        public async Task<Response> RenewPasswordAsync(string email)
         {
             var user = await _userManager.FindByEmailAsync(email);
 
