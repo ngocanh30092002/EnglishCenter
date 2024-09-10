@@ -54,7 +54,7 @@ namespace EnglishCenter.Controllers.CoursePage
         }
 
         [HttpPatch("image/{courseId}")]
-        public async Task<IActionResult> UploadCourseImageAsync([FromRoute] string courseId,[FromForm] IFormFile file)
+        public async Task<IActionResult> UploadCourseImageAsync([FromRoute] string courseId, IFormFile file)
         {
             var response =  await _courseRepo.UploadCourseImageAsync(courseId, file);
 

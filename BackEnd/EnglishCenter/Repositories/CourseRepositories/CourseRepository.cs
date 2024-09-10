@@ -26,8 +26,6 @@ namespace EnglishCenter.Repositories
         {
             var courses = await _context.Courses.ToListAsync();
 
-            var test = _mapper.Map<CourseDtoModel>(courses[0]);
-
             var courseDtoModels = _mapper.Map<List<CourseDtoModel>>(courses);
 
             return new Response
