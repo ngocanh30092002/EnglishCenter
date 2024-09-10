@@ -24,37 +24,23 @@ namespace EnglishCenter.Controllers.CoursePage
         [HttpGet("")]
         public async Task<IActionResult> GetCoursesAsync()
         {
-            var courses = await _courseRepo.GetCoursesAsync();
+            var response = await _courseRepo.GetCoursesAsync();
 
-            var coursesDto = _mapper.Map<List<CourseDtoModel>>(courses);
-
-            return Ok(coursesDto);
+            return await response.ChangeActionAsync();
         }
 
         [HttpGet("{courseId}")]
         public async Task<IActionResult> GetCourseAsync([FromRoute] string courseId)
         {
-            var course = await _courseRepo.GetCourseAsync(courseId);
+            var response = await _courseRepo.GetCourseAsync(courseId);
 
-            if (course == null)
-            {
-                return BadRequest(new
-                {
-                    Message = "Couldn't find any courses"
-                });
-            }
-
-            var courseDto = _mapper.Map<CourseDtoModel>(course);
-
-            return Ok(courseDto);
+            return await response.ChangeActionAsync();
         }
 
         [HttpPost("")]
-        public async Task<IActionResult> CreateCourseAsync([FromBody] CourseDtoModel model)
+        public async Task<IActionResult> CreateCourseAsync([FromForm] CourseDtoModel model)
         {
-            var courseInfo = _mapper.Map<Course>(model);
-
-            var response = await _courseRepo.CreateCourseAsync(courseInfo);
+            var response = await _courseRepo.CreateCourseAsync(model);
 
             return await response.ChangeActionAsync();
         }
@@ -62,9 +48,15 @@ namespace EnglishCenter.Controllers.CoursePage
         [HttpPut("{courseId}")]
         public async Task<IActionResult> UpdateCourseAsync([FromRoute] string courseId, [FromBody] CourseDtoModel model)
         {
-            var courseInfo = _mapper.Map<Course>(model);
+            var response = await _courseRepo.UpdateCourseAsync(courseId, model);
 
-            var response = await _courseRepo.UpdateCourseAsync(courseId, courseInfo);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpPatch("image/{courseId}")]
+        public async Task<IActionResult> UploadCourseImageAsync([FromRoute] string courseId,[FromForm] IFormFile file)
+        {
+            var response =  await _courseRepo.UploadCourseImageAsync(courseId, file);
 
             return await response.ChangeActionAsync();
         }

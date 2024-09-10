@@ -35,6 +35,7 @@
     <Folder Include="Migrations\" />
     <Folder Include="Models\RequestModel\" />
     <Folder Include="Models\Student_Role\" />
+    <Folder Include="Resolver\" />
     <Folder Include="wwwroot\notifications\images\" />
   </ItemGroup>
 

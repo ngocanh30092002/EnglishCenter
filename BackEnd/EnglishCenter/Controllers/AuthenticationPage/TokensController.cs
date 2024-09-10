@@ -52,7 +52,7 @@ namespace EnglishCenter.Controllers.AuthenticationPage
         }
 
         [HttpPost("verify")]
-        public async Task<IActionResult> VerifyAccessTokenAsync([FromBody] string accessToken)
+        public IActionResult VerifyAccessTokenAsync([FromBody] string accessToken)
         {
             var isValid = _jwtRepo.VerifyAccessToken(accessToken);
 

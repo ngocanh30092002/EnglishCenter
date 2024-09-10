@@ -23,6 +23,9 @@ public partial class Course
 
     public int? Priority { get; set; }
 
+    [StringLength(300)]
+    public string? Image { set; get; }
+
     [InverseProperty("Course")]
     public virtual ICollection<Assignment> Assignments { get; set; } = new List<Assignment>();
 

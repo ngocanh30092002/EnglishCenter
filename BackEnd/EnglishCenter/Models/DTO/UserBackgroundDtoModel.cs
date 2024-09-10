@@ -10,5 +10,9 @@ namespace EnglishCenter.Models.DTO
         public string? Description { set; get; }
 
         public List<string>? Roles { set; get; }
+
+        public string? Image { set; get; }
+
+        public string? BackgroundImage { set; get; }
     }
 }

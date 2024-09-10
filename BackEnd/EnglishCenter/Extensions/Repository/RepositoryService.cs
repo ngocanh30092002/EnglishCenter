@@ -1,6 +1,7 @@
 ﻿using EnglishCenter.Helpers;
 using EnglishCenter.Repositories;
 using EnglishCenter.Repositories.AuthenticationRepositories;
+using EnglishCenter.Repositories.HomeRepositories;
 using EnglishCenter.Repositories.IRepositories;
 
 namespace EnglishCenter.Extensions.Repository
@@ -13,6 +14,7 @@ namespace EnglishCenter.Extensions.Repository
             services.AddScoped<IAccountRepository, AccountRepository>();
             services.AddScoped<ICourseRepository, CourseRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IEventRepository, EventRepository>();
             services.AddScoped<IJsonWebTokenRepository, JsonWebTokenRepository>();
             services.AddScoped<IExternalLoginRepository, ExternalLoginRepository>();
             services.AddScoped<MailHelper>();

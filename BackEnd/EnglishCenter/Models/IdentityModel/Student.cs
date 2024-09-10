@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using EnglishCenter.Models.IdentityModel;
 using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.Models;
@@ -54,4 +55,7 @@ public partial class Student
 
     [InverseProperty("Student")]
     public virtual ICollection<NotiStudent> NotiStudents { set; get; } = new List<NotiStudent>();
+
+    [InverseProperty("Student")]
+    public virtual ICollection<ScheduleEvent> ScheduleEvents { get; set; } = new List<ScheduleEvent>();
 }

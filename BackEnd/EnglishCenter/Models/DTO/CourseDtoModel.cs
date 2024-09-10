@@ -16,5 +16,7 @@ namespace EnglishCenter.Models.DTO
         public int? EntryPoint { set; get; }
         public int? StandardPoint { get; set; }
         public int? Priority { get; set; }
+        public IFormFile? Image { set; get; }
+        public string? ImageUrl { set; get; }
     }
 }

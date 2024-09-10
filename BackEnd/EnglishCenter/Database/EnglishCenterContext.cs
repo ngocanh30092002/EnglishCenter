@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using EnglishCenter.Models;
+using EnglishCenter.Models.IdentityModel;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -64,6 +65,8 @@ public partial class EnglishCenterContext : IdentityDbContext<User>
     public virtual DbSet<SubRcTriple> SubRcTriples { get; set; }
 
     public virtual DbSet<Group> Groups { set; get; }
+
+    public virtual DbSet<ScheduleEvent> ScheduleEvents { set; get; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("Name=ConnectionStrings:EnglishCenter");

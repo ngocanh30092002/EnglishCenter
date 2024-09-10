@@ -18,7 +18,7 @@ namespace EnglishCenter.Controllers.AuthenticationPage
         }
 
         [HttpPost("profile-image")]
-        public async Task<IActionResult> ChangeUserImageAsync(IFormFile file)
+        public async Task<IActionResult> ChangeUserImageAsync([FromForm] IFormFile file)
         {
             var userId = User.FindFirst("Id")?.Value ?? "";
 

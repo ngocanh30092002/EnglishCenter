@@ -15,13 +15,20 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
         private readonly EnglishCenterContext _context;
         private readonly IMapper _mapper;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public UserRepository(EnglishCenterContext context,UserManager<User> userManager, RoleManager<IdentityRole> roleManager, IMapper mapper) 
+        public UserRepository(
+            EnglishCenterContext context,
+            UserManager<User> userManager,
+            RoleManager<IdentityRole> roleManager,
+            IMapper mapper,
+            IWebHostEnvironment webHostEnvironment) 
         {
             _userManager = userManager;
             _context = context;
             _mapper = mapper;
             _roleManager = roleManager;
+            _webHostEnvironment = webHostEnvironment;
         }
         public async Task<Response> ChangeUserImageAsync(IFormFile file, string userId)
         {
@@ -37,7 +44,6 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
 
             var uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "users", "profiles");
             var fileName = $"{DateTime.Now.Ticks}_{file.FileName}";
-
             var result = await UploadHelper.UploadFileAsync(file, uploadFolder, fileName);
 
             if (!string.IsNullOrEmpty(result))
@@ -51,7 +57,7 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
             }
 
             var student = await _context.Students.FindAsync(userId);
-            if(student == null)
+            if (student == null)
             {
                 return new Response()
                 {
@@ -61,12 +67,15 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
                 };
             }
 
-            if (File.Exists(student.Image))
+            var wwwRootPath = _webHostEnvironment.WebRootPath;
+            var previousImage = Path.Combine(wwwRootPath, student.Image);
+
+            if (File.Exists(previousImage))
             {
-                File.Delete(student.Image);
+                File.Delete(previousImage);
             }
 
-            student.Image = fileName;
+            student.Image = Path.Combine("users", "profiles", fileName);
           
             await _context.SaveChangesAsync();
 
@@ -91,7 +100,6 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
 
             var uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "users", "backgrounds");
             var fileName = $"{DateTime.Now.Ticks}_{file.FileName}";
-
             var result = await UploadHelper.UploadFileAsync(file, uploadFolder, fileName);
 
             if (!string.IsNullOrEmpty(result))
@@ -115,12 +123,15 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
                 };
             }
 
-            if (File.Exists(student.BackgroundImage))
+            var wwwRootPath = _webHostEnvironment.WebRootPath;
+            var previousImage = Path.Combine(wwwRootPath, student.BackgroundImage);
+
+            if (File.Exists(previousImage))
             {
-                File.Delete(student.BackgroundImage);
+                File.Delete(previousImage);
             }
 
-            student.BackgroundImage = fileName;
+            student.BackgroundImage = Path.Combine("users", "backgrounds", fileName);
 
             await _context.SaveChangesAsync();
 
@@ -360,12 +371,8 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
 
             var roleOfUser = await _userManager.GetRolesAsync(user);
 
-            var userBackgroundDto = new UserBackgroundDtoModel()
-            {
-                UserName = student.UserName,
-                Description = student.Description,
-                Roles = roleOfUser.ToList()
-            };
+            var userBackgroundDto = _mapper.Map<UserBackgroundDtoModel>(student);
+            userBackgroundDto.Roles = roleOfUser.ToList();
 
             return new Response()
             {

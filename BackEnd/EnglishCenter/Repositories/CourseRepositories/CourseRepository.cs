@@ -1,6 +1,10 @@
-﻿using EnglishCenter.Database;
+﻿using AutoMapper;
+using EnglishCenter.Database;
+using EnglishCenter.Helpers;
 using EnglishCenter.Models;
+using EnglishCenter.Models.DTO;
 using EnglishCenter.Repositories.IRepositories;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.Repositories
@@ -8,24 +12,52 @@ namespace EnglishCenter.Repositories
     public class CourseRepository : ICourseRepository
     {
         private readonly EnglishCenterContext _context;
+        private readonly IMapper _mapper;
+        private readonly IWebHostEnvironment _webHost;
 
-        public CourseRepository(EnglishCenterContext context) 
+        public CourseRepository(EnglishCenterContext context, IMapper mapper, IWebHostEnvironment webHost) 
         {
             _context = context;
+            _mapper = mapper;
+            _webHost = webHost;
         }
 
-        public async Task<List<Course>> GetCoursesAsync()
+        public async Task<Response> GetCoursesAsync()
         {
             var courses = await _context.Courses.ToListAsync();
 
-            return courses;
+            var test = _mapper.Map<CourseDtoModel>(courses[0]);
+
+            var courseDtoModels = _mapper.Map<List<CourseDtoModel>>(courses);
+
+            return new Response
+            {
+                Success = true,
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = courseDtoModels
+            };
         }
 
-        public async Task<Course> GetCourseAsync(string courseId)
+        public async Task<Response> GetCourseAsync(string courseId)
         {
             var course = await _context.Courses.FindAsync(courseId);
 
-            return course;
+            if (course == null)
+            {
+                return new Response()
+                {
+                    Success = false,
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any courses"
+                };
+            }
+
+            return new Response()
+            {
+                Success = true,
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = _mapper.Map<CourseDtoModel>(course)
+            };
         }
 
         public async Task<Response> ChangePriorityAsync(string courseId, int priority)
@@ -101,11 +133,9 @@ namespace EnglishCenter.Repositories
             };
         }
 
-        public async Task<Response> CreateCourseAsync(Course model)
+        public async Task<Response> CreateCourseAsync(CourseDtoModel model)
         {
             var course = await _context.Courses.FindAsync(model.CourseId);
-
-            var coursePriority = await _context.Courses.FirstOrDefaultAsync(c => c.Priority == model.Priority);
 
             if (course != null)
             {
@@ -117,17 +147,24 @@ namespace EnglishCenter.Repositories
                 };
             }
 
-            if(coursePriority != null)
+            var uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "courses", "images");
+            var fileName = $"{DateTime.Now.Ticks}_{model.Image?.FileName}";
+            var result = await UploadHelper.UploadFileAsync(model.Image, uploadFolder, fileName);
+
+            if (!string.IsNullOrEmpty(result))
             {
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "A course with the same priority already exists",
-                    Success = false
+                    Success = false,
+                    Message = result
                 };
             }
 
-            _context.Courses.Add(model);
+            var courseModel = _mapper.Map<Course>(model);
+            courseModel.Image = Path.Combine("courses", "images", fileName);
+
+            _context.Courses.Add(courseModel);
             await _context.SaveChangesAsync();
 
             return new Response()
@@ -155,7 +192,7 @@ namespace EnglishCenter.Repositories
             var classesCourse = await _context.Classes
                                             .Where(c => c.CourseId == courseId)
                                             .ToListAsync();
-            if(classesCourse != null || classesCourse.Any())
+            if(classesCourse != null && classesCourse.Any())
             {
                 return new Response()
                 {
@@ -171,11 +208,12 @@ namespace EnglishCenter.Repositories
             return new Response()
             {
                 Success = true,
+                StatusCode = System.Net.HttpStatusCode.OK,
                 Message = "",
             };
         }
 
-        public async Task<Response> UpdateCourseAsync(string courseId, Course model)
+        public async Task<Response> UpdateCourseAsync(string courseId, CourseDtoModel model)
         {
             var course = await _context.Courses.FindAsync(courseId);
 
@@ -204,6 +242,53 @@ namespace EnglishCenter.Repositories
                 Success = true,
                 Message = "",
                 StatusCode = System.Net.HttpStatusCode.OK
+            };
+        }
+
+        public async Task<Response> UploadCourseImageAsync(string courseId, IFormFile image)
+        {
+            var course = await _context.Courses.FindAsync(courseId);
+
+            if (course == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "The course doesn't exist yet",
+                    Success = false
+                };
+            }
+
+            var uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "courses", "images");
+            var fileName = $"{DateTime.Now.Ticks}_{image.FileName}";
+            var result = await UploadHelper.UploadFileAsync(image, uploadFolder, fileName);
+
+            if (!string.IsNullOrEmpty(result))
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Success = false,
+                    Message = result
+                };
+            }
+
+            var wwwRootPath = _webHost.WebRootPath;
+            var previousImage = Path.Combine(wwwRootPath, course.Image);
+
+            if(File.Exists(previousImage))
+            {
+                File.Delete(previousImage);
+            }
+
+            course.Image = Path.Combine("courses", "images", fileName);
+
+            await _context.SaveChangesAsync();
+            return new Response()
+            {
+                Success = true,
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = ""
             };
         }
     }
