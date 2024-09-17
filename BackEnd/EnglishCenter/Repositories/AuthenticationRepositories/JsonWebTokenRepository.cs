@@ -3,14 +3,12 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using EnglishCenter.Database;
 using EnglishCenter.Global;
 using EnglishCenter.Global.Enum;
 using EnglishCenter.Models;
 using EnglishCenter.Repositories.IRepositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
-using static Org.BouncyCastle.Math.EC.ECCurve;
 
 namespace EnglishCenter.Repositories.AuthenticationRepositories
 {
@@ -19,7 +17,7 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
         private readonly UserManager<User> _userManager;
         private readonly IClaimRepository _claimRepo;
         private readonly IConfiguration _config;
-        
+
         public JsonWebTokenRepository(UserManager<User> userManager,IClaimRepository claimRepo, IConfiguration config) 
         {
             _userManager = userManager;
@@ -55,11 +53,16 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
         public async Task<string> GenerateUserTokenAsync(User user, DateTime expireDate, Provider provider = 0)
         {
             var jwtTokenHandler = new JwtSecurityTokenHandler();
-            var claims = await _claimRepo.GetClaims(user);
+            var claims = await _claimRepo.GetClaimsUserAsync(user);
             var authenKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JWT:Secret"]!));
 
+            var userRoles = await _userManager.GetRolesAsync(user);
+            foreach(var role in userRoles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+
             claims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
-            claims.Add(new Claim(JwtRegisteredClaimNames.Email, user.Email));
             claims.Add(new Claim("Id", user.Id));
             claims.Add(new Claim("Provider", provider.ToString()));
 

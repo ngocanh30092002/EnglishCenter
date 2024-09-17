@@ -10,6 +10,7 @@ using EnglishCenter.Global;
 using EnglishCenter.Global.Enum;
 using EnglishCenter.Helpers;
 using EnglishCenter.Models;
+using EnglishCenter.Models.DTO;
 using EnglishCenter.Repositories.IRepositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Routing;
@@ -197,17 +198,17 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
 
             // Add claims to user
             await _userManager.AddToRoleAsync(newUser, AppRole.STUDENT);
-            await _claimRepo.AddClaimToUser(newUser, ClaimTypes.Email, newUser.Email);
-            await _claimRepo.AddClaimToUser(newUser, ClaimTypes.Gender, model.Gender.ToString());
+            await _claimRepo.AddClaimToUserAsync(newUser, new ClaimDto(ClaimTypes.Email, newUser.Email));
+            await _claimRepo.AddClaimToUserAsync(newUser, new ClaimDto(ClaimTypes.Gender, model.Gender.ToString()));
            
             if(model.DateOfBirth != null)
             {
-                await _claimRepo.AddClaimToUser(newUser, ClaimTypes.DateOfBirth, model.DateOfBirth.ToString());
+                await _claimRepo.AddClaimToUserAsync(newUser, new ClaimDto(ClaimTypes.DateOfBirth, model.DateOfBirth.ToString()));
             }
 
             if (model.PhoneNumber != null)
             {
-                await _claimRepo.AddClaimToUser(newUser, ClaimTypes.MobilePhone, model.PhoneNumber.ToString());
+                await _claimRepo.AddClaimToUserAsync(newUser, new ClaimDto(ClaimTypes.MobilePhone, model.PhoneNumber.ToString()));
 
                 // Verify phone number
                 var phoneCode = await _userManager.GenerateChangePhoneNumberTokenAsync(newUser, model.PhoneNumber);
@@ -255,6 +256,7 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
                 DateOfBirth = model?.DateOfBirth,
                 PhoneNumber = model?.PhoneNumber,
                 UserId = newUser.Id,
+                UserName = model?.LastName
             };
 
             _context.Students.Add(studentInfo);

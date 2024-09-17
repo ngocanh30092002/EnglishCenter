@@ -2,46 +2,29 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using EnglishCenter.Models.IdentityModel;
 using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.Models;
 
-[PrimaryKey("AttendDate", "StuClassInId")]
-[Table("Attendance")]
 public partial class Attendance
 {
     [Key]
-    public DateOnly AttendDate { get; set; }
+    public long AttendanceId { set; get; }
 
-    [Key]
-    public long StuClassInId { get; set; }
+    [Required]
+    public DateOnly Date { set; get; }
+    public bool? IsAttended { set; get; }
+    public bool? IsPermitted { set;get; }
+    public bool? IsLate { set; get; }
+    public bool? IsLeaved { set; get; }
 
-    public int? LessionNum { get; set; }
+    public long StuInClassId { get; set; }
 
-    public bool? IsAttended { get; set; }
-
-    public bool? IsPermited { get; set; }
-
-    public bool? IsLated { get; set; }
-
-    public bool? IsLeaved { get; set; }
-
-    public int? StatusAssignment { get; set; }
-
-    [StringLength(15)]
-    public string? AssignmentId { get; set; }
-
-    [Column(TypeName = "datetime")]
-    public DateTime? Deadline { get; set; }
+    [ForeignKey("StuInClassId")]
+    [InverseProperty("Attendances")]
+    public virtual StuInClass StuInClass { set; get; }
 
     [InverseProperty("Attendance")]
-    public virtual ICollection<AnswerSheet> AnswerSheets { get; set; } = new List<AnswerSheet>();
-
-    [ForeignKey("AssignmentId")]
-    [InverseProperty("Attendances")]
-    public virtual Assignment? Assignment { get; set; }
-
-    [ForeignKey("StuClassInId")]
-    [InverseProperty("Attendances")]
-    public virtual StuInClass StuClassIn { get; set; } = null!;
+    public virtual ICollection<Homework> HomeworkList { set; get; } = new List<Homework>();
 }

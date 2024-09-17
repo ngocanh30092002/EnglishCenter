@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using EnglishCenter.Models.IdentityModel;
 
 namespace EnglishCenter.Models;
 
@@ -27,8 +28,8 @@ public partial class Course
     public string? Image { set; get; }
 
     [InverseProperty("Course")]
-    public virtual ICollection<Assignment> Assignments { get; set; } = new List<Assignment>();
+    public virtual ICollection<Class> Classes { get; set; } = new List<Class>();
 
     [InverseProperty("Course")]
-    public virtual ICollection<Class> Classes { get; set; } = new List<Class>();
+    public virtual ICollection<CourseContent> CourseContents { set; get; } = new List<CourseContent>();
 }

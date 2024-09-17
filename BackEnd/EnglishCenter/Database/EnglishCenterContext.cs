@@ -18,13 +18,15 @@ public partial class EnglishCenterContext : IdentityDbContext<User>
     {
     }
 
-    public virtual DbSet<AnswerSheet> AnswerSheets { get; set; }
+    public virtual DbSet<Homework> Homework { get; set; }
 
     public virtual DbSet<AssignQue> AssignQues { get; set; }
 
     public virtual DbSet<Assignment> Assignments { get; set; }
 
     public virtual DbSet<Attendance> Attendances { get; set; }
+
+    public virtual DbSet<CourseContent> CourseContents { set; get; }
 
     public virtual DbSet<Class> Classes { get; set; }
 
@@ -84,9 +86,9 @@ public partial class EnglishCenterContext : IdentityDbContext<User>
             }
         }
 
-        modelBuilder.Entity<AnswerSheet>(entity =>
+        modelBuilder.Entity<CourseContent>(entity =>
         {
-            entity.HasOne(d => d.Attendance).WithMany(p => p.AnswerSheets).HasConstraintName("FK_AnswerSheet_Attendance");
+            entity.HasOne(c => c.Course).WithMany(c => c.CourseContents).HasConstraintName("FK_CourseContent_Courses");
         });
 
         modelBuilder.Entity<AssignQue>(entity =>
@@ -95,7 +97,7 @@ public partial class EnglishCenterContext : IdentityDbContext<User>
 
             entity.HasOne(d => d.QuesNavigation).WithOne(p => p.AssignQue).HasConstraintName("FK_Assign_Ques_Ques_LC_Conversation");
 
-            entity.HasOne(d => d.Ques1).WithOne(p => p.AssignQue).HasConstraintName("FK_Assign_Ques_Assignment");
+            entity.HasOne(d => d.Ques1).WithOne(p => p.AssignQue).HasConstraintName("FK_Assign_Ques_Ques_LC_Image");
 
             entity.HasOne(d => d.Ques2).WithOne(p => p.AssignQue).HasConstraintName("FK_Assign_Ques_Ques_RC_Double");
 
@@ -104,20 +106,32 @@ public partial class EnglishCenterContext : IdentityDbContext<User>
             entity.HasOne(d => d.Ques4).WithOne(p => p.AssignQue).HasConstraintName("FK_Assign_Ques_Ques_RC_Triple");
 
             entity.HasOne(d => d.QuesType).WithMany(p => p.AssignQues).HasConstraintName("FK_Assign_Ques_Question_Type");
+
+            entity.HasOne(d => d.Assignment).WithMany(p => p.AssignQues).HasConstraintName("FK_Assign_Ques_Assignment");
         });
 
         modelBuilder.Entity<Assignment>(entity =>
         {
-            entity.HasOne(d => d.Course).WithMany(p => p.Assignments).HasConstraintName("FK_Assignment_Courses");
+            entity.HasOne(d => d.CourseContent).WithMany(p => p.Assignments).HasConstraintName("FK_Assignment_CourseContent");
         });
 
         modelBuilder.Entity<Attendance>(entity =>
         {
-            entity.HasOne(d => d.Assignment).WithMany(p => p.Attendances).HasConstraintName("FK_Attendance_Assignment");
-
-            entity.HasOne(d => d.StuClassIn).WithMany(p => p.Attendances)
+            entity.HasOne(d => d.StuInClass)
+                .WithMany(p => p.Attendances)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Attendance_StuInClass");
+        });
+
+        modelBuilder.Entity<Homework>(entity =>
+        {
+            entity.HasOne(a => a.Attendance)
+                  .WithMany(a => a.HomeworkList)
+                  .HasConstraintName("FK_Homework_Attendance");
+
+            entity.HasOne(a => a.Assignment)
+                  .WithMany(a => a.HomeworkList)
+                  .HasConstraintName("FK_Homework_Assignment");
         });
 
         modelBuilder.Entity<Class>(entity =>

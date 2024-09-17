@@ -93,7 +93,7 @@ namespace EnglishCenter.Controllers.HomePage
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateScheduleEventAsync([FromForm] EventDtoModel model)
+        public async Task<IActionResult> CreateScheduleEventAsync([FromForm] EventDto model)
         {
             var userId = User.FindFirst("Id")?.Value ?? "";
             var response = await _eventRepo.CreateScheduleEventAsync(userId, model);
@@ -103,7 +103,7 @@ namespace EnglishCenter.Controllers.HomePage
         }
 
         [HttpPut("{eventId}")]
-        public async Task<IActionResult> UpdateScheduleEventAsync([FromRoute] long eventId, [FromForm] EventDtoModel model)
+        public async Task<IActionResult> UpdateScheduleEventAsync([FromRoute] long eventId, [FromForm] EventDto model)
         {
             model.ScheduleId = eventId;
 

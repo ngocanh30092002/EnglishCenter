@@ -1,4 +1,5 @@
-﻿using EnglishCenter.Models.DTO;
+﻿using EnglishCenter.Models;
+using EnglishCenter.Models.DTO;
 using EnglishCenter.Repositories.IRepositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,10 +12,12 @@ namespace EnglishCenter.Controllers.AuthenticationPage
     public class UsersController : ControllerBase
     {
         private readonly IUserRepository _userRepo;
+        private readonly IRoleRepository _roleRepo;
 
-        public UsersController(IUserRepository userRepo) 
+        public UsersController(IUserRepository userRepo, IRoleRepository roleRepo) 
         {
             _userRepo = userRepo;
+            _roleRepo = roleRepo;
         }
 
         [HttpPost("profile-image")]
@@ -50,13 +53,13 @@ namespace EnglishCenter.Controllers.AuthenticationPage
                 return BadRequest(new { message = "Invalid file type or extension. Only JPEG, PNG, GIF, and SVG are allowed." });
             }
 
-            var response = await _userRepo.ChangeUserImageAsync(file, userId);
+            var response = await _userRepo.ChangeBackgroundImageAsync(file, userId);
 
             return await response.ChangeActionAsync();
         }
 
         [HttpPost("user-info")]
-        public async Task<IActionResult> ChangeUserInfoAsync([FromForm] UserInfoDtoModel model)
+        public async Task<IActionResult> ChangeUserInfoAsync([FromForm] UserInfoDto model)
         {
             var userId = User.FindFirst("Id")?.Value ?? "";
 
@@ -66,7 +69,7 @@ namespace EnglishCenter.Controllers.AuthenticationPage
         }
 
         [HttpPost("user-background")]
-        public async Task<IActionResult> ChangeUserBackgroundAsync([FromForm] UserBackgroundDtoModel model)
+        public async Task<IActionResult> ChangeUserBackgroundAsync([FromForm] UserBackgroundDto model)
         {
             var userId = User.FindFirst("Id")?.Value ?? "";
 
@@ -93,6 +96,21 @@ namespace EnglishCenter.Controllers.AuthenticationPage
             var response = await _userRepo.GetUserBackground(userId);
 
             return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("roles")]
+        public async Task<IActionResult> GetUserRolesAsync()
+        {
+            var userId = User.FindFirst("Id")?.Value ?? "";
+            
+            if(userId == "")
+            {
+                return BadRequest("UserId is required");
+            }
+
+            var result = await _roleRepo.GetUserRolesAsync(userId);
+
+            return await result.ChangeActionAsync();
         }
 
         [HttpPost("password")]

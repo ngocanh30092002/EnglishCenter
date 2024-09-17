@@ -68,7 +68,7 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
             }
 
             var wwwRootPath = _webHostEnvironment.WebRootPath;
-            var previousImage = Path.Combine(wwwRootPath, student.Image);
+            var previousImage = Path.Combine(wwwRootPath, student.Image ?? "");
 
             if (File.Exists(previousImage))
             {
@@ -124,7 +124,7 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
             }
 
             var wwwRootPath = _webHostEnvironment.WebRootPath;
-            var previousImage = Path.Combine(wwwRootPath, student.BackgroundImage);
+            var previousImage = Path.Combine(wwwRootPath, student.BackgroundImage ?? "");
 
             if (File.Exists(previousImage))
             {
@@ -197,7 +197,7 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
             };
         }
 
-        public async Task<Response> ChangeUserInfoAsync(string userId, UserInfoDtoModel model)
+        public async Task<Response> ChangeUserInfoAsync(string userId, UserInfoDto model)
         {
             if (string.IsNullOrEmpty(userId))
             {
@@ -270,7 +270,7 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
             };
         }
 
-        public async Task<Response> ChangeUserBackgroundAsync(string userId, UserBackgroundDtoModel stuModel)
+        public async Task<Response> ChangeUserBackgroundAsync(string userId, UserBackgroundDto stuModel)
         {
             if (string.IsNullOrEmpty(userId))
             {
@@ -332,7 +332,7 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
                 };
             }
 
-            var userDto = _mapper.Map<UserInfoDtoModel>(student);
+            var userDto = _mapper.Map<UserInfoDto>(student);
             userDto.Email = user.Email;
 
 
@@ -371,7 +371,7 @@ namespace EnglishCenter.Repositories.AuthenticationRepositories
 
             var roleOfUser = await _userManager.GetRolesAsync(user);
 
-            var userBackgroundDto = _mapper.Map<UserBackgroundDtoModel>(student);
+            var userBackgroundDto = _mapper.Map<UserBackgroundDto>(student);
             userBackgroundDto.Roles = roleOfUser.ToList();
 
             return new Response()

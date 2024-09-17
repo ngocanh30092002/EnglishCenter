@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using EnglishCenter.Models.IdentityModel;
 
 namespace EnglishCenter.Models;
 
@@ -7,21 +8,26 @@ namespace EnglishCenter.Models;
 public partial class Assignment
 {
     [Key]
-    [StringLength(15)]
-    public string AssignmentId { get; set; } = null!;
+    public long AssignmentId { get; set; }
 
-    [StringLength(10)]
-    public string? CourseId { get; set; }
+    [Required]
+    public int NoNum { set; get; }
 
-    [StringLength(20)]
-    public string? Status { get; set; }
+    [Column(TypeName = "nvarchar(200)")]
+    public string? Title { set; get; }
 
-    public TimeOnly? Time { get; set; }
+    public TimeOnly? Time { set; get; }
+
+    public long CourseContentId { set; get; }
+
+    [ForeignKey("CourseContentId")]
+    [InverseProperty("Assignments")]
+    public virtual CourseContent CourseContent { set; get; }
 
     [InverseProperty("Assignment")]
-    public virtual ICollection<Attendance> Attendances { get; set; } = new List<Attendance>();
+    public virtual ICollection<AssignQue> AssignQues { set; get; } = new List<AssignQue>();
 
-    [ForeignKey("CourseId")]
-    [InverseProperty("Assignments")]
-    public virtual Course? Course { get; set; }
+    [InverseProperty("Assignment")]
+    public virtual ICollection<Homework> HomeworkList { get; set; } = new List<Homework>();
+
 }

@@ -6,18 +6,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.Models;
 
-[PrimaryKey("EnrollId", "UserId", "ClassId")]
 [Table("Enrollment")]
 public partial class Enrollment
 {
     [Key]
     public long EnrollId { get; set; }
 
-    [Key]
     [StringLength(100)]
     public string UserId { get; set; } = null!;
 
-    [Key]
     [StringLength(10)]
     public string ClassId { get; set; } = null!;
 

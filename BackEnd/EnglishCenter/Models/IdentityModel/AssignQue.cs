@@ -15,9 +15,6 @@ public partial class AssignQue
 
     public int? QuesTypeId { get; set; }
 
-    [StringLength(15)]
-    public string? AssignmentId { get; set; }
-
     [Column("Ques_Id")]
     public long? QuesId { get; set; }
 
@@ -48,4 +45,10 @@ public partial class AssignQue
     [ForeignKey("QuesTypeId")]
     [InverseProperty("AssignQues")]
     public virtual QuestionType? QuesType { get; set; }
+
+    public long? AssignmentId { set; get; }
+
+    [ForeignKey("AssignmentId")]
+    [InverseProperty("AssignQues")]
+    public virtual Assignment? Assignment { set; get; }
 }

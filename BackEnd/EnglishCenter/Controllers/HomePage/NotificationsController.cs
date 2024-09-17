@@ -30,7 +30,7 @@ namespace EnglishCenter.Controllers.HomePage
         }
 
         [HttpPost("")]
-        public async Task<IActionResult> SendNotification([FromBody] NotiDtoModel model, [FromQuery] string groupName)
+        public async Task<IActionResult> SendNotification([FromBody] NotiDto model, [FromQuery] string groupName)
         {
             var group = _context.Groups
                                 .Include(g => g.Students)
@@ -75,7 +75,7 @@ namespace EnglishCenter.Controllers.HomePage
             var userNoties = await _context.NotiStudents
                                         .Where(ns => ns.UserId == userId)
                                         .Include(ns => ns.Notification)
-                                        .Select(ns => new NotiDtoModel
+                                        .Select(ns => new NotiDto
                                         {
                                             NotiStuId = ns.NotiStuId,
                                             Title = ns.Notification.Title,

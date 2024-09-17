@@ -21,7 +21,7 @@ public partial class StuInClass
 
     public long? ScoreHisId { get; set; }
 
-    [InverseProperty("StuClassIn")]
+    [InverseProperty("StuInClass")]
     public virtual ICollection<Attendance> Attendances { get; set; } = new List<Attendance>();
 
     [ForeignKey("ClassId")]

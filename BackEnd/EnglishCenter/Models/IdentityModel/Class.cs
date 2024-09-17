@@ -26,6 +26,9 @@ public partial class Class
 
     public int? MaxNum { get; set; }
 
+    [StringLength(200)]
+    public string? Image { set; get; }
+
     [ForeignKey("CourseId")]
     [InverseProperty("Classes")]
     public virtual Course Course { get; set; } = null!;

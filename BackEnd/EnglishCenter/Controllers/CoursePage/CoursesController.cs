@@ -38,7 +38,7 @@ namespace EnglishCenter.Controllers.CoursePage
         }
 
         [HttpPost("")]
-        public async Task<IActionResult> CreateCourseAsync([FromForm] CourseDtoModel model)
+        public async Task<IActionResult> CreateCourseAsync([FromForm] CourseDto model)
         {
             var response = await _courseRepo.CreateCourseAsync(model);
 
@@ -46,7 +46,7 @@ namespace EnglishCenter.Controllers.CoursePage
         }
 
         [HttpPut("{courseId}")]
-        public async Task<IActionResult> UpdateCourseAsync([FromRoute] string courseId, [FromBody] CourseDtoModel model)
+        public async Task<IActionResult> UpdateCourseAsync([FromRoute] string courseId, [FromBody] CourseDto model)
         {
             var response = await _courseRepo.UpdateCourseAsync(courseId, model);
 

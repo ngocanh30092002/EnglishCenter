@@ -20,7 +20,7 @@ namespace EnglishCenter.Repositories.HomeRepositories
             _mapper = mapper;
         }
 
-        public async Task<Response> CreateScheduleEventAsync(string userId, EventDtoModel model)
+        public async Task<Response> CreateScheduleEventAsync(string userId, EventDto model)
         {
             if (string.IsNullOrEmpty(userId))
             {
@@ -122,7 +122,7 @@ namespace EnglishCenter.Repositories.HomeRepositories
                 };
             }
 
-            var eventsDtoModel = _mapper.Map<List<EventDtoModel>>(student.ScheduleEvents);
+            var eventsDtoModel = _mapper.Map<List<EventDto>>(student.ScheduleEvents);
 
             return new Response()
             {
@@ -151,7 +151,7 @@ namespace EnglishCenter.Repositories.HomeRepositories
             return new Response()
             {
                 Success = true,
-                Message = _mapper.Map<List<EventDtoModel>>(scheduleEvents),
+                Message = _mapper.Map<List<EventDto>>(scheduleEvents),
                 StatusCode = System.Net.HttpStatusCode.OK
             };
         }
@@ -181,7 +181,7 @@ namespace EnglishCenter.Repositories.HomeRepositories
             };
         }
 
-        public async Task<Response> UpdateScheduleEventAsync(EventDtoModel model)
+        public async Task<Response> UpdateScheduleEventAsync(EventDto model)
         {
             if (!model.ScheduleId.HasValue)
             {

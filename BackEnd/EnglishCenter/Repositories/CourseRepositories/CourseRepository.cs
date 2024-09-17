@@ -24,9 +24,9 @@ namespace EnglishCenter.Repositories
 
         public async Task<Response> GetCoursesAsync()
         {
-            var courses = await _context.Courses.ToListAsync();
+            var courses = await _context.Courses.OrderBy(c => c.Priority).ToListAsync();
 
-            var courseDtoModels = _mapper.Map<List<CourseDtoModel>>(courses);
+            var courseDtoModels = _mapper.Map<List<CourseDto>>(courses);
 
             return new Response
             {
@@ -54,7 +54,7 @@ namespace EnglishCenter.Repositories
             {
                 Success = true,
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Message = _mapper.Map<CourseDtoModel>(course)
+                Message = _mapper.Map<CourseDto>(course)
             };
         }
 
@@ -131,7 +131,7 @@ namespace EnglishCenter.Repositories
             };
         }
 
-        public async Task<Response> CreateCourseAsync(CourseDtoModel model)
+        public async Task<Response> CreateCourseAsync(CourseDto model)
         {
             var course = await _context.Courses.FindAsync(model.CourseId);
 
@@ -211,7 +211,7 @@ namespace EnglishCenter.Repositories
             };
         }
 
-        public async Task<Response> UpdateCourseAsync(string courseId, CourseDtoModel model)
+        public async Task<Response> UpdateCourseAsync(string courseId, CourseDto model)
         {
             var course = await _context.Courses.FindAsync(courseId);
 
