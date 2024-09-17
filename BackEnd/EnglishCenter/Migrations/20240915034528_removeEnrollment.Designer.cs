@@ -4,6 +4,7 @@ using EnglishCenter.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EnglishCenter.Migrations
 {
     [DbContext(typeof(EnglishCenterContext))]
-    partial class EnglishCenterContextModelSnapshot : ModelSnapshot
+    [Migration("20240915034528_removeEnrollment")]
+    partial class removeEnrollment
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -198,41 +201,6 @@ namespace EnglishCenter.Migrations
                     b.HasKey("StatusId");
 
                     b.ToTable("EnrollStatus");
-                });
-
-            modelBuilder.Entity("EnglishCenter.Models.Enrollment", b =>
-                {
-                    b.Property<long>("EnrollId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("EnrollId"));
-
-                    b.Property<string>("ClassId")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
-                    b.Property<DateOnly?>("EnrollDate")
-                        .HasColumnType("date");
-
-                    b.Property<int?>("StatusId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("EnrollId");
-
-                    b.HasIndex("ClassId");
-
-                    b.HasIndex("StatusId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Enrollment");
                 });
 
             modelBuilder.Entity("EnglishCenter.Models.Group", b =>
@@ -1150,33 +1118,6 @@ namespace EnglishCenter.Migrations
                     b.Navigation("Course");
                 });
 
-            modelBuilder.Entity("EnglishCenter.Models.Enrollment", b =>
-                {
-                    b.HasOne("EnglishCenter.Models.Class", "Class")
-                        .WithMany("Enrollments")
-                        .HasForeignKey("ClassId")
-                        .IsRequired()
-                        .HasConstraintName("FK_Enrollment_Classes");
-
-                    b.HasOne("EnglishCenter.Models.EnrollStatus", "Status")
-                        .WithMany("Enrollments")
-                        .HasForeignKey("StatusId")
-                        .HasConstraintName("FK_Enrollment_EnrollStatus");
-
-                    b.HasOne("EnglishCenter.Models.Student", "User")
-                        .WithMany("Enrollments")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_Enrollment_Students");
-
-                    b.Navigation("Class");
-
-                    b.Navigation("Status");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("EnglishCenter.Models.IdentityModel.CourseContent", b =>
                 {
                     b.HasOne("EnglishCenter.Models.Course", "Course")
@@ -1388,8 +1329,6 @@ namespace EnglishCenter.Migrations
 
             modelBuilder.Entity("EnglishCenter.Models.Class", b =>
                 {
-                    b.Navigation("Enrollments");
-
                     b.Navigation("StuInClasses");
                 });
 
@@ -1398,11 +1337,6 @@ namespace EnglishCenter.Migrations
                     b.Navigation("Classes");
 
                     b.Navigation("CourseContents");
-                });
-
-            modelBuilder.Entity("EnglishCenter.Models.EnrollStatus", b =>
-                {
-                    b.Navigation("Enrollments");
                 });
 
             modelBuilder.Entity("EnglishCenter.Models.IdentityModel.CourseContent", b =>
@@ -1468,8 +1402,6 @@ namespace EnglishCenter.Migrations
 
             modelBuilder.Entity("EnglishCenter.Models.Student", b =>
                 {
-                    b.Navigation("Enrollments");
-
                     b.Navigation("NotiStudents");
 
                     b.Navigation("ScheduleEvents");

@@ -5,24 +5,25 @@
 namespace EnglishCenter.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class addNoNum : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<bool>(
-                name: "IsOk",
-                table: "Notifications",
-                type: "bit",
-                nullable: true);
+            migrationBuilder.AddColumn<int>(
+                name: "NoNum",
+                table: "CourseContents",
+                type: "int",
+                nullable: false,
+                defaultValue: 0);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "IsOk",
-                table: "Notifications");
+                name: "NoNum",
+                table: "CourseContents");
         }
     }
 }

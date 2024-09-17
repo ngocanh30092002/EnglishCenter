@@ -5,16 +5,16 @@
 namespace EnglishCenter.Migrations
 {
     /// <inheritdoc />
-    public partial class addLinkUrl1 : Migration
+    public partial class addColumnImage : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<string>(
-                name: "LinkUrl",
-                table: "Notifications",
-                type: "nvarchar(300)",
-                maxLength: 300,
+                name: "Image",
+                table: "Classes",
+                type: "nvarchar(200)",
+                maxLength: 200,
                 nullable: true);
         }
 
@@ -22,8 +22,8 @@ namespace EnglishCenter.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "LinkUrl",
-                table: "Notifications");
+                name: "Image",
+                table: "Classes");
         }
     }
 }

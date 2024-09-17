@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EnglishCenter.Migrations
 {
     [DbContext(typeof(EnglishCenterContext))]
-    [Migration("20240903094903_addNotification")]
-    partial class addNotification
+    [Migration("20240911083156_addNoNum")]
+    partial class addNoNum
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,40 +25,6 @@ namespace EnglishCenter.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("EnglishCenter.Models.AnswerSheet", b =>
-                {
-                    b.Property<long>("AnswerSheetId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("AnswerSheetId"));
-
-                    b.Property<string>("AnswerString")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<DateOnly?>("AttendDate")
-                        .HasColumnType("date");
-
-                    b.Property<int?>("CorrectNum")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("FalseNum")
-                        .HasColumnType("int");
-
-                    b.Property<long?>("StuInClassId")
-                        .HasColumnType("bigint");
-
-                    b.Property<TimeOnly?>("Time")
-                        .HasColumnType("time");
-
-                    b.HasKey("AnswerSheetId");
-
-                    b.HasIndex("AttendDate", "StuInClassId");
-
-                    b.ToTable("AnswerSheet");
-                });
-
             modelBuilder.Entity("EnglishCenter.Models.AssignQue", b =>
                 {
                     b.Property<long>("AssignQuesId")
@@ -67,9 +33,8 @@ namespace EnglishCenter.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("AssignQuesId"));
 
-                    b.Property<string>("AssignmentId")
-                        .HasMaxLength(15)
-                        .HasColumnType("nvarchar(15)");
+                    b.Property<long?>("AssignmentId")
+                        .HasColumnType("bigint");
 
                     b.Property<long?>("QuesId")
                         .HasColumnType("bigint")
@@ -79,6 +44,8 @@ namespace EnglishCenter.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("AssignQuesId");
+
+                    b.HasIndex("AssignmentId");
 
                     b.HasIndex("QuesTypeId");
 
@@ -91,68 +58,29 @@ namespace EnglishCenter.Migrations
 
             modelBuilder.Entity("EnglishCenter.Models.Assignment", b =>
                 {
-                    b.Property<string>("AssignmentId")
-                        .HasMaxLength(15)
-                        .HasColumnType("nvarchar(15)");
+                    b.Property<long>("AssignmentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
 
-                    b.Property<string>("CourseId")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("AssignmentId"));
 
-                    b.Property<string>("Status")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                    b.Property<long>("CourseContentId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("NoNum")
+                        .HasColumnType("int");
 
                     b.Property<TimeOnly?>("Time")
                         .HasColumnType("time");
 
+                    b.Property<string>("Title")
+                        .HasColumnType("nvarchar(200)");
+
                     b.HasKey("AssignmentId");
 
-                    b.HasIndex("CourseId");
+                    b.HasIndex("CourseContentId");
 
                     b.ToTable("Assignment");
-                });
-
-            modelBuilder.Entity("EnglishCenter.Models.Attendance", b =>
-                {
-                    b.Property<DateOnly>("AttendDate")
-                        .HasColumnType("date");
-
-                    b.Property<long>("StuClassInId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("AssignmentId")
-                        .HasMaxLength(15)
-                        .HasColumnType("nvarchar(15)");
-
-                    b.Property<DateTime?>("Deadline")
-                        .HasColumnType("datetime");
-
-                    b.Property<bool?>("IsAttended")
-                        .HasColumnType("bit");
-
-                    b.Property<bool?>("IsLated")
-                        .HasColumnType("bit");
-
-                    b.Property<bool?>("IsLeaved")
-                        .HasColumnType("bit");
-
-                    b.Property<bool?>("IsPermited")
-                        .HasColumnType("bit");
-
-                    b.Property<int?>("LessionNum")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("StatusAssignment")
-                        .HasColumnType("int");
-
-                    b.HasKey("AttendDate", "StuClassInId");
-
-                    b.HasIndex("AssignmentId");
-
-                    b.HasIndex("StuClassInId");
-
-                    b.ToTable("Attendance");
                 });
 
             modelBuilder.Entity("EnglishCenter.Models.Class", b =>
@@ -202,11 +130,15 @@ namespace EnglishCenter.Migrations
                     b.Property<int?>("EntryPoint")
                         .HasColumnType("int");
 
+                    b.Property<string>("Image")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
                     b.Property<string>("Name")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<int?>("NumLession")
+                    b.Property<int?>("NumLesson")
                         .HasColumnType("int");
 
                     b.Property<int?>("Priority")
@@ -285,6 +217,95 @@ namespace EnglishCenter.Migrations
                     b.ToTable("Groups");
                 });
 
+            modelBuilder.Entity("EnglishCenter.Models.IdentityModel.CourseContent", b =>
+                {
+                    b.Property<long>("ContentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ContentId"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("CourseId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<int>("NoNum")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("ContentId");
+
+                    b.HasIndex("CourseId");
+
+                    b.ToTable("CourseContents");
+                });
+
+            modelBuilder.Entity("EnglishCenter.Models.IdentityModel.ScheduleEvent", b =>
+                {
+                    b.Property<long>("ScheduleId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ScheduleId"));
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("ScheduleId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ScheduleEvents");
+                });
+
+            modelBuilder.Entity("EnglishCenter.Models.NotiStudent", b =>
+                {
+                    b.Property<long>("NotiStuId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("NotiStuId"));
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("NotiId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("NotiStuId");
+
+                    b.HasIndex("NotiId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("NotiStudents");
+                });
+
             modelBuilder.Entity("EnglishCenter.Models.Notification", b =>
                 {
                     b.Property<long>("NotiId")
@@ -301,9 +322,6 @@ namespace EnglishCenter.Migrations
                     b.Property<string>("Image")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
-
-                    b.Property<bool?>("IsRead")
-                        .HasColumnType("bit");
 
                     b.Property<string>("LinkUrl")
                         .HasMaxLength(300)
@@ -581,8 +599,16 @@ namespace EnglishCenter.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<string>("BackgroundImage")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<DateOnly?>("DateOfBirth")
                         .HasColumnType("date");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
 
                     b.Property<string>("FirstName")
                         .HasMaxLength(100)
@@ -602,6 +628,10 @@ namespace EnglishCenter.Migrations
                     b.Property<string>("PhoneNumber")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("UserId");
 
@@ -962,33 +992,13 @@ namespace EnglishCenter.Migrations
                     b.ToTable("UserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("NotiStudents", b =>
-                {
-                    b.Property<long>("NotiId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("NotiId", "UserId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("NotiStudents", (string)null);
-                });
-
-            modelBuilder.Entity("EnglishCenter.Models.AnswerSheet", b =>
-                {
-                    b.HasOne("EnglishCenter.Models.Attendance", "Attendance")
-                        .WithMany("AnswerSheets")
-                        .HasForeignKey("AttendDate", "StuInClassId")
-                        .HasConstraintName("FK_AnswerSheet_Attendance");
-
-                    b.Navigation("Attendance");
-                });
-
             modelBuilder.Entity("EnglishCenter.Models.AssignQue", b =>
                 {
+                    b.HasOne("EnglishCenter.Models.Assignment", "Assignment")
+                        .WithMany("AssignQues")
+                        .HasForeignKey("AssignmentId")
+                        .HasConstraintName("FK_Assign_Ques_Assignment");
+
                     b.HasOne("EnglishCenter.Models.QuesLcAudio", "Ques")
                         .WithOne("AssignQue")
                         .HasForeignKey("EnglishCenter.Models.AssignQue", "QuesId")
@@ -1002,7 +1012,7 @@ namespace EnglishCenter.Migrations
                     b.HasOne("EnglishCenter.Models.QuesLcImage", "Ques1")
                         .WithOne("AssignQue")
                         .HasForeignKey("EnglishCenter.Models.AssignQue", "QuesId")
-                        .HasConstraintName("FK_Assign_Ques_Assignment");
+                        .HasConstraintName("FK_Assign_Ques_Ques_LC_Image");
 
                     b.HasOne("EnglishCenter.Models.QuesRcDouble", "Ques2")
                         .WithOne("AssignQue")
@@ -1024,6 +1034,8 @@ namespace EnglishCenter.Migrations
                         .HasForeignKey("QuesTypeId")
                         .HasConstraintName("FK_Assign_Ques_Question_Type");
 
+                    b.Navigation("Assignment");
+
                     b.Navigation("Ques");
 
                     b.Navigation("Ques1");
@@ -1041,30 +1053,14 @@ namespace EnglishCenter.Migrations
 
             modelBuilder.Entity("EnglishCenter.Models.Assignment", b =>
                 {
-                    b.HasOne("EnglishCenter.Models.Course", "Course")
+                    b.HasOne("EnglishCenter.Models.IdentityModel.CourseContent", "CourseContent")
                         .WithMany("Assignments")
-                        .HasForeignKey("CourseId")
-                        .HasConstraintName("FK_Assignment_Courses");
-
-                    b.Navigation("Course");
-                });
-
-            modelBuilder.Entity("EnglishCenter.Models.Attendance", b =>
-                {
-                    b.HasOne("EnglishCenter.Models.Assignment", "Assignment")
-                        .WithMany("Attendances")
-                        .HasForeignKey("AssignmentId")
-                        .HasConstraintName("FK_Attendance_Assignment");
-
-                    b.HasOne("EnglishCenter.Models.StuInClass", "StuClassIn")
-                        .WithMany("Attendances")
-                        .HasForeignKey("StuClassInId")
+                        .HasForeignKey("CourseContentId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("FK_Attendance_StuInClass");
+                        .HasConstraintName("FK_Assignment_CourseContent");
 
-                    b.Navigation("Assignment");
-
-                    b.Navigation("StuClassIn");
+                    b.Navigation("CourseContent");
                 });
 
             modelBuilder.Entity("EnglishCenter.Models.Class", b =>
@@ -1103,6 +1099,50 @@ namespace EnglishCenter.Migrations
                     b.Navigation("Status");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EnglishCenter.Models.IdentityModel.CourseContent", b =>
+                {
+                    b.HasOne("EnglishCenter.Models.Course", "Course")
+                        .WithMany("CourseContents")
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_CourseContent_Courses");
+
+                    b.Navigation("Course");
+                });
+
+            modelBuilder.Entity("EnglishCenter.Models.IdentityModel.ScheduleEvent", b =>
+                {
+                    b.HasOne("EnglishCenter.Models.Student", "Student")
+                        .WithMany("ScheduleEvents")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("EnglishCenter.Models.NotiStudent", b =>
+                {
+                    b.HasOne("EnglishCenter.Models.Notification", "Notification")
+                        .WithMany("NotiStudents")
+                        .HasForeignKey("NotiId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_NotiStudent_Notifications");
+
+                    b.HasOne("EnglishCenter.Models.Student", "Student")
+                        .WithMany("NotiStudents")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_NotiStudent_Students");
+
+                    b.Navigation("Notification");
+
+                    b.Navigation("Student");
                 });
 
             modelBuilder.Entity("EnglishCenter.Models.StuInClass", b =>
@@ -1241,29 +1281,9 @@ namespace EnglishCenter.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("NotiStudents", b =>
-                {
-                    b.HasOne("EnglishCenter.Models.Notification", null)
-                        .WithMany()
-                        .HasForeignKey("NotiId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("EnglishCenter.Models.Student", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("EnglishCenter.Models.Assignment", b =>
                 {
-                    b.Navigation("Attendances");
-                });
-
-            modelBuilder.Entity("EnglishCenter.Models.Attendance", b =>
-                {
-                    b.Navigation("AnswerSheets");
+                    b.Navigation("AssignQues");
                 });
 
             modelBuilder.Entity("EnglishCenter.Models.Class", b =>
@@ -1275,14 +1295,24 @@ namespace EnglishCenter.Migrations
 
             modelBuilder.Entity("EnglishCenter.Models.Course", b =>
                 {
-                    b.Navigation("Assignments");
-
                     b.Navigation("Classes");
+
+                    b.Navigation("CourseContents");
                 });
 
             modelBuilder.Entity("EnglishCenter.Models.EnrollStatus", b =>
                 {
                     b.Navigation("Enrollments");
+                });
+
+            modelBuilder.Entity("EnglishCenter.Models.IdentityModel.CourseContent", b =>
+                {
+                    b.Navigation("Assignments");
+                });
+
+            modelBuilder.Entity("EnglishCenter.Models.Notification", b =>
+                {
+                    b.Navigation("NotiStudents");
                 });
 
             modelBuilder.Entity("EnglishCenter.Models.QuesLcAudio", b =>
@@ -1331,14 +1361,13 @@ namespace EnglishCenter.Migrations
                     b.Navigation("StuInClass");
                 });
 
-            modelBuilder.Entity("EnglishCenter.Models.StuInClass", b =>
-                {
-                    b.Navigation("Attendances");
-                });
-
             modelBuilder.Entity("EnglishCenter.Models.Student", b =>
                 {
                     b.Navigation("Enrollments");
+
+                    b.Navigation("NotiStudents");
+
+                    b.Navigation("ScheduleEvents");
 
                     b.Navigation("StuInClasses");
                 });
