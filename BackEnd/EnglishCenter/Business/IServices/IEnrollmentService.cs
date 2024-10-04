@@ -10,8 +10,11 @@ namespace EnglishCenter.Business.IServices
         public Task<Response> GetAsync(string userId);
         public Task<Response> GetAsync(string classId, int statusId);
         public Task<Response> GetAsync(string userId, string classId);
+        public Task<Response> GetCurrentClassesByStudentAsync(string userId);
         public Task<Response> GetByTeacherAsync(string userId);
         public Task<Response> GetByTeacherAsync(string userId, string classId);
+        public Task<Response> GetByCourseAsync(string userId, string courseId);
+        public Task<Response> GetHisEnrollsByCourseAsync(string userId, string courseId);
         public Task<Response> HandleStartClassAsync(string classId);
         public Task<Response> HandleEndClassAsync(string classId);
         public Task<Response> HandleAcceptedAsync(long enrollmentId);

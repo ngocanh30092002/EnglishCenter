@@ -1,8 +1,10 @@
 ﻿using EnglishCenter.Business.IServices;
 using EnglishCenter.Business.Services;
+using EnglishCenter.Business.Services.Assignments;
 using EnglishCenter.Business.Services.Authorization;
 using EnglishCenter.Business.Services.Courses;
 using EnglishCenter.DataAccess.IRepositories;
+using EnglishCenter.DataAccess.Repositories.AssignmentRepositories;
 using EnglishCenter.DataAccess.Repositories.AuthenticationRepositories;
 using EnglishCenter.DataAccess.Repositories.CourseRepositories;
 using EnglishCenter.DataAccess.Repositories.HomeRepositories;
@@ -25,8 +27,8 @@ namespace EnglishCenter.Presentation.Extensions.Repository
             services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
             services.AddScoped<IStudentRepository, StudentRepository>();
             services.AddScoped<IScoreHistoryRepository, ScoreHistoryRepository>();
+            services.AddScoped<IAssignQuesRepository, AssignQuesRepository>();
             services.AddScoped<MailHelper>();
-
             
             return services;
         }
@@ -49,6 +51,7 @@ namespace EnglishCenter.Presentation.Extensions.Repository
             services.AddScoped<IAssignmentService, AssignmentService>();
             services.AddScoped<IScoreHistoryService, ScoreHistoryService>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IAssignQuesService, AssignQuesService>();
 
             return services;
         }

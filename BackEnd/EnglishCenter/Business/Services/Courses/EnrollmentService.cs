@@ -1,12 +1,11 @@
-﻿ using System.Runtime.CompilerServices;
-using AutoMapper;
+﻿using AutoMapper;
 using EnglishCenter.Business.IServices;
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.UnitOfWork;
 using EnglishCenter.Presentation.Global.Enum;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
-using Microsoft.EntityFrameworkCore;
+using EnglishCenter.Presentation.Models.ResDTOs;
 
 namespace EnglishCenter.Business.Services.Courses
 {
@@ -56,7 +55,7 @@ namespace EnglishCenter.Business.Services.Courses
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Can't register for this class",
+                    Message = "Can't register for this class because another class is available",
                     Success = false
                 };
             }
@@ -64,6 +63,7 @@ namespace EnglishCenter.Business.Services.Courses
             var enrollModel = _mapper.Map<Enrollment>(model);
             enrollModel.StatusId = (int)EnrollEnum.Pending;
             enrollModel.EnrollDate = DateOnly.FromDateTime(DateTime.Now);
+            enrollModel.UpdateTime = DateTime.Now;
 
             classModel.RegisteringNum++;
             _unit.Enrollment.Add(enrollModel);
@@ -79,7 +79,7 @@ namespace EnglishCenter.Business.Services.Courses
 
         private async Task<Response> CreateWithPreCourseAsync(EnrollmentDto model, Course preCourse, Course currentCourse, Class classModel)
         {
-            var highestScore = await _unit.Enrollment.GetHighestPreScoreAsync(model.UserId!, preCourse.CourseId);
+            var highestScore = await _unit.Enrollment.GetHighestScoreAsync(model.UserId!, preCourse.CourseId);
 
             if (highestScore < currentCourse.EntryPoint)
             {
@@ -97,7 +97,7 @@ namespace EnglishCenter.Business.Services.Courses
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Can't register for this class",
+                    Message = "Can't register for this class because another class is available",
                     Success = false
                 };
             }
@@ -105,6 +105,7 @@ namespace EnglishCenter.Business.Services.Courses
             var enrollModel = _mapper.Map<Enrollment>(model);
             enrollModel.StatusId = (int)EnrollEnum.Pending;
             enrollModel.EnrollDate = DateOnly.FromDateTime(DateTime.Now);
+            enrollModel.UpdateTime = DateTime.Now;
 
             classModel.RegisteringNum++;
             _unit.Enrollment.Add(enrollModel);
@@ -169,7 +170,7 @@ namespace EnglishCenter.Business.Services.Courses
             return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Message = _mapper.Map<List<EnrollmentDto>>(enrolls),
+                Message = _mapper.Map<List<EnrollResDto>>(enrolls),
                 Success = true
             };
         }
@@ -209,10 +210,33 @@ namespace EnglishCenter.Business.Services.Courses
 
         }
 
+        public async Task<Response> GetCurrentClassesByStudentAsync(string userId)
+        {
+            var isExistUser = _unit.Students.IsExist(s => s.UserId == userId);
+            if (!isExistUser)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any students",
+                    Success = false
+                };
+            }
+
+            var enrolls = await _unit.Enrollment.GetCurrentClassesByStudentAsync(userId);
+            
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = _mapper.Map<List<EnrollmentDto>>(enrolls),
+                Success = true
+            };
+        }
+    
+        
         public async Task<Response> GetByTeacherAsync(string userId)
         {
-            // Todo: Get Teacher
-            var teacherModel = _unit.Students.GetById(userId);
+            var teacherModel = _unit.Teachers.GetById(userId);
             if(teacherModel == null)
             {
                 return new Response()
@@ -235,8 +259,7 @@ namespace EnglishCenter.Business.Services.Courses
 
         public async Task<Response> GetByTeacherAsync(string userId, string classId)
         {
-            // Todo: Get Teacher
-            var teacherModel = _unit.Students.GetById(userId);
+            var teacherModel = _unit.Teachers.GetById(userId);
             if (teacherModel == null)
             {
                 return new Response()
@@ -256,6 +279,73 @@ namespace EnglishCenter.Business.Services.Courses
                 Success = true
             };
         }
+
+        public async Task<Response> GetByCourseAsync(string userId, string courseId)
+        {
+            var isExistUser = _unit.Students.IsExist(s => s.UserId == userId);
+            if (!isExistUser)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any students",
+                    Success = false
+                };
+            }
+
+            var isExistCourse = _unit.Courses.IsExist(c => c.CourseId == courseId);
+            if (!isExistCourse)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any courses",
+                    Success = false
+                };
+            }
+
+            var enroll = await _unit.Enrollment.GetByCourseAsync(userId, courseId);
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = _mapper.Map<EnrollResDto>(enroll),
+                Success = true
+            };
+        }
+
+        public async Task<Response> GetHisEnrollsByCourseAsync(string userId, string courseId)
+        {
+            var isExistUser = _unit.Students.IsExist(s => s.UserId == userId);
+            if (!isExistUser)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any students",
+                    Success = false
+                };
+            }
+
+            var isExistCourse = _unit.Courses.IsExist(c => c.CourseId == courseId);
+            if (!isExistCourse)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any courses",
+                    Success = false
+                };
+            }
+
+            var enrolls = await _unit.Enrollment.GetAsync(userId);
+
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = _mapper.Map<List<EnrollResDto>>(enrolls.Where(e => e.Class.CourseId == courseId).OrderByDescending(e => e.UpdateTime)),
+                Success = true
+            };
+        } 
 
         public async Task<Response> HandleStartClassAsync(string classId)
         {
@@ -293,7 +383,7 @@ namespace EnglishCenter.Business.Services.Courses
                 };
             }
 
-           
+            classModel.Status = (int)ClassEnum.Opening;
 
             await _unit.CompleteAsync();
             return new Response()
@@ -337,6 +427,7 @@ namespace EnglishCenter.Business.Services.Courses
                 };
             }
 
+            classModel.Status = (int) ClassEnum.End;
             await _unit.CompleteAsync();
 
             return new Response()
@@ -397,7 +488,7 @@ namespace EnglishCenter.Business.Services.Courses
                 };
             }
 
-            var enrollNum = _unit.Enrollment.Find(e => e.ClassId == classId && e.StatusId == (int)EnrollEnum.Accepted).Count();
+            var enrollNum = _unit.Enrollment.Find(e => e.ClassId == classId && e.StatusId == (int)EnrollEnum.Pending).Count();
             
             var isSuccess = await _unit.Enrollment.HandleAcceptedAsync(classId);
             if (!isSuccess)
@@ -434,7 +525,7 @@ namespace EnglishCenter.Business.Services.Courses
                 };
             }
 
-            if (enrollModel.StatusId != (int)EnrollEnum.Pending && enrollModel.StatusId == (int)EnrollEnum.Waiting)
+            if (enrollModel.StatusId != (int)EnrollEnum.Pending && enrollModel.StatusId != (int)EnrollEnum.Waiting)
             {
                 return new Response()
                 {
@@ -442,6 +533,12 @@ namespace EnglishCenter.Business.Services.Courses
                     Message = "Can't be rejected with current statuses",
                     Success = false
                 };
+            }
+
+            if (enrollModel.ScoreHisId.HasValue)
+            {
+                var scoreHisModel = _unit.ScoreHis.GetById(enrollModel.ScoreHisId.Value);
+                _unit.ScoreHis.Remove(scoreHisModel);
             }
 
             _unit.Enrollment.Remove(enrollModel);
@@ -541,7 +638,7 @@ namespace EnglishCenter.Business.Services.Courses
         public async Task<Response> HandleChangeClassAsync(long enrollmentId, string classId)
         {
             var enrollModel = _unit.Enrollment.GetById(enrollmentId);
-            if(enrollModel.StatusId != (int) EnrollEnum.Pending && enrollModel.StatusId == (int)EnrollEnum.Waiting)
+            if(enrollModel.StatusId != (int) EnrollEnum.Pending && enrollModel.StatusId != (int)EnrollEnum.Waiting)
             {
                 return new Response()
                 {
@@ -630,6 +727,16 @@ namespace EnglishCenter.Business.Services.Courses
                 };
             }
 
+            if (classModel.Status == (int)ClassEnum.End)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't register for this class because it has ended",
+                    Success = false
+                };
+            }
+
             var studentModel = _unit.Students.GetById(model.UserId ?? "");
             if (studentModel == null)
             {
@@ -676,6 +783,24 @@ namespace EnglishCenter.Business.Services.Courses
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
                     Message = "Can't find any enrollments"
                 };
+            }
+
+            if (enrollmentModel.ScoreHisId.HasValue)
+            {
+                var scoreHisModel = _unit.ScoreHis.GetById(enrollmentModel.ScoreHisId.Value);
+
+                _unit.ScoreHis.Remove(scoreHisModel);
+            }
+
+            var classModel = _unit.Classes.GetById(enrollmentModel.ClassId);
+            
+            if(enrollmentModel.StatusId == (int)EnrollEnum.Pending)
+            {
+                classModel.RegisteringNum--;
+            }
+            else if(enrollmentModel.StatusId != (int)EnrollEnum.Rejected)
+            {
+                classModel.RegisteredNum--;
             }
 
             _unit.Enrollment.Remove(enrollmentModel);

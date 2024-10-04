@@ -13,38 +13,35 @@ public partial class AssignQue
     [Key]
     public long AssignQuesId { get; set; }
 
-    public int? QuesTypeId { get; set; }
+    [Required]
+    public int Type { get; set; }
 
     [Column("Ques_Id")]
     public long? QuesId { get; set; }
 
     [ForeignKey("QuesId")]
     [InverseProperty("AssignQue")]
-    public virtual QuesLcAudio? Ques { get; set; }
+    public virtual QuesLcAudio? QuesAudio { get; set; }
 
     [ForeignKey("QuesId")]
     [InverseProperty("AssignQue")]
-    public virtual QuesLcImage? Ques1 { get; set; }
+    public virtual QuesLcImage? QuesImage { get; set; }
 
     [ForeignKey("QuesId")]
     [InverseProperty("AssignQue")]
-    public virtual QuesRcDouble? Ques2 { get; set; }
+    public virtual QuesRcDouble? QuesDouble { get; set; }
 
     [ForeignKey("QuesId")]
     [InverseProperty("AssignQue")]
-    public virtual QuesRcSingle? Ques3 { get; set; }
+    public virtual QuesRcSingle? QuesSingle { get; set; }
 
     [ForeignKey("QuesId")]
     [InverseProperty("AssignQue")]
-    public virtual QuesRcTriple? Ques4 { get; set; }
+    public virtual QuesRcTriple? QuesTriple { get; set; }
 
     [ForeignKey("QuesId")]
     [InverseProperty("AssignQue")]
-    public virtual QuesLcConversation? QuesNavigation { get; set; }
-
-    [ForeignKey("QuesTypeId")]
-    [InverseProperty("AssignQues")]
-    public virtual QuestionType? QuesType { get; set; }
+    public virtual QuesLcConversation? QuesConversation { get; set; }
 
     public long? AssignmentId { set; get; }
 

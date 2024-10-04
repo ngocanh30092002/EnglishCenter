@@ -14,6 +14,7 @@ namespace EnglishCenter.DataAccess.UnitOfWork
         ICourseContentRepository CourseContents { get; }
         IAssignmentRepository Assignments { get; }
         IScoreHistoryRepository ScoreHis { get; }
+        IAssignQuesRepository AssignQues { get; }
         public Task<int> CompleteAsync();
     }
 }

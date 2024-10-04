@@ -29,6 +29,6 @@ public partial class QuesRcSingle
     [StringLength(300)]
     public string AnswerD { get; set; } = null!;
 
-    [InverseProperty("Ques3")]
+    [InverseProperty("QuesSingle")]
     public virtual AssignQue? AssignQue { get; set; }
 }

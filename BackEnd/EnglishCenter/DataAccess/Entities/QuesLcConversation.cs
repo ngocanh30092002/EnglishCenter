@@ -20,7 +20,7 @@ public partial class QuesLcConversation
     [StringLength(300)]
     public string Audio { get; set; } = null!;
 
-    [InverseProperty("QuesNavigation")]
+    [InverseProperty("QuesConversation")]
     public virtual AssignQue? AssignQue { get; set; }
 
     [InverseProperty("PreQues")]

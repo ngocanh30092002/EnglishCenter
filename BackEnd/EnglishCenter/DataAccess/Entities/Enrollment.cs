@@ -22,7 +22,10 @@ public partial class Enrollment
     public DateOnly? EnrollDate { get; set; }
 
     public int? StatusId { get; set; }
+
     public long? ScoreHisId { get; set; }
+
+    public DateTime? UpdateTime { set; get; }
 
     [ForeignKey("ClassId")]
     [InverseProperty("Enrollments")]

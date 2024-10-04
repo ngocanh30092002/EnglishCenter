@@ -25,6 +25,11 @@ public partial class Class
 
     public int MaxNum { get; set; } = 0;
 
+    public int Status { set; get; } = 0;
+
+    [StringLength(200)]
+    public string? Description { get; set; }
+
     [StringLength(200)]
     public string? Image { set; get; }
 
@@ -32,7 +37,12 @@ public partial class Class
     [InverseProperty("Classes")]
     public virtual Course Course { get; set; } = null!;
 
+    [ForeignKey("TeacherId")]
+    [InverseProperty("Classes")]
+    public virtual Teacher Teacher { set; get; } = null!;
+
     [InverseProperty("Class")]
     public virtual ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
+
 
 }

@@ -10,12 +10,14 @@ namespace EnglishCenter.Business.IServices
         public Task<Response> DeleteAsync(string classId);
         public Task<Response> GetAllAsync();
         public Task<Response> GetAsync(string classId);
+        public Task<Response> GetClassesWithCourseAsync(string courseId);
         public Task<Response> GetClassesWithTeacherAsync(string userId);
         public Task<Response> ChangeCourseAsync(string classId, string courseId);
         public Task<Response> ChangeStartTimeAsync(string classId, DateOnly startTime);
         public Task<Response> ChangeEndTimeAsync(string classId, DateOnly endTime);
         public Task<Response> ChangeMaxNumAsync(string classId, int maxNum);
         public Task<Response> ChangeImageAsync(string classId, IFormFile image);
+        public Task<Response> ChangeDescriptionAsync(string classId, string newDes);
         public Task<bool> IsClassOfTeacherAsync(string userId, string classId);
     }
 }

@@ -18,5 +18,7 @@ namespace EnglishCenter.Presentation.Models.DTOs
         public int? Priority { get; set; }
         public IFormFile? Image { set; get; }
         public string? ImageUrl { set; get; }
+        public IFormFile? ImageThumbnail { set; get; }
+        public string? ImageThumbnailUrl { set; get; }
     }
 }

@@ -51,23 +51,15 @@ namespace EnglishCenter.Presentation.Extensions.Identity
                     // Lấy token từ header "Authorization"
                     OnMessageReceived = context =>
                     {
-                        //var accessToken = context.Request.Headers["Authorization"].ToString();
+                        context.Token = context.Request.Cookies["access-token"];
+                        return Task.CompletedTask;
+
                         //var isHasAccessKey = context.Request.Query.ContainsKey("access_token");
-                        //if (!string.IsNullOrEmpty(accessToken) && accessToken.StartsWith("Bearer "))
-                        //{
-                        //    context.Token = accessToken.Substring("Bearer ".Length).Trim();
-                        //}
-                        //else if (isHasAccessKey)
+                        //if (isHasAccessKey)
                         //{
                         //    context.Token = context.Request.Query["access_token"];
                         //}
-
-                        var isHasAccessKey = context.Request.Query.ContainsKey("access_token");
-                        if (isHasAccessKey)
-                        {
-                            context.Token = context.Request.Query["access_token"];
-                        }
-                        return Task.CompletedTask;
+                        //return Task.CompletedTask;
                     }
                 };
 

@@ -26,7 +26,7 @@ public partial class QuesRcTriple
     [StringLength(300)]
     public string? Image3 { get; set; }
 
-    [InverseProperty("Ques4")]
+    [InverseProperty("QuesTriple")]
     public virtual AssignQue? AssignQue { get; set; }
 
     [InverseProperty("PreQues")]

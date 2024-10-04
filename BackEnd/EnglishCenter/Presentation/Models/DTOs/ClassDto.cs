@@ -24,7 +24,7 @@ namespace EnglishCenter.Presentation.Models.DTOs
         [Range(0, int.MaxValue)]
         public int? MaxNum { set; get; }
         public IFormFile? Image { set; get; }
-        public string? ImageUrl { set; get; }
-
+        public int? Status { set;get; }
+        public string? Description { set; get; }
     }
 }

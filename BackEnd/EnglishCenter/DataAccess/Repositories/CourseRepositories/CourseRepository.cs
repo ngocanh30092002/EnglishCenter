@@ -65,6 +65,19 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
                 }
             }
 
+            if(model.ImageThumbnail != null)
+            {
+                var isSuccess = await UploadImageThumbnailAsync(course, model.ImageThumbnail);
+                if (!isSuccess)
+                {
+                    return new Response()
+                    {
+                        StatusCode = System.Net.HttpStatusCode.BadRequest,
+                        Success = false
+                    };
+                }
+            }
+
             return new Response()
             {
                 Success = true,
@@ -92,6 +105,28 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
             }
 
             courseModel.Image = Path.Combine("courses", "images", fileName);
+            return true;
+        }
+
+        public async Task<bool> UploadImageThumbnailAsync(Course courseModel, IFormFile image)
+        {
+            if (courseModel == null) return false;
+
+            var uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "courses", "images-thumbnail");
+            var fileName = $"{DateTime.Now.Ticks}_{image.FileName}";
+            var result = await UploadHelper.UploadFileAsync(image, uploadFolder, fileName);
+
+            if (!string.IsNullOrEmpty(result)) return false;
+
+            var wwwRootPath = _webHost.WebRootPath;
+            var previousImage = Path.Combine(wwwRootPath, courseModel.ImageThumbnail ?? "");
+
+            if (File.Exists(previousImage))
+            {
+                File.Delete(previousImage);
+            }
+
+            courseModel.ImageThumbnail = Path.Combine("courses", "images-thumbnail", fileName);
             return true;
         }
 

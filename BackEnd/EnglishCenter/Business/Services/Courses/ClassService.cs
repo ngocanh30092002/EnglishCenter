@@ -2,10 +2,12 @@
 using EnglishCenter.Business.IServices;
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.UnitOfWork;
+using EnglishCenter.Presentation.Global.Enum;
 using EnglishCenter.Presentation.Helpers;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using EnglishCenter.Presentation.Models.ResDTOs;
+using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.Business.Services.Courses
 {
@@ -20,6 +22,38 @@ namespace EnglishCenter.Business.Services.Courses
             _unit = unit;
             _mapper = mapper;
             _webHostEnvironment = webHostEnvironment;
+        }
+
+        public async Task<Response> ChangeDescriptionAsync(string classId, string newDes)
+        {
+            var classModel = _unit.Classes.GetById(classId);
+            if(classModel == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any classes",
+                    Success = false
+                };
+            }
+
+            var isSuccess = await _unit.Classes.ChangeDescriptionAsync(classModel, newDes);
+            if (!isSuccess)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Success = false
+                };
+            }
+
+            await _unit.CompleteAsync();
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = "",
+                Success = true
+            };
         }
 
         public async Task<Response> ChangeCourseAsync(string classId, string courseId)
@@ -256,8 +290,7 @@ namespace EnglishCenter.Business.Services.Courses
                 };
             }
 
-            // Todo: Check Teacher is Exist ?
-            var isExistTeacher = _unit.Students.IsExist(s => s.UserId == model.TeacherId);
+            var isExistTeacher = _unit.Teachers.IsExist(s => s.UserId == model.TeacherId);
             if (!isExistTeacher)
             {
                 return new Response()
@@ -333,42 +366,85 @@ namespace EnglishCenter.Business.Services.Courses
             };
         }
 
-        public Task<Response> GetAllAsync()
+        public async Task<Response> GetAllAsync()
         {
-            var classes = _unit.Classes.GetAll();
+            var classes = await _unit.Classes.Include(c => c.Teacher).ToListAsync();
 
-            var response = new Response()
+            return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Message = _mapper.Map<List<ClassDto>>(classes),
+                Message = _mapper.Map<List<ClassResDto>>(classes),
                 Success = true
             };
-
-            return Task.FromResult(response);
         }
 
-        public Task<Response> GetAsync(string classId)
+        public async Task<Response> GetClassesWithCourseAsync(string courseId)
         {
-            var classModel = _unit.Classes.GetById(classId);
+            var isExistCourse = _unit.Courses.IsExist(c => c.CourseId == courseId);
+            if (!isExistCourse)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any courses",
+                    Success = false
+                };
+            }
 
-            return Task.FromResult(new Response()
+            var classes = await _unit.Classes.Include(c => c.Teacher)
+                                       .Where(c => c.CourseId == courseId && c.Status != (int)ClassEnum.End)
+                                       .ToListAsync();
+            
+            return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Message = _mapper.Map<ClassDto>(classModel),
+                Message = _mapper.Map<List<ClassResDto>>(classes),
                 Success = true
-            });
+            };
+        }
+
+        public async Task<Response> GetAsync(string classId)
+        {
+            var classModel = await _unit.Classes.Include(c => c.Teacher)
+                                .FirstOrDefaultAsync(c => c.ClassId == classId);
+
+            if(classModel == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any classes",
+                    Success = false
+                };
+            }
+
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = _mapper.Map<ClassResDto>(classModel),
+                Success = true
+            };
         }
 
         public async Task<Response> GetClassesWithTeacherAsync(string userId)
         {
-            // Todo: Check Teacher is isExist ?
+            var isExistTeacher = _unit.Teachers.IsExist(t => t.UserId == userId);
+            if(!isExistTeacher)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any teachers",
+                    Success = false
+                };
+            }
 
             var classes = await _unit.Classes.GetClassesWithTeacherAsync(userId);
 
             return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Message = _mapper.Map<List<ClassDto>>(classes),
+                Message = _mapper.Map<List<ClassResDto>>(classes),
                 Success = true
             };
         }

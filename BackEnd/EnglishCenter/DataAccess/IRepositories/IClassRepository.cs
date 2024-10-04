@@ -13,6 +13,6 @@ namespace EnglishCenter.DataAccess.IRepositories
         public Task<bool> ChangeEndTimeAsync(Class model, DateOnly endTime);
         public Task<bool> ChangeMaxNumAsync(Class model, int maxNum);
         public Task<bool> ChangeImageAsync(Class model, IFormFile image);
-
+        public Task<bool> ChangeDescriptionAsync(Class model, string newDes);
     }
 }

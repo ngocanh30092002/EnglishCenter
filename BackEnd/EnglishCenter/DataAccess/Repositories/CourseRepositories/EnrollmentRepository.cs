@@ -17,7 +17,12 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
 
         public async Task<List<Enrollment>> GetAsync(string userId)
         {
-            var enrolls = await context.Enrollments.Where(c => c.UserId == userId).ToListAsync(); 
+            var enrolls = await context.Enrollments
+                                        .Include(e => e.User)
+                                        .Include(e => e.Status)
+                                        .Include(e => e.Class)
+                                        .ThenInclude(e => e.Teacher)
+                                        .Where(c => c.UserId == userId).ToListAsync(); 
 
             return enrolls;
         }
@@ -36,6 +41,14 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
             var enrollments = await context.Enrollments.Where(e => e.ClassId == classId && e.StatusId == (int)status).ToListAsync();
 
             return enrollments;
+        }
+        
+        public async Task<List<Enrollment>> GetCurrentClassesByStudentAsync(string userId)
+        {
+            var enrolls = await context.Enrollments
+                                            .Where(e => e.UserId == userId && e.StatusId == (int)EnrollEnum.Ongoing)
+                                            .ToListAsync();
+            return enrolls;
         }
 
         public async Task<List<Enrollment>> GetByTeacherAsync(string userId)
@@ -56,7 +69,21 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
             return enrolls;
         }
         
-        public async Task<int> GetHighestPreScoreAsync(string userId, string courseId)
+        public async Task<Enrollment?> GetByCourseAsync(string userId, string courseId)
+        {
+            var enroll = await context.Enrollments
+                                .Include(e => e.User)
+                                .Include(e => e.Status)
+                                .Include(e => e.Class)
+                                .FirstOrDefaultAsync(e => e.UserId == userId &&
+                                                    e.Class.CourseId == courseId &&
+                                                    e.StatusId != (int)EnrollEnum.Rejected &&
+                                                    e.StatusId != (int)EnrollEnum.Completed);
+
+            return enroll;
+        }
+        
+        public async Task<int> GetHighestScoreAsync(string userId, string courseId)
         {
             var enrolls = await context.Enrollments.Include(c => c.Class)
                                         .Where(c => c.Class.CourseId == courseId &&
@@ -80,24 +107,30 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
             if (classModel == null) return false;
 
             enroll.ClassId = classModel.ClassId;
+            var isSuccess = await ChangeUpdateTimeAsync(enroll, DateTime.Now);
 
-            return true;
+            return isSuccess;
         }
 
-        public Task<bool> ChangeDateAsync(Enrollment enroll, DateOnly time)
+        public async Task<bool> ChangeDateAsync(Enrollment enroll, DateOnly time)
         {
-            if (enroll == null) return Task.FromResult(false);
+            if (enroll == null) return false;
 
             enroll.EnrollDate = time;
-            return Task.FromResult(true);
+
+            var isSuccess = await ChangeUpdateTimeAsync(enroll, DateTime.Now);
+            
+            return isSuccess;
         }
 
-        public Task<bool> ChangeStatusAsync(Enrollment enroll, EnrollEnum status)
+        public async Task<bool> ChangeStatusAsync(Enrollment enroll, EnrollEnum status)
         {
-            if (enroll == null) return Task.FromResult(false);
+            if (enroll == null) return false;
 
-            enroll.StatusId = (int)status;  
-            return Task.FromResult(true);
+            enroll.StatusId = (int)status;
+            var isSuccess = await ChangeUpdateTimeAsync(enroll, DateTime.Now);
+
+            return isSuccess;
         }
         
         public async Task<bool> ChangeStudentAsync(Enrollment enroll, string userId)
@@ -120,7 +153,18 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
             if (isStillLearning) return false;
 
             enroll.UserId = userId;
-            return true;
+            var isSuccess = await ChangeUpdateTimeAsync(enroll, DateTime.Now);
+
+            return isSuccess;
+        }
+
+        public Task<bool> ChangeUpdateTimeAsync(Enrollment enroll, DateTime time)
+        {
+            if (enroll == null) return Task.FromResult(false);
+
+            enroll.UpdateTime = time;
+
+            return Task.FromResult(true);
         }
 
         public async Task<bool> HandleAcceptedAsync(string classId)
@@ -129,24 +173,31 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
             if (classModel == null) return false;
 
             var enrolls = await context.Enrollments
-                                    .Where(e => e.StatusId == (int)EnrollEnum.Accepted && e.ClassId == classModel.ClassId)
+                                    .Where(e => e.StatusId == (int)EnrollEnum.Pending && e.ClassId == classModel.ClassId)
                                     .ToListAsync();
             
             foreach(var enroll in enrolls)
             {
                 enroll.StatusId = (int)EnrollEnum.Waiting;
+
+                if(!await ChangeUpdateTimeAsync(enroll, DateTime.Now))
+                {
+                    return false;
+                }
             }
 
             return true;
         }
 
-        public Task<bool> HandleAcceptedAsync(Enrollment enroll)
+        public async Task<bool> HandleAcceptedAsync(Enrollment enroll)
         {
-            if (enroll == null) return Task.FromResult(false);
-            if (enroll.StatusId != (int)EnrollEnum.Accepted) Task.FromResult(false);
+            if (enroll == null) return false;
+            if (enroll.StatusId != (int)EnrollEnum.Pending) return false;
 
             enroll.StatusId = (int)EnrollEnum.Waiting;
-            return Task.FromResult(true);
+
+            var isSuccess = await ChangeUpdateTimeAsync(enroll, DateTime.Now);
+            return isSuccess;
         }
 
         public async Task<bool> HandleStartClassAsync(string classId, Course preCourse)
@@ -163,10 +214,15 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
                 var scoreHis = new ScoreHistory() { EntrancePoint = 0, MidtermPoint = 0, FinalPoint = 0};
                 if(preCourse != null)
                 {
-                    scoreHis.EntrancePoint = await GetHighestPreScoreAsync(enroll.UserId, preCourse.CourseId);
+                    scoreHis.EntrancePoint = await GetHighestScoreAsync(enroll.UserId, preCourse.CourseId);
                 }
 
                 enroll.ScoreHis = scoreHis;
+
+                if (!await ChangeUpdateTimeAsync(enroll, DateTime.Now))
+                {
+                    return false;
+                }
             }
 
             return true;
@@ -182,19 +238,26 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
             foreach(var enroll in enrolls)
             {
                 enroll.StatusId = (int)EnrollEnum.Completed;
+
+                if (!await ChangeUpdateTimeAsync(enroll, DateTime.Now))
+                {
+                    return false;
+                }
             }
 
             return true;
         }
         
-        public Task<bool> HandleRejectByTeacherAsync(Enrollment enrollModel)
+        public async Task<bool> HandleRejectByTeacherAsync(Enrollment enrollModel)
         {
-            if(enrollModel == null) return Task.FromResult(false);
-            if (enrollModel.StatusId != (int)EnrollEnum.Pending) return Task.FromResult(false);
+            if(enrollModel == null) return false;
+            if (enrollModel.StatusId != (int)EnrollEnum.Pending) return false;
 
             enrollModel.StatusId = (int)EnrollEnum.Rejected;
 
-            return Task.FromResult(true);
+            var isSuccess = await ChangeUpdateTimeAsync(enrollModel, DateTime.Now);
+
+            return isSuccess;
         }
 
         public async Task<Response> UpdateAsync(long enrollmentId, EnrollmentDto model)
@@ -263,6 +326,7 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
 
             enrollModel.EnrollDate = model.EnrollDate.HasValue ? model.EnrollDate : DateOnly.FromDateTime(DateTime.Now);
             enrollModel.StatusId = model.StatusId ?? enrollModel.StatusId;
+            enrollModel.UpdateTime = DateTime.Now;
 
             return new Response()
             {

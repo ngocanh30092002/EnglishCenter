@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using EnglishCenter.Business.IServices;
 using EnglishCenter.DataAccess.Entities;
+using EnglishCenter.DataAccess.IRepositories;
 using EnglishCenter.DataAccess.UnitOfWork;
 using EnglishCenter.Presentation.Helpers;
 using EnglishCenter.Presentation.Models;
@@ -50,6 +51,73 @@ namespace EnglishCenter.Business.Services.Courses
             };
         }
 
+        public async Task<Response> CheckIsQualifiedAsync(string userId, string courseId)
+        {
+            var isExistUser = _unit.Students.IsExist(s => s.UserId == userId);
+            if(!isExistUser) 
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any students",
+                    Success = false
+                };
+            }
+
+            var courseModel = _unit.Courses.GetById(courseId);
+            if (courseModel == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any courses",
+                    Success = false
+                };
+            }
+
+            if (!courseModel.Priority.HasValue)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Message = true,
+                    Success = true
+                };
+            }
+
+            var priority = courseModel.Priority.Value;
+            var preCourse = _unit.Courses.Find(c => c.Priority ==  priority - 1).FirstOrDefault();
+            if (preCourse == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Message = true,
+                    Success = true
+                };
+            }
+
+            var highestScore = await _unit.Enrollment.GetHighestScoreAsync(userId, preCourse.CourseId);
+            if(highestScore >= courseModel.EntryPoint)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Message = true,
+                    Success = true
+                };
+            }
+            else
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.Forbidden,
+                    Message = "You aren't eligible for admission.",
+                    Success = false
+                };
+            }
+        }
+
         public async Task<Response> CreateAsync(CourseDto model)
         {
             var isExistCourse = _unit.Courses.IsExist(c => c.CourseId == model.CourseId);
@@ -82,6 +150,25 @@ namespace EnglishCenter.Business.Services.Courses
                 }
 
                 courseModel.Image = Path.Combine("courses", "images", fileName);
+            }
+
+            if(model.ImageThumbnail != null)
+            {
+                var uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "courses", "images-thumbnail");
+                var fileName = $"{DateTime.Now.Ticks}_{model.ImageThumbnail?.FileName}";
+                var result = await UploadHelper.UploadFileAsync(model.ImageThumbnail, uploadFolder, fileName);
+
+                if (!string.IsNullOrEmpty(result))
+                {
+                    return new Response()
+                    {
+                        StatusCode = System.Net.HttpStatusCode.BadRequest,
+                        Success = false,
+                        Message = result
+                    };
+                }
+
+                courseModel.ImageThumbnail = Path.Combine("courses", "images-thumbnail", fileName);
             }
 
             _unit.Courses.Add(courseModel);
@@ -204,6 +291,40 @@ namespace EnglishCenter.Business.Services.Courses
             }
 
             var isSuccess = await _unit.Courses.UploadImageAsync(courseModel, file);
+            if (!isSuccess)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Success = false
+                };
+            }
+
+            await _unit.CompleteAsync();
+            return new Response()
+            {
+                Success = true,
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = ""
+            };
+        }
+
+        public async Task<Response> UploadImageThumbnailAsync(string courseId, IFormFile file)
+        {
+            var courseModel = _unit.Courses.GetById(courseId);
+
+            if (courseModel == null)
+            {
+                return new Response
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Success = false,
+                    Message = "Can't find any courses"
+                };
+            }
+
+            var isSuccess = await _unit.Courses.UploadImageThumbnailAsync(courseModel, file);
+
             if (!isSuccess)
             {
                 return new Response()

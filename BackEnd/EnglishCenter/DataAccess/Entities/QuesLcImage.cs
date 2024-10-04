@@ -21,6 +21,6 @@ public partial class QuesLcImage
     [StringLength(5)]
     public string CorrectAnswer { get; set; } = null!;
 
-    [InverseProperty("Ques1")]
+    [InverseProperty("QuesImage")]
     public virtual AssignQue? AssignQue { get; set; }
 }

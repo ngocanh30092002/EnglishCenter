@@ -26,6 +26,9 @@ public partial class Course
     [StringLength(300)]
     public string? Image { set; get; }
 
+    [StringLength(300)]
+    public string? ImageThumbnail { set; get; }
+
     [InverseProperty("Course")]
     public virtual ICollection<Class> Classes { get; set; } = new List<Class>();
 

@@ -4,7 +4,7 @@ namespace EnglishCenter.Business.IServices
 {
     public interface ITeacherService
     {
-        public Response GetFullName(string userId);
-        //public Task<Response> AcceptedStudentAsync(long enrollId);
+        public Task<Response> GetFullNameAsync(string userId);
+        public Task<Response> GetAsync(string userId);
     }
 }

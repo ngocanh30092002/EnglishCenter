@@ -2,8 +2,9 @@
 
 namespace EnglishCenter.DataAccess.IRepositories
 {
-    public interface ITeacherRepository
+    public interface ITeacherRepository : IGenericRepository<Teacher>
     {
-        public string GetFullName(Student teacher);
+        public Task<string> GetFullNameAsync(string userId);
+        public string GetFullName(Teacher teacher);
     }
 }

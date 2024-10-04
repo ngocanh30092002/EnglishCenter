@@ -11,11 +11,14 @@ namespace EnglishCenter.DataAccess.IRepositories
         public Task<List<Enrollment>> GetAsync(string userId);
         public Task<List<Enrollment>> GetAsync(string userId, string classId);
         public Task<List<Enrollment>> GetAsync(string classId, EnrollEnum status);
+        public Task<List<Enrollment>> GetCurrentClassesByStudentAsync(string userId);
         public Task<List<Enrollment>> GetByTeacherAsync(string userId);
         public Task<List<Enrollment>> GetByTeacherAsync(string userId, string classId);
-        public Task<int> GetHighestPreScoreAsync(string userId, string courseId);
+        public Task<Enrollment?> GetByCourseAsync(string userId, string courseId);
+        public Task<int> GetHighestScoreAsync(string userId, string courseId);
         public Task<bool> ChangeClassAsync(Enrollment enroll, string classId);
         public Task<bool> ChangeStatusAsync(Enrollment enroll, EnrollEnum status);
+        public Task<bool> ChangeUpdateTimeAsync(Enrollment enroll, DateTime time);
         public Task<bool> HandleAcceptedAsync(string classId);
         public Task<bool> HandleAcceptedAsync(Enrollment enroll);
         public Task<bool> HandleStartClassAsync(string classId, Course preCourse);

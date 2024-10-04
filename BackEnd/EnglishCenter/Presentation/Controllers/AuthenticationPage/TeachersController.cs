@@ -14,11 +14,18 @@ namespace EnglishCenter.Presentation.Controllers.AuthenticationPage
             _teacherService = teacherService;
         }
 
-        [HttpGet("{userId}")]
+        [HttpGet("{userId}/full-name")]
         public async Task<IActionResult> GetFullNameAsync([FromRoute] string userId)
         {
-            var response = _teacherService.GetFullName(userId);
+            var response = await _teacherService.GetFullNameAsync(userId);
 
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("{userId}")]
+        public async Task<IActionResult> GetAsync([FromRoute] string userId)
+        {
+            var response = await _teacherService.GetAsync(userId);
             return await response.ChangeActionAsync();
         }
     }

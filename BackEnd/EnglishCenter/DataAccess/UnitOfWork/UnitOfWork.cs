@@ -17,7 +17,8 @@ namespace EnglishCenter.DataAccess.UnitOfWork
             ICourseRepository courseRepo,
             ICourseContentRepository courseContentRepo,
             IAssignmentRepository assignRepo,
-            IScoreHistoryRepository scoreHisRepo
+            IScoreHistoryRepository scoreHisRepo,
+            IAssignQuesRepository assignQues
             ) 
         {
             _context = context;
@@ -31,6 +32,8 @@ namespace EnglishCenter.DataAccess.UnitOfWork
             CourseContents = courseContentRepo;
             Assignments = assignRepo;
             ScoreHis = scoreHisRepo;
+            AssignQues = assignQues;
+
         }
 
         public IEventRepository Events { get; private set; }
@@ -42,9 +45,8 @@ namespace EnglishCenter.DataAccess.UnitOfWork
         public ICourseRepository Courses { get; private set; }
         public ICourseContentRepository CourseContents { get; private set; }
         public IAssignmentRepository Assignments { get; private set; }
-
-
         public IScoreHistoryRepository ScoreHis { get; private set; }
+        public IAssignQuesRepository AssignQues { get; private set; }
 
         public async Task<int> CompleteAsync()
         {

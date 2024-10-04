@@ -35,32 +35,51 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
         }
 
         [HttpGet("{enrollmentId}")]
-        public async Task<IActionResult> GetAsync([FromRoute] long enrollmentId)
+        public async Task<IActionResult> GetByIdAsync([FromRoute] long enrollmentId)
         {
             var response = await _enrollService.GetAsync(enrollmentId);
             return await response.ChangeActionAsync();
         }
 
         [HttpGet("student/{userId}")]
-        [Authorize(Policy = GlobalVariable.ADMIN_STUDENT)]
-        public async Task<IActionResult> GetAsync([FromRoute] string userId)
+        [Authorize(Roles = AppRole.ADMIN)]
+        public async Task<IActionResult> GetByStudentAsync([FromRoute] string userId)
         {
-            var isStudent = User.IsInRole(AppRole.STUDENT);
-            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
-
-            if(isStudent && currentUserId != userId)
-            {
-                return Forbid();
-            }
-
             var response = await _enrollService.GetAsync(userId);
 
             return await response.ChangeActionAsync();
         }
 
+        [HttpGet("student")]
+        public async Task<IActionResult> GetByStudentAsync()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
+
+            if(string.IsNullOrEmpty(userId))
+            {
+                return BadRequest();
+            }
+
+            var response = await _enrollService.GetAsync(userId);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("student/current-class")]
+        public async Task<IActionResult> GetCurrentByStudentAsync()
+        {
+            var useId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
+            if (string.IsNullOrEmpty(useId))
+            {
+                return BadRequest();
+            }
+
+            var response = await _enrollService.GetCurrentClassesByStudentAsync(useId);
+            return await response.ChangeActionAsync();
+        }
+
         [HttpGet("class/{classId}")]
         [Authorize(Roles = AppRole.ADMIN)]
-        public async Task<IActionResult> GetAsync([FromRoute] string classId, [FromQuery] int statusId)
+        public async Task<IActionResult> GetByClassWithStatusAsync([FromRoute] string classId, [FromQuery] int statusId)
         {
             if(!Enum.IsDefined(typeof(EnrollEnum), statusId))
             {
@@ -77,7 +96,7 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
 
         [HttpGet("teacher/{userId}")]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
-        public async Task<IActionResult> GetTeacherAsync([FromRoute] string userId)
+        public async Task<IActionResult> GetByTeacherAsync([FromRoute] string userId)
         {
             var rolesResponse = await _roleService.GetUserRolesAsync(userId);
             if (rolesResponse.Success)
@@ -97,9 +116,24 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
             return await response.ChangeActionAsync();
         }
 
+        [HttpGet("teacher")]
+        [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
+        public async Task<IActionResult> GetByTeacherAsync()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return BadRequest();
+            }
+
+            var response = await _enrollService.GetByTeacherAsync(userId);
+            return await response.ChangeActionAsync();
+        }
+
         [HttpGet("teacher/{userId}/class/{classId}")]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
-        public async Task<IActionResult> GetTeacherAsync([FromRoute] string userId, [FromRoute] string classId)
+        public async Task<IActionResult> GetByTeacherAsync([FromRoute] string userId, [FromRoute] string classId)
         {
             var isTeacher = User.IsInRole(AppRole.TEACHER);
             var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
@@ -126,10 +160,66 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
             return await response.ChangeActionAsync();
         }
 
+        [HttpGet("teacher/class/{classId}")]
+        [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
+        public async Task<IActionResult> GetTeacherWithoutUserIdAsync([FromRoute] string classId)
+        {
+            var isTeacher = User.IsInRole(AppRole.TEACHER);
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
+
+            if (isTeacher)
+            {
+                var isCorrectClass = await _classService.IsClassOfTeacherAsync(currentUserId, classId);
+                if (!isCorrectClass)
+                {
+                    return BadRequest(new
+                    {
+                        Message = "Classes that the teacher isn't in charge of aren't accessible",
+                        Success = false
+                    });
+                }
+            }
+
+            var response = await _enrollService.GetByTeacherAsync(currentUserId, classId);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("courses/{courseId}")]
+        public async Task<IActionResult> GetByCourseAsync([FromRoute] string courseId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
+            if (string.IsNullOrEmpty(userId))
+            {
+                return BadRequest();
+            }
+
+            var response = await _enrollService.GetByCourseAsync(userId, courseId);
+
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("his/courses/{courseId}")]
+        public async Task<IActionResult> GetHisEnrollsByCourseAsync([FromRoute] string courseId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
+            if (string.IsNullOrEmpty(userId))
+            {
+                return BadRequest();
+            }
+
+            var response = await _enrollService.GetHisEnrollsByCourseAsync(userId, courseId);
+
+            return await response.ChangeActionAsync();
+        }
         [HttpPost]
         [Authorize(Policy = GlobalVariable.ADMIN_STUDENT)]
         public async Task<IActionResult> CreateAsync([FromForm] EnrollmentDto model)
         {
+            if(model.UserId == null)
+            {
+                model.UserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
+            }
+
             var response = await _enrollService.CreateAsync(model);
             return await response.ChangeActionAsync();
         }
@@ -255,7 +345,6 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
             var response = await _enrollService.HandleAcceptedAsync(classId);
 
             return await response.ChangeActionAsync();
-
         }
 
         [HttpPut("{enrollmentId}/reject")]

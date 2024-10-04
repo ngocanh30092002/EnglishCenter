@@ -4,22 +4,26 @@ using EnglishCenter.DataAccess.IRepositories;
 
 namespace EnglishCenter.DataAccess.Repositories.AuthenticationRepositories
 {
-    public class TeacherRepository : ITeacherRepository
+    public class TeacherRepository : GenericRepository<Teacher> , ITeacherRepository
     {
-        private readonly EnglishCenterContext _context;
-        private readonly IEnrollmentRepository _enrollRepo;
-
-        public TeacherRepository(EnglishCenterContext context, IEnrollmentRepository enrollRepo)
+        public TeacherRepository(EnglishCenterContext context) : base(context)
         {
-            _context = context;
-            _enrollRepo = enrollRepo;
         }
 
-        public string GetFullName(Student teacher)
+        public string GetFullName(Teacher teacherModel)
         {
-            if (teacher == null) return string.Empty;
+            if (teacherModel == null) return string.Empty;
 
-            var result = teacher.FirstName + " " + teacher.LastName;
+            var result = teacherModel.FirstName + " " + teacherModel.LastName;
+            return result.Trim();
+        }
+
+        public async Task<string> GetFullNameAsync(string userId)
+        {
+            var teacherModel = await context.Teachers.FindAsync(userId);
+            if (teacherModel == null) return string.Empty;
+
+            string result = teacherModel.FirstName + " " + teacherModel.LastName;
             return result.Trim();
         }
     }

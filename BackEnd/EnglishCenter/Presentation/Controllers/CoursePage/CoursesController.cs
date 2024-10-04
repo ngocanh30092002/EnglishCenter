@@ -1,8 +1,10 @@
-﻿using AutoMapper;
+﻿using System.Security.Claims;
+using AutoMapper;
 using EnglishCenter.Business.IServices;
 using EnglishCenter.Business.Services.Courses;
 using EnglishCenter.DataAccess.IRepositories;
 using EnglishCenter.Presentation.Models.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EnglishCenter.Presentation.Controllers.CoursePage
@@ -34,6 +36,20 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
             return await response.ChangeActionAsync();
         }
 
+        [HttpGet("{courseId}/student/is-qualified")]
+        [Authorize]
+        public async Task<IActionResult> CheckIsQualifiedAsync([FromRoute] string courseId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
+            if (string.IsNullOrEmpty(userId))
+            {
+                return BadRequest();
+            }
+
+            var response = await _courseService.CheckIsQualifiedAsync(userId, courseId);
+            return await response.ChangeActionAsync();
+        }
+
         [HttpPost("")]
         public async Task<IActionResult> CreateCourseAsync([FromForm] CourseDto model)
         {
@@ -54,6 +70,14 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
         public async Task<IActionResult> UploadCourseImageAsync([FromRoute] string courseId, IFormFile file)
         {
             var response = await _courseService.UploadImageAsync(courseId, file);
+
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpPatch("image-thumbnail/{courseId}")]
+        public async Task<IActionResult> UploadCourseImageThumbnailAsync([FromRoute] string courseId, IFormFile file)
+        {
+            var response = await _courseService.UploadImageThumbnailAsync(courseId, file);
 
             return await response.ChangeActionAsync();
         }

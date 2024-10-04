@@ -29,6 +29,8 @@ public partial class EnglishCenterContext : IdentityDbContext<User>
 
     public virtual DbSet<Class> Classes { get; set; }
 
+    public virtual DbSet<Teacher> Teachers { set; get; }
+
     public virtual DbSet<Course> Courses { get; set; }
 
     public virtual DbSet<EnrollStatus> EnrollStatuses { get; set; }
@@ -50,8 +52,6 @@ public partial class EnglishCenterContext : IdentityDbContext<User>
     public virtual DbSet<QuesRcSingle> QuesRcSingles { get; set; }
 
     public virtual DbSet<QuesRcTriple> QuesRcTriples { get; set; }
-
-    public virtual DbSet<QuestionType> QuestionTypes { get; set; }
 
     public virtual DbSet<ScoreHistory> ScoreHistories { get; set; }
 
@@ -90,19 +90,17 @@ public partial class EnglishCenterContext : IdentityDbContext<User>
 
         modelBuilder.Entity<AssignQue>(entity =>
         {
-            entity.HasOne(d => d.Ques).WithOne(p => p.AssignQue).HasConstraintName("FK_Assign_Ques_Ques_LC_Audio");
+            entity.HasOne(d => d.QuesAudio).WithOne(p => p.AssignQue).HasConstraintName("FK_Assign_Ques_Ques_LC_Audio");
 
-            entity.HasOne(d => d.QuesNavigation).WithOne(p => p.AssignQue).HasConstraintName("FK_Assign_Ques_Ques_LC_Conversation");
+            entity.HasOne(d => d.QuesConversation).WithOne(p => p.AssignQue).HasConstraintName("FK_Assign_Ques_Ques_LC_Conversation");
 
-            entity.HasOne(d => d.Ques1).WithOne(p => p.AssignQue).HasConstraintName("FK_Assign_Ques_Ques_LC_Image");
+            entity.HasOne(d => d.QuesImage).WithOne(p => p.AssignQue).HasConstraintName("FK_Assign_Ques_Ques_LC_Image");
 
-            entity.HasOne(d => d.Ques2).WithOne(p => p.AssignQue).HasConstraintName("FK_Assign_Ques_Ques_RC_Double");
+            entity.HasOne(d => d.QuesDouble).WithOne(p => p.AssignQue).HasConstraintName("FK_Assign_Ques_Ques_RC_Double");
 
-            entity.HasOne(d => d.Ques3).WithOne(p => p.AssignQue).HasConstraintName("FK_Assign_Ques_Ques_RC_Single");
+            entity.HasOne(d => d.QuesSingle).WithOne(p => p.AssignQue).HasConstraintName("FK_Assign_Ques_Ques_RC_Single");
 
-            entity.HasOne(d => d.Ques4).WithOne(p => p.AssignQue).HasConstraintName("FK_Assign_Ques_Ques_RC_Triple");
-
-            entity.HasOne(d => d.QuesType).WithMany(p => p.AssignQues).HasConstraintName("FK_Assign_Ques_Question_Type");
+            entity.HasOne(d => d.QuesTriple).WithOne(p => p.AssignQue).HasConstraintName("FK_Assign_Ques_Ques_RC_Triple");
 
             entity.HasOne(d => d.Assignment).WithMany(p => p.AssignQues).HasConstraintName("FK_Assign_Ques_Assignment");
         });
@@ -128,6 +126,10 @@ public partial class EnglishCenterContext : IdentityDbContext<User>
             entity.HasOne(d => d.Course).WithMany(p => p.Classes)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Classes_Courses");
+
+            entity.HasOne(t => t.Teacher).WithMany(c => c.Classes)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_Classes_Teachers");
         });
 
         modelBuilder.Entity<EnrollStatus>(entity =>
@@ -162,11 +164,6 @@ public partial class EnglishCenterContext : IdentityDbContext<User>
                 .HasConstraintName("FK_NotiStudent_Notifications");
         });
 
-        modelBuilder.Entity<QuestionType>(entity =>
-        {
-            entity.Property(e => e.QuesTypeId).ValueGeneratedNever();
-        });
-
         modelBuilder.Entity<ScoreHistory>(entity =>
         {
             entity.HasKey(e => e.ScoreHisId).HasName("PK_Table_1");
@@ -175,6 +172,12 @@ public partial class EnglishCenterContext : IdentityDbContext<User>
         modelBuilder.Entity<Student>(entity =>
         {
             entity.HasOne(d => d.User).WithOne(p => p.Student).HasConstraintName("FK_Students_Users");
+        });
+
+        modelBuilder.Entity<Teacher>(entity =>
+        {
+            entity.HasOne(d => d.User).WithOne(p => p.Teacher)
+            .HasConstraintName("FK_Teachers_Users");
         });
 
         modelBuilder.Entity<Group>(entity =>

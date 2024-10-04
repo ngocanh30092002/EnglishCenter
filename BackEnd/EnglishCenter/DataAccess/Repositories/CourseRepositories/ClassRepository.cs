@@ -22,7 +22,10 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
         {
             if (teacherId == null) return null;
 
-            var classes = await context.Classes.Where(c => c.TeacherId == teacherId).ToListAsync();
+            var classes = await context.Classes
+                                    .Include(c => c.Teacher)
+                                    .Where(c => c.TeacherId == teacherId)
+                                    .ToListAsync();
             return classes;
         }
 
@@ -104,6 +107,14 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
             return Task.FromResult(true);
         }
 
+        public Task<bool> ChangeDescriptionAsync(Class model, string newDes)
+        {
+            if (model == null) return Task.FromResult(false);
+
+            model.Description = newDes;
+            return Task.FromResult(true);
+        }
+
         public async Task<Response> UpdateAsync(string classId, ClassDto model)
         {
             var classModel = await context.Classes.FindAsync(classId);
@@ -134,8 +145,7 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
 
             if (classModel.TeacherId != model.TeacherId)
             {
-                // Todo: check teacher
-                var isExistTeacher = await context.Users.AnyAsync(u => u.Id == model.TeacherId);
+                var isExistTeacher = await context.Teachers.AnyAsync(u => u.UserId == model.TeacherId);
                 if (!isExistTeacher)
                 {
                     return new Response()
@@ -180,6 +190,7 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
             classModel.EndDate = model.EndDate;
             classModel.RegisteredNum = model.RegisteredNum ?? 0;
             classModel.MaxNum = model.MaxNum ?? 0;
+            classModel.Description = model.Description ?? classModel.Description;
 
             return new Response()
             {

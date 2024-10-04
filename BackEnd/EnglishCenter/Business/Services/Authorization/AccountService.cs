@@ -124,6 +124,8 @@ namespace EnglishCenter.Business.Services.Authorization
                 await _userManager.SetAuthenticationTokenAsync(user, Provider.System.ToString(), GlobalVariable.REFRESH_TOKEN, refreshToken);
             }
 
+            var result = await _userManager.ResetAccessFailedCountAsync(user);
+
             return new Response()
             {
                 Success = true,

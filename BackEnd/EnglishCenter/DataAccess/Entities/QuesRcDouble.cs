@@ -22,7 +22,7 @@ public partial class QuesRcDouble
     [StringLength(300)]
     public string? Image2 { get; set; }
 
-    [InverseProperty("Ques2")]
+    [InverseProperty("QuesDouble")]
     public virtual AssignQue? AssignQue { get; set; }
 
     [InverseProperty("PreQues")]

@@ -24,6 +24,13 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
             return await response.ChangeActionAsync();
         }
 
+        [HttpGet("course/{courseId}")]
+        public async Task<IActionResult> GetClassesWithCourseAsync([FromRoute] string courseId)
+        {
+            var response = await _classService.GetClassesWithCourseAsync(courseId);
+            return await response.ChangeActionAsync();
+        }
+
         [HttpGet("{classId}")]
         public async Task<IActionResult> GetClassAsync([FromRoute] string classId)
         {
@@ -91,6 +98,13 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
         public async Task<IActionResult> ChangeCourseAsync([FromRoute] string classId, [FromQuery] string courseId)
         {
             var response = await _classService.ChangeCourseAsync(classId, courseId);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpPatch("{classId}/des")]
+        public async Task<IActionResult> ChangeDescriptionAsync([FromRoute] string classId, [FromBody] string newDes)
+        {
+            var response = await _classService.ChangeDescriptionAsync(classId, newDes);
             return await response.ChangeActionAsync();
         }
     }

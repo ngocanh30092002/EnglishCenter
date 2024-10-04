@@ -1,4 +1,10 @@
-﻿using EnglishCenter.Presentation.Models;
+﻿using System;
+using System.ComponentModel;
+using System.Reflection;
+using AutoMapper;
+using EnglishCenter.DataAccess.IRepositories;
+using EnglishCenter.Presentation.Models;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 
 namespace EnglishCenter.Presentation.Extensions
@@ -61,7 +67,7 @@ namespace EnglishCenter.Presentation.Extensions
                 options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
             );
 
-            builder.Services.AddAutoMapper(typeof(AutoMapperProfile).Assembly);
+            builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
             return services;
         }

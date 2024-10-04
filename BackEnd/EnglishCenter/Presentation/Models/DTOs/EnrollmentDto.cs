@@ -14,5 +14,6 @@ namespace EnglishCenter.Presentation.Models.DTOs
 
         public int? StatusId { set; get; }
         public long? ScoreHisId { set; get; }
+        public DateTime? UpdateTime { set; get; }
     }
 }

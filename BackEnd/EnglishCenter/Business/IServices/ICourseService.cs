@@ -11,7 +11,9 @@ namespace EnglishCenter.Business.IServices
         public Task<Response> CreateAsync(CourseDto model);
         public Task<Response> UpdateAsync(string courseId, CourseDto model);
         public Task<Response> UploadImageAsync(string courseId, IFormFile file);
+        public Task<Response> UploadImageThumbnailAsync(string courseId, IFormFile file);
         public Task<Response> DeleteAsync(string courseId);
         public Task<Response> ChangePriorityAsync(string courseId, int priority);
+        public Task<Response> CheckIsQualifiedAsync(string userId, string courseId);
     }
 }

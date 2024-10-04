@@ -18,6 +18,6 @@ public partial class QuesLcAudio
     [StringLength(5)]
     public string CorrectAnswer { get; set; } = null!;
 
-    [InverseProperty("Ques")]
+    [InverseProperty("QuesAudio")]
     public virtual AssignQue? AssignQue { get; set; }
 }

@@ -37,14 +37,12 @@ namespace EnglishCenter.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("Ques_Id");
 
-                    b.Property<int?>("QuesTypeId")
+                    b.Property<int>("Type")
                         .HasColumnType("int");
 
                     b.HasKey("AssignQuesId");
 
                     b.HasIndex("AssignmentId");
-
-                    b.HasIndex("QuesTypeId");
 
                     b.HasIndex(new[] { "QuesId" }, "IX_Assign_Ques")
                         .IsUnique()
@@ -119,6 +117,10 @@ namespace EnglishCenter.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
+                    b.Property<string>("Description")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<DateOnly?>("EndDate")
                         .HasColumnType("date");
 
@@ -138,6 +140,9 @@ namespace EnglishCenter.Migrations
                     b.Property<DateOnly?>("StartDate")
                         .HasColumnType("date");
 
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
                     b.Property<string>("TeacherId")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -145,6 +150,8 @@ namespace EnglishCenter.Migrations
                     b.HasKey("ClassId");
 
                     b.HasIndex("CourseId");
+
+                    b.HasIndex("TeacherId");
 
                     b.ToTable("Classes");
                 });
@@ -163,6 +170,10 @@ namespace EnglishCenter.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Image")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("ImageThumbnail")
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
 
@@ -249,6 +260,9 @@ namespace EnglishCenter.Migrations
 
                     b.Property<int?>("StatusId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdateTime")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -554,24 +568,6 @@ namespace EnglishCenter.Migrations
                     b.ToTable("Ques_RC_Triple");
                 });
 
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.QuestionType", b =>
-                {
-                    b.Property<int>("QuesTypeId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("TableName")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.HasKey("QuesTypeId");
-
-                    b.ToTable("Question_Type");
-                });
-
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.ScheduleEvent", b =>
                 {
                     b.Property<long>("ScheduleId")
@@ -817,6 +813,55 @@ namespace EnglishCenter.Migrations
                     b.ToTable("Sub_RC_Triple");
                 });
 
+            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.Teacher", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("BackgroundImage")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateOnly?>("DateOfBirth")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("FirstName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("Gender")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Image")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("LastName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("Teachers");
+                });
+
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.User", b =>
                 {
                     b.Property<string>("Id")
@@ -1037,56 +1082,49 @@ namespace EnglishCenter.Migrations
                         .HasForeignKey("AssignmentId")
                         .HasConstraintName("FK_Assign_Ques_Assignment");
 
-                    b.HasOne("EnglishCenter.DataAccess.Entities.QuesLcAudio", "Ques")
+                    b.HasOne("EnglishCenter.DataAccess.Entities.QuesLcAudio", "QuesAudio")
                         .WithOne("AssignQue")
                         .HasForeignKey("EnglishCenter.DataAccess.Entities.AssignQue", "QuesId")
                         .HasConstraintName("FK_Assign_Ques_Ques_LC_Audio");
 
-                    b.HasOne("EnglishCenter.DataAccess.Entities.QuesLcConversation", "QuesNavigation")
+                    b.HasOne("EnglishCenter.DataAccess.Entities.QuesLcConversation", "QuesConversation")
                         .WithOne("AssignQue")
                         .HasForeignKey("EnglishCenter.DataAccess.Entities.AssignQue", "QuesId")
                         .HasConstraintName("FK_Assign_Ques_Ques_LC_Conversation");
 
-                    b.HasOne("EnglishCenter.DataAccess.Entities.QuesLcImage", "Ques1")
+                    b.HasOne("EnglishCenter.DataAccess.Entities.QuesLcImage", "QuesImage")
                         .WithOne("AssignQue")
                         .HasForeignKey("EnglishCenter.DataAccess.Entities.AssignQue", "QuesId")
                         .HasConstraintName("FK_Assign_Ques_Ques_LC_Image");
 
-                    b.HasOne("EnglishCenter.DataAccess.Entities.QuesRcDouble", "Ques2")
+                    b.HasOne("EnglishCenter.DataAccess.Entities.QuesRcDouble", "QuesDouble")
                         .WithOne("AssignQue")
                         .HasForeignKey("EnglishCenter.DataAccess.Entities.AssignQue", "QuesId")
                         .HasConstraintName("FK_Assign_Ques_Ques_RC_Double");
 
-                    b.HasOne("EnglishCenter.DataAccess.Entities.QuesRcSingle", "Ques3")
+                    b.HasOne("EnglishCenter.DataAccess.Entities.QuesRcSingle", "QuesSingle")
                         .WithOne("AssignQue")
                         .HasForeignKey("EnglishCenter.DataAccess.Entities.AssignQue", "QuesId")
                         .HasConstraintName("FK_Assign_Ques_Ques_RC_Single");
 
-                    b.HasOne("EnglishCenter.DataAccess.Entities.QuesRcTriple", "Ques4")
+                    b.HasOne("EnglishCenter.DataAccess.Entities.QuesRcTriple", "QuesTriple")
                         .WithOne("AssignQue")
                         .HasForeignKey("EnglishCenter.DataAccess.Entities.AssignQue", "QuesId")
                         .HasConstraintName("FK_Assign_Ques_Ques_RC_Triple");
 
-                    b.HasOne("EnglishCenter.DataAccess.Entities.QuestionType", "QuesType")
-                        .WithMany("AssignQues")
-                        .HasForeignKey("QuesTypeId")
-                        .HasConstraintName("FK_Assign_Ques_Question_Type");
-
                     b.Navigation("Assignment");
 
-                    b.Navigation("Ques");
+                    b.Navigation("QuesAudio");
 
-                    b.Navigation("Ques1");
+                    b.Navigation("QuesConversation");
 
-                    b.Navigation("Ques2");
+                    b.Navigation("QuesDouble");
 
-                    b.Navigation("Ques3");
+                    b.Navigation("QuesImage");
 
-                    b.Navigation("Ques4");
+                    b.Navigation("QuesSingle");
 
-                    b.Navigation("QuesNavigation");
-
-                    b.Navigation("QuesType");
+                    b.Navigation("QuesTriple");
                 });
 
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.Assignment", b =>
@@ -1109,7 +1147,15 @@ namespace EnglishCenter.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_Classes_Courses");
 
+                    b.HasOne("EnglishCenter.DataAccess.Entities.Teacher", "Teacher")
+                        .WithMany("Classes")
+                        .HasForeignKey("TeacherId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("FK_Classes_Teachers");
+
                     b.Navigation("Course");
+
+                    b.Navigation("Teacher");
                 });
 
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.CourseContent", b =>
@@ -1250,6 +1296,18 @@ namespace EnglishCenter.Migrations
                         .HasConstraintName("FK_Sub_RC_Triple_Ques_RC_Triple");
 
                     b.Navigation("PreQues");
+                });
+
+            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.Teacher", b =>
+                {
+                    b.HasOne("EnglishCenter.DataAccess.Entities.User", "User")
+                        .WithOne("Teacher")
+                        .HasForeignKey("EnglishCenter.DataAccess.Entities.Teacher", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_Teachers_Users");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("GroupStudent", b =>
@@ -1393,11 +1451,6 @@ namespace EnglishCenter.Migrations
                     b.Navigation("SubRcTriples");
                 });
 
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.QuestionType", b =>
-                {
-                    b.Navigation("AssignQues");
-                });
-
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.ScoreHistory", b =>
                 {
                     b.Navigation("Enrollment");
@@ -1412,9 +1465,16 @@ namespace EnglishCenter.Migrations
                     b.Navigation("ScheduleEvents");
                 });
 
+            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.Teacher", b =>
+                {
+                    b.Navigation("Classes");
+                });
+
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.User", b =>
                 {
                     b.Navigation("Student");
+
+                    b.Navigation("Teacher");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,96 +1,56 @@
-﻿using EnglishCenter.Business.IServices;
+﻿using AutoMapper;
+using EnglishCenter.Business.IServices;
 using EnglishCenter.DataAccess.UnitOfWork;
 using EnglishCenter.Presentation.Models;
+using EnglishCenter.Presentation.Models.ResDTOs;
 
 namespace EnglishCenter.Business.Services
 {
     public class TeacherService : ITeacherService
     {
         private readonly IUnitOfWork _unit;
+        private readonly IMapper _mapper;
 
-        public TeacherService(IUnitOfWork unit)
+        public TeacherService(IUnitOfWork unit, IMapper mapper)
         {
             _unit = unit;
+            _mapper = mapper;
         }
 
-        public Response GetFullName(string userId)
+        public Task<Response> GetFullNameAsync(string userId)
         {
-            var teacher = _unit.Students.GetById(userId);
+            var teacher = _unit.Teachers.GetById(userId);
 
             if(teacher == null)
             {
-                return new Response()
+                return Task.FromResult(new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
                     Message = "Can't find any teachers",
                     Success = false,
-                };
+                });
             }
 
             var fullName = _unit.Teachers.GetFullName(teacher);
 
-            return new Response()
+            return Task.FromResult(new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
                 Message = fullName,
                 Success = true,
-            };
+            });
         }
 
-        //public async Task<Response> AcceptedStudentAsync(long enrollId)
-        //{
-        //    var enrollmentModel = _unit.Enrollment.GetById(enrollId);
-        //    if(enrollmentModel == null)
-        //    {
-        //        return new Response()
-        //        {
-        //            StatusCode = System.Net.HttpStatusCode.BadRequest,
-        //            Message = "Can't find any enrollment",
-        //            Success = false,
-        //        };
-        //    }
+        public Task<Response> GetAsync(string userId) 
+        {
+            var teacherModel = _unit.Teachers.GetById(userId);
 
-
-        //    var isSuccess = await _unit.Enrollment.ChangeStatusAsync(enrollmentModel, Presentation.Global.Enum.EnrollEnum.Accepted);
-        //    if(!isSuccess)
-        //    {
-        //        return new Response()
-        //        {
-        //            StatusCode = System.Net.HttpStatusCode.BadRequest,
-        //            Message = "Failed to approve students for class",
-        //            Success = false,
-        //        };
-        //    }
-
-        //    var createResponse = await _stuInClassService.CreateAsync(new Presentation.Models.DTOs.StuInClassDto() { ClassId = enrollmentModel.ClassId, UserId = enrollmentModel.UserId });
-
-        //    if (!createResponse.Success)
-        //    {
-        //        return new Response()
-        //        {
-        //            StatusCode = System.Net.HttpStatusCode.BadRequest,
-        //            Message = "Failed to approve students for class",
-        //            Success = false,
-        //        };
-        //    }
-
-        //    isSuccess = await _unit.Enrollment.ChangeStatusAsync(enrollmentModel, Presentation.Global.Enum.EnrollEnum.Approved);
-        //    if(!isSuccess)
-        //    {
-        //        return new Response()
-        //        {
-        //            StatusCode = System.Net.HttpStatusCode.BadRequest,
-        //            Message = "Failed to approve students for class",
-        //            Success = false,
-        //        };
-        //    }
-
-        //    await _unit.CompleteAsync();
-        //    return new Response()
-        //    {
-        //        StatusCode = System.Net.HttpStatusCode.OK,
-        //        Success = true,
-        //    };
-        //}
+            return Task.FromResult(new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = _mapper.Map<TeacherResDto>(teacherModel),
+                Success = true
+            });
+        }
     }
 }

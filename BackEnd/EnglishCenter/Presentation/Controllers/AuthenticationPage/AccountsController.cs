@@ -39,19 +39,19 @@ namespace EnglishCenter.Presentation.Controllers.AuthenticationPage
 
             var loginResponse = await _accountService.LoginAsync(model);
 
-            //if (loginResponse.Success)
-            //{
-            //    CookieOptions options = new CookieOptions()
-            //    {
-            //        HttpOnly = false,
-            //        Secure = true,
-            //        Expires = DateTime.UtcNow.AddHours(1),
-            //        Path = "/"
-            //    };
+            if (loginResponse.Success)
+            {
+                CookieOptions options = new CookieOptions()
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.Strict,
+                    Path = "/"
+                };
 
-            //    CookieHelper.AddCookie(HttpContext, "access-token", loginResponse.Token, options);
-            //    CookieHelper.AddCookie(HttpContext, "refresh-token", loginResponse.RefreshToken, options);
-            //}
+                CookieHelper.AddCookie(HttpContext, "access-token", loginResponse.Token, options);
+                CookieHelper.AddCookie(HttpContext, "refresh-token", loginResponse.RefreshToken, options);
+            }
 
             return await loginResponse.ChangeActionAsync();
         }
@@ -90,6 +90,36 @@ namespace EnglishCenter.Presentation.Controllers.AuthenticationPage
             }
 
             var response = await _accountService.RenewPasswordAsync(email);
+
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> LogoutAsync()
+        {
+            var cookieOptions = new CookieOptions()
+            {
+                HttpOnly = true,
+                Secure = true,
+                Expires = DateTime.UtcNow.AddHours(-1)
+            };
+
+            if (Request.Cookies["access-token"] != null)
+            {
+                Response.Cookies.Append("access-token", "", cookieOptions);
+            }
+
+            if (Request.Cookies["refresh-token"] != null)
+            {
+                Response.Cookies.Append("refresh-token", "", cookieOptions);
+            }
+
+            var response = new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Success = true,
+                Message = ""
+            };
 
             return await response.ChangeActionAsync();
         }
