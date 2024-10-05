@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 namespace EnglishCenter.DataAccess.Entities;
 
 [Table("Assign_Ques")]
-[Index("QuesId", Name = "IX_Assign_Ques", IsUnique = true)]
 public partial class AssignQue
 {
     [Key]
@@ -16,32 +15,54 @@ public partial class AssignQue
     [Required]
     public int Type { get; set; }
 
-    [Column("Ques_Id")]
-    public long? QuesId { get; set; }
+    [Column("ImageQues_Id")]
+    public long? ImageQuesId { get; set; } = null;
 
-    [ForeignKey("QuesId")]
-    [InverseProperty("AssignQue")]
-    public virtual QuesLcAudio? QuesAudio { get; set; }
-
-    [ForeignKey("QuesId")]
-    [InverseProperty("AssignQue")]
+    [ForeignKey("ImageQuesId")]
+    [InverseProperty("AssignQues")]
     public virtual QuesLcImage? QuesImage { get; set; }
 
-    [ForeignKey("QuesId")]
-    [InverseProperty("AssignQue")]
-    public virtual QuesRcDouble? QuesDouble { get; set; }
+    [Column("AudioQues_Id")]
+    public long? AudioQuesId { set; get; } = null;
 
-    [ForeignKey("QuesId")]
-    [InverseProperty("AssignQue")]
+    [ForeignKey("AudioQuesId")]
+    [InverseProperty("AssignQues")]
+    public virtual QuesLcAudio? QuesAudio { get; set; }
+
+    [Column("ConversationQues_Id")]
+    public long? ConversationQuesId { set; get; } = null;
+
+    [ForeignKey("ConversationQuesId")]
+    [InverseProperty("AssignQues")]
+    public virtual QuesLcConversation? QuesConversation { get; set; }
+
+    [Column("SingleQues_Id")]
+    public long? SingleQuesId { set; get; } = null;
+
+    [ForeignKey("SingleQuesId")]
+    [InverseProperty("AssignQues")]
     public virtual QuesRcSingle? QuesSingle { get; set; }
 
-    [ForeignKey("QuesId")]
-    [InverseProperty("AssignQue")]
+    [Column("DoubleQues_Id")]
+    public long? DoubleQuesId { set; get; } = null;
+
+    [ForeignKey("DoubleQuesId")]
+    [InverseProperty("AssignQues")]
+    public virtual QuesRcDouble? QuesDouble { get; set; }
+
+    [Column("TripleQues_Id")]
+    public long? TripleQuesId { set; get; } = null;
+
+    [ForeignKey("TripleQuesId")]
+    [InverseProperty("AssignQues")]
     public virtual QuesRcTriple? QuesTriple { get; set; }
 
-    [ForeignKey("QuesId")]
-    [InverseProperty("AssignQue")]
-    public virtual QuesLcConversation? QuesConversation { get; set; }
+    [Column("SentenceQuesId")]
+    public long? SentenceQuesId { set; get; } = null;
+
+    [ForeignKey("SentenceQuesId")]
+    [InverseProperty("AssignQues")]
+    public virtual QuesRcSentence? QuesSentence { get; set; }
 
     public long? AssignmentId { set; get; }
 

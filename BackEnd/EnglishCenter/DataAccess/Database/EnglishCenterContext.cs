@@ -43,11 +43,17 @@ public partial class EnglishCenterContext : IdentityDbContext<User>
 
     public virtual DbSet<QuesLcAudio> QuesLcAudios { get; set; }
 
+    public virtual DbSet<AnswerLcAudio> AnswerLcAudios { set; get; }
+
     public virtual DbSet<QuesLcConversation> QuesLcConversations { get; set; }
 
     public virtual DbSet<QuesLcImage> QuesLcImages { get; set; }
 
+    public virtual DbSet<AnswerLcImage> AnswerLcImages { set; get; }
+
     public virtual DbSet<QuesRcDouble> QuesRcDoubles { get; set; }
+
+    public virtual DbSet<QuesRcSentence> QuesRcSentences { set; get; }
 
     public virtual DbSet<QuesRcSingle> QuesRcSingles { get; set; }
 
@@ -58,6 +64,18 @@ public partial class EnglishCenterContext : IdentityDbContext<User>
     public virtual DbSet<Student> Students { get; set; }
 
     public virtual DbSet<SubLcConversation> SubLcConversations { get; set; }
+
+    public virtual DbSet<AnswerLcConversation> AnswerLcConversations { get; set; }
+
+    public virtual DbSet<SubRcSingle> SubRcSingles { set; get; }
+
+    public virtual DbSet<AnswerRcSingle> AnswerRcSingles { set; get; }
+
+    public virtual DbSet<AnswerRcSentence> AnswerRcSentences { set; get; }
+
+    public virtual DbSet<AnswerRcDouble> AnswerRcDoubles { set; get; }
+
+    public virtual DbSet<AnswerRcTriple> AnswerRcTriples { set; get; }
 
     public virtual DbSet<SubRcDouble> SubRcDoubles { get; set; }
 
@@ -90,19 +108,56 @@ public partial class EnglishCenterContext : IdentityDbContext<User>
 
         modelBuilder.Entity<AssignQue>(entity =>
         {
-            entity.HasOne(d => d.QuesAudio).WithOne(p => p.AssignQue).HasConstraintName("FK_Assign_Ques_Ques_LC_Audio");
+            entity.HasOne(d => d.QuesAudio).WithMany(p => p.AssignQues).HasConstraintName("FK_Assign_Ques_Ques_LC_Audio");
 
-            entity.HasOne(d => d.QuesConversation).WithOne(p => p.AssignQue).HasConstraintName("FK_Assign_Ques_Ques_LC_Conversation");
+            entity.HasOne(d => d.QuesConversation).WithMany(p => p.AssignQues).HasConstraintName("FK_Assign_Ques_Ques_LC_Conversation");
 
-            entity.HasOne(d => d.QuesImage).WithOne(p => p.AssignQue).HasConstraintName("FK_Assign_Ques_Ques_LC_Image");
+            entity.HasOne(d => d.QuesImage).WithMany(p => p.AssignQues).HasConstraintName("FK_Assign_Ques_Ques_LC_Image");
 
-            entity.HasOne(d => d.QuesDouble).WithOne(p => p.AssignQue).HasConstraintName("FK_Assign_Ques_Ques_RC_Double");
+            entity.HasOne(d => d.QuesDouble).WithMany(p => p.AssignQues).HasConstraintName("FK_Assign_Ques_Ques_RC_Double");
 
-            entity.HasOne(d => d.QuesSingle).WithOne(p => p.AssignQue).HasConstraintName("FK_Assign_Ques_Ques_RC_Single");
+            entity.HasOne(d => d.QuesSentence).WithMany(p => p.AssignQues).HasConstraintName("FK_Assign_Ques_Ques_RC_Sentence");
 
-            entity.HasOne(d => d.QuesTriple).WithOne(p => p.AssignQue).HasConstraintName("FK_Assign_Ques_Ques_RC_Triple");
+            entity.HasOne(d => d.QuesSingle).WithMany(p => p.AssignQues).HasConstraintName("FK_Assign_Ques_Ques_RC_Single");
+
+            entity.HasOne(d => d.QuesTriple).WithMany(p => p.AssignQues).HasConstraintName("FK_Assign_Ques_Ques_RC_Triple");
 
             entity.HasOne(d => d.Assignment).WithMany(p => p.AssignQues).HasConstraintName("FK_Assign_Ques_Assignment");
+        });
+
+        modelBuilder.Entity<QuesLcImage>(entity =>
+        {
+            entity.HasOne(d => d.Answer).WithOne(d => d.QuesLcImage).HasConstraintName("FK_Ques_LC_Answer_Image");
+        });
+
+        modelBuilder.Entity<QuesLcAudio>(entity =>
+        {
+            entity.HasOne(d => d.Answer).WithOne(d => d.QuesLcAudio).HasConstraintName("FK_Ques_LC_Answer_Audio");
+        });
+
+        modelBuilder.Entity<SubLcConversation>(entity =>
+        {
+            entity.HasOne(d => d.Answer).WithOne(d => d.SubLcConversation).HasConstraintName("FK_Sub_Ques_LC_Answer_Conversation");
+        });
+
+        modelBuilder.Entity<QuesRcSentence>(entity =>
+        {
+            entity.HasOne(d => d.Answer).WithOne(d => d.QuesRcSentence).HasConstraintName("FK_Ques_RC_Answer_Sentence");
+        });
+
+        modelBuilder.Entity<SubRcSingle>(entity =>
+        {
+            entity.HasOne(d => d.Answer).WithOne(d => d.SubRcSingle).HasConstraintName("FK_Sub_Ques_RC_Answer_Single");
+        });
+
+        modelBuilder.Entity<SubRcDouble>(entity =>
+        {
+            entity.HasOne(d => d.Answer).WithOne(d => d.SubRcDouble).HasConstraintName("FK_Sub_Ques_RC_Answer_Double");
+        });
+
+        modelBuilder.Entity<SubRcTriple>(entity =>
+        {
+            entity.HasOne(d => d.Answer).WithOne(d => d.SubRcTriple).HasConstraintName("FK_Sub_Ques_RC_Answer_Triple");
         });
 
         modelBuilder.Entity<Assignment>(entity =>
@@ -206,6 +261,13 @@ public partial class EnglishCenterContext : IdentityDbContext<User>
             entity.HasOne(d => d.PreQues).WithMany(p => p.SubLcConversations)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Sub_LC_Conversation_Ques_LC_Conversation");
+        });
+
+        modelBuilder.Entity<SubRcSingle>(entity =>
+        {
+            entity.HasOne(d => d.PreQues).WithMany(p => p.SubRcSingles)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Sub_RC_Double_Ques_RC_Single");
         });
 
         modelBuilder.Entity<SubRcDouble>(entity =>

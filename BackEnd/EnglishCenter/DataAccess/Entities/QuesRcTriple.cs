@@ -27,7 +27,7 @@ public partial class QuesRcTriple
     public string? Image3 { get; set; }
 
     [InverseProperty("QuesTriple")]
-    public virtual AssignQue? AssignQue { get; set; }
+    public virtual ICollection<AssignQue> AssignQues { get; set; } = new List<AssignQue>();
 
     [InverseProperty("PreQues")]
     public virtual ICollection<SubRcTriple> SubRcTriples { get; set; } = new List<SubRcTriple>();

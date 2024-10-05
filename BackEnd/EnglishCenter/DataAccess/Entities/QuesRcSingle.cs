@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.DataAccess.Entities;
 
@@ -12,23 +9,15 @@ public partial class QuesRcSingle
     [Key]
     public long QuesId { get; set; }
 
-    public string Question { get; set; } = null!;
+    public int Quantity { set; get; }
 
-    [StringLength(5)]
-    public string CorrectAnswer { get; set; } = null!;
-
+    [Column("Image")]
     [StringLength(300)]
-    public string AnswerA { get; set; } = null!;
-
-    [StringLength(300)]
-    public string AnswerB { get; set; } = null!;
-
-    [StringLength(300)]
-    public string AnswerC { get; set; } = null!;
-
-    [StringLength(300)]
-    public string AnswerD { get; set; } = null!;
+    public string? Image { get; set; }
 
     [InverseProperty("QuesSingle")]
-    public virtual AssignQue? AssignQue { get; set; }
+    public virtual ICollection<AssignQue> AssignQues { get; set; } = new List<AssignQue>();
+
+    [InverseProperty("PreQues")]
+    public virtual ICollection<SubRcSingle> SubRcSingles { get; set; } = new List<SubRcSingle>();
 }

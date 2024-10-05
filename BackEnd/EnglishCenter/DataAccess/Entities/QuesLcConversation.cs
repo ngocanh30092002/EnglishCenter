@@ -21,7 +21,7 @@ public partial class QuesLcConversation
     public string Audio { get; set; } = null!;
 
     [InverseProperty("QuesConversation")]
-    public virtual AssignQue? AssignQue { get; set; }
+    public virtual ICollection<AssignQue> AssignQues { get; set; } = new List<AssignQue>();
 
     [InverseProperty("PreQues")]
     public virtual ICollection<SubLcConversation> SubLcConversations { get; set; } = new List<SubLcConversation>();

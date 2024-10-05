@@ -4,6 +4,7 @@ using EnglishCenter.DataAccess.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EnglishCenter.Migrations
 {
     [DbContext(typeof(EnglishCenterContext))]
-    partial class EnglishCenterContextModelSnapshot : ModelSnapshot
+    [Migration("20241004091143_removeAssignQues")]
+    partial class removeAssignQues
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,322 +24,6 @@ namespace EnglishCenter.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.AnswerLcAudio", b =>
-                {
-                    b.Property<long>("AnswerId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("AnswerId"));
-
-                    b.Property<string>("AnswerA")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AnswerB")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AnswerC")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CorrectAnswer")
-                        .IsRequired()
-                        .HasMaxLength(1)
-                        .HasColumnType("nvarchar(1)");
-
-                    b.HasKey("AnswerId");
-
-                    b.ToTable("Answer_Lc_Audio");
-                });
-
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.AnswerLcConversation", b =>
-                {
-                    b.Property<long>("AnswerId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("AnswerId"));
-
-                    b.Property<string>("AnswerA")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AnswerB")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AnswerC")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AnswerD")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CorrectAnswer")
-                        .IsRequired()
-                        .HasMaxLength(1)
-                        .HasColumnType("nvarchar(1)");
-
-                    b.Property<string>("Question")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("AnswerId");
-
-                    b.ToTable("Answer_LC_Conversation");
-                });
-
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.AnswerLcImage", b =>
-                {
-                    b.Property<long>("AnswerId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("AnswerId"));
-
-                    b.Property<string>("AnswerA")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AnswerB")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AnswerC")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AnswerD")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CorrectAnswer")
-                        .IsRequired()
-                        .HasMaxLength(1)
-                        .HasColumnType("nvarchar(1)");
-
-                    b.HasKey("AnswerId");
-
-                    b.ToTable("Answer_LC_Image");
-                });
-
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.AnswerRcDouble", b =>
-                {
-                    b.Property<long>("AnswerId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("AnswerId"));
-
-                    b.Property<string>("AnswerA")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AnswerB")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AnswerC")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AnswerD")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CorrectAnswer")
-                        .IsRequired()
-                        .HasMaxLength(1)
-                        .HasColumnType("nvarchar(1)");
-
-                    b.Property<string>("Question")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("AnswerId");
-
-                    b.ToTable("Answer_RC_Double");
-                });
-
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.AnswerRcSentence", b =>
-                {
-                    b.Property<long>("AnswerId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("AnswerId"));
-
-                    b.Property<string>("AnswerA")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AnswerB")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AnswerC")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AnswerD")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CorrectAnswer")
-                        .IsRequired()
-                        .HasMaxLength(1)
-                        .HasColumnType("nvarchar(1)");
-
-                    b.Property<string>("Explanation")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("AnswerId");
-
-                    b.ToTable("Answer_RC_Sentence");
-                });
-
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.AnswerRcSingle", b =>
-                {
-                    b.Property<long>("AnswerId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("AnswerId"));
-
-                    b.Property<string>("AnswerA")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AnswerB")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AnswerC")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AnswerD")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CorrectAnswer")
-                        .IsRequired()
-                        .HasMaxLength(1)
-                        .HasColumnType("nvarchar(1)");
-
-                    b.Property<string>("Question")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("AnswerId");
-
-                    b.ToTable("Answer_RC_Single");
-                });
-
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.AnswerRcTriple", b =>
-                {
-                    b.Property<long>("AnswerId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("AnswerId"));
-
-                    b.Property<string>("AnswerA")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AnswerB")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AnswerC")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AnswerD")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CorrectAnswer")
-                        .IsRequired()
-                        .HasMaxLength(1)
-                        .HasColumnType("nvarchar(1)");
-
-                    b.Property<string>("Question")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("AnswerId");
-
-                    b.ToTable("Answer_RC_Triple");
-                });
-
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.AssignQue", b =>
-                {
-                    b.Property<long>("AssignQuesId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("AssignQuesId"));
-
-                    b.Property<long?>("AssignmentId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long?>("AudioQuesId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("AudioQues_Id");
-
-                    b.Property<long?>("ConversationQuesId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("ConversationQues_Id");
-
-                    b.Property<long?>("DoubleQuesId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("DoubleQues_Id");
-
-                    b.Property<long?>("ImageQuesId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("ImageQues_Id");
-
-                    b.Property<long?>("SentenceQuesId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("SentenceQuesId");
-
-                    b.Property<long?>("SingleQuesId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("SingleQues_Id");
-
-                    b.Property<long?>("TripleQuesId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("TripleQues_Id");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
-
-                    b.HasKey("AssignQuesId");
-
-                    b.HasIndex("AssignmentId");
-
-                    b.HasIndex("AudioQuesId");
-
-                    b.HasIndex("ConversationQuesId");
-
-                    b.HasIndex("DoubleQuesId");
-
-                    b.HasIndex("ImageQuesId");
-
-                    b.HasIndex("SentenceQuesId");
-
-                    b.HasIndex("SingleQuesId");
-
-                    b.HasIndex("TripleQuesId");
-
-                    b.ToTable("Assign_Ques");
-                });
 
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.Assignment", b =>
                 {
@@ -687,19 +374,17 @@ namespace EnglishCenter.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("QuesId"));
 
-                    b.Property<long?>("AnswerId")
-                        .HasColumnType("bigint");
-
                     b.Property<string>("Audio")
                         .IsRequired()
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
 
-                    b.HasKey("QuesId");
+                    b.Property<string>("CorrectAnswer")
+                        .IsRequired()
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
 
-                    b.HasIndex("AnswerId")
-                        .IsUnique()
-                        .HasFilter("[AnswerId] IS NOT NULL");
+                    b.HasKey("QuesId");
 
                     b.ToTable("Ques_LC_Audio");
                 });
@@ -738,13 +423,15 @@ namespace EnglishCenter.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("QuesId"));
 
-                    b.Property<long?>("AnswerId")
-                        .HasColumnType("bigint");
-
                     b.Property<string>("Audio")
                         .IsRequired()
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("CorrectAnswer")
+                        .IsRequired()
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
 
                     b.Property<string>("Image")
                         .IsRequired()
@@ -752,10 +439,6 @@ namespace EnglishCenter.Migrations
                         .HasColumnType("nvarchar(300)");
 
                     b.HasKey("QuesId");
-
-                    b.HasIndex("AnswerId")
-                        .IsUnique()
-                        .HasFilter("[AnswerId] IS NOT NULL");
 
                     b.ToTable("Ques_LC_Image");
                 });
@@ -786,7 +469,7 @@ namespace EnglishCenter.Migrations
                     b.ToTable("Ques_RC_Double");
                 });
 
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.QuesRcSentence", b =>
+            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.QuesRcSingle", b =>
                 {
                     b.Property<long>("QuesId")
                         .ValueGeneratedOnAdd()
@@ -814,37 +497,14 @@ namespace EnglishCenter.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
 
-                    b.Property<long?>("AnswerId")
-                        .HasColumnType("bigint");
+                    b.Property<string>("CorrectAnswer")
+                        .IsRequired()
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
 
                     b.Property<string>("Question")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("QuesId");
-
-                    b.HasIndex("AnswerId")
-                        .IsUnique()
-                        .HasFilter("[AnswerId] IS NOT NULL");
-
-                    b.ToTable("Ques_RC_Sentence");
-                });
-
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.QuesRcSingle", b =>
-                {
-                    b.Property<long>("QuesId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("QuesId"));
-
-                    b.Property<string>("Image")
-                        .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)")
-                        .HasColumnName("Image");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
 
                     b.HasKey("QuesId");
 
@@ -1014,8 +674,10 @@ namespace EnglishCenter.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
 
-                    b.Property<long?>("AnswerId")
-                        .HasColumnType("bigint");
+                    b.Property<string>("CorrectAnswer")
+                        .IsRequired()
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
 
                     b.Property<long>("PreQuesId")
                         .HasColumnType("bigint");
@@ -1025,10 +687,6 @@ namespace EnglishCenter.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("SubId");
-
-                    b.HasIndex("AnswerId")
-                        .IsUnique()
-                        .HasFilter("[AnswerId] IS NOT NULL");
 
                     b.HasIndex("PreQuesId");
 
@@ -1063,8 +721,10 @@ namespace EnglishCenter.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
 
-                    b.Property<long?>("AnswerId")
-                        .HasColumnType("bigint");
+                    b.Property<string>("CorrectAnswer")
+                        .IsRequired()
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
 
                     b.Property<long>("PreQuesId")
                         .HasColumnType("bigint");
@@ -1074,63 +734,10 @@ namespace EnglishCenter.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("SubId");
-
-                    b.HasIndex("AnswerId")
-                        .IsUnique()
-                        .HasFilter("[AnswerId] IS NOT NULL");
 
                     b.HasIndex("PreQuesId");
 
                     b.ToTable("Sub_RC_Double");
-                });
-
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.SubRcSingle", b =>
-                {
-                    b.Property<long>("SubId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("SubId"));
-
-                    b.Property<string>("AnswerA")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
-
-                    b.Property<string>("AnswerB")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
-
-                    b.Property<string>("AnswerC")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
-
-                    b.Property<string>("AnswerD")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
-
-                    b.Property<long?>("AnswerId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("PreQuesId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Question")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("SubId");
-
-                    b.HasIndex("AnswerId")
-                        .IsUnique()
-                        .HasFilter("[AnswerId] IS NOT NULL");
-
-                    b.HasIndex("PreQuesId");
-
-                    b.ToTable("Sub_RC_Single");
                 });
 
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.SubRcTriple", b =>
@@ -1161,8 +768,10 @@ namespace EnglishCenter.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
 
-                    b.Property<long?>("AnswerId")
-                        .HasColumnType("bigint");
+                    b.Property<string>("CorrectAnswer")
+                        .IsRequired()
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
 
                     b.Property<long>("PreQuesId")
                         .HasColumnType("bigint");
@@ -1172,10 +781,6 @@ namespace EnglishCenter.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("SubId");
-
-                    b.HasIndex("AnswerId")
-                        .IsUnique()
-                        .HasFilter("[AnswerId] IS NOT NULL");
 
                     b.HasIndex("PreQuesId");
 
@@ -1444,65 +1049,6 @@ namespace EnglishCenter.Migrations
                     b.ToTable("UserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.AssignQue", b =>
-                {
-                    b.HasOne("EnglishCenter.DataAccess.Entities.Assignment", "Assignment")
-                        .WithMany("AssignQues")
-                        .HasForeignKey("AssignmentId")
-                        .HasConstraintName("FK_Assign_Ques_Assignment");
-
-                    b.HasOne("EnglishCenter.DataAccess.Entities.QuesLcAudio", "QuesAudio")
-                        .WithMany("AssignQues")
-                        .HasForeignKey("AudioQuesId")
-                        .HasConstraintName("FK_Assign_Ques_Ques_LC_Audio");
-
-                    b.HasOne("EnglishCenter.DataAccess.Entities.QuesLcConversation", "QuesConversation")
-                        .WithMany("AssignQues")
-                        .HasForeignKey("ConversationQuesId")
-                        .HasConstraintName("FK_Assign_Ques_Ques_LC_Conversation");
-
-                    b.HasOne("EnglishCenter.DataAccess.Entities.QuesRcDouble", "QuesDouble")
-                        .WithMany("AssignQues")
-                        .HasForeignKey("DoubleQuesId")
-                        .HasConstraintName("FK_Assign_Ques_Ques_RC_Double");
-
-                    b.HasOne("EnglishCenter.DataAccess.Entities.QuesLcImage", "QuesImage")
-                        .WithMany("AssignQues")
-                        .HasForeignKey("ImageQuesId")
-                        .HasConstraintName("FK_Assign_Ques_Ques_LC_Image");
-
-                    b.HasOne("EnglishCenter.DataAccess.Entities.QuesRcSentence", "QuesSentence")
-                        .WithMany("AssignQues")
-                        .HasForeignKey("SentenceQuesId")
-                        .HasConstraintName("FK_Assign_Ques_Ques_RC_Sentence");
-
-                    b.HasOne("EnglishCenter.DataAccess.Entities.QuesRcSingle", "QuesSingle")
-                        .WithMany("AssignQues")
-                        .HasForeignKey("SingleQuesId")
-                        .HasConstraintName("FK_Assign_Ques_Ques_RC_Single");
-
-                    b.HasOne("EnglishCenter.DataAccess.Entities.QuesRcTriple", "QuesTriple")
-                        .WithMany("AssignQues")
-                        .HasForeignKey("TripleQuesId")
-                        .HasConstraintName("FK_Assign_Ques_Ques_RC_Triple");
-
-                    b.Navigation("Assignment");
-
-                    b.Navigation("QuesAudio");
-
-                    b.Navigation("QuesConversation");
-
-                    b.Navigation("QuesDouble");
-
-                    b.Navigation("QuesImage");
-
-                    b.Navigation("QuesSentence");
-
-                    b.Navigation("QuesSingle");
-
-                    b.Navigation("QuesTriple");
-                });
-
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.Assignment", b =>
                 {
                     b.HasOne("EnglishCenter.DataAccess.Entities.CourseContent", "CourseContent")
@@ -1618,36 +1164,6 @@ namespace EnglishCenter.Migrations
                     b.Navigation("Student");
                 });
 
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.QuesLcAudio", b =>
-                {
-                    b.HasOne("EnglishCenter.DataAccess.Entities.AnswerLcAudio", "Answer")
-                        .WithOne("QuesLcAudio")
-                        .HasForeignKey("EnglishCenter.DataAccess.Entities.QuesLcAudio", "AnswerId")
-                        .HasConstraintName("FK_Ques_LC_Answer_Audio");
-
-                    b.Navigation("Answer");
-                });
-
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.QuesLcImage", b =>
-                {
-                    b.HasOne("EnglishCenter.DataAccess.Entities.AnswerLcImage", "Answer")
-                        .WithOne("QuesLcImage")
-                        .HasForeignKey("EnglishCenter.DataAccess.Entities.QuesLcImage", "AnswerId")
-                        .HasConstraintName("FK_Ques_LC_Answer_Image");
-
-                    b.Navigation("Answer");
-                });
-
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.QuesRcSentence", b =>
-                {
-                    b.HasOne("EnglishCenter.DataAccess.Entities.AnswerRcSentence", "Answer")
-                        .WithOne("QuesRcSentence")
-                        .HasForeignKey("EnglishCenter.DataAccess.Entities.QuesRcSentence", "AnswerId")
-                        .HasConstraintName("FK_Ques_RC_Answer_Sentence");
-
-                    b.Navigation("Answer");
-                });
-
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.ScheduleEvent", b =>
                 {
                     b.HasOne("EnglishCenter.DataAccess.Entities.Student", "Student")
@@ -1673,72 +1189,33 @@ namespace EnglishCenter.Migrations
 
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.SubLcConversation", b =>
                 {
-                    b.HasOne("EnglishCenter.DataAccess.Entities.AnswerLcConversation", "Answer")
-                        .WithOne("SubLcConversation")
-                        .HasForeignKey("EnglishCenter.DataAccess.Entities.SubLcConversation", "AnswerId")
-                        .HasConstraintName("FK_Sub_Ques_LC_Answer_Conversation");
-
                     b.HasOne("EnglishCenter.DataAccess.Entities.QuesLcConversation", "PreQues")
                         .WithMany("SubLcConversations")
                         .HasForeignKey("PreQuesId")
                         .IsRequired()
                         .HasConstraintName("FK_Sub_LC_Conversation_Ques_LC_Conversation");
 
-                    b.Navigation("Answer");
-
                     b.Navigation("PreQues");
                 });
 
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.SubRcDouble", b =>
                 {
-                    b.HasOne("EnglishCenter.DataAccess.Entities.AnswerRcDouble", "Answer")
-                        .WithOne("SubRcDouble")
-                        .HasForeignKey("EnglishCenter.DataAccess.Entities.SubRcDouble", "AnswerId")
-                        .HasConstraintName("FK_Sub_Ques_RC_Answer_Double");
-
                     b.HasOne("EnglishCenter.DataAccess.Entities.QuesRcDouble", "PreQues")
                         .WithMany("SubRcDoubles")
                         .HasForeignKey("PreQuesId")
                         .IsRequired()
                         .HasConstraintName("FK_Sub_RC_Double_Ques_RC_Double");
 
-                    b.Navigation("Answer");
-
-                    b.Navigation("PreQues");
-                });
-
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.SubRcSingle", b =>
-                {
-                    b.HasOne("EnglishCenter.DataAccess.Entities.AnswerRcSingle", "Answer")
-                        .WithOne("SubRcSingle")
-                        .HasForeignKey("EnglishCenter.DataAccess.Entities.SubRcSingle", "AnswerId")
-                        .HasConstraintName("FK_Sub_Ques_RC_Answer_Single");
-
-                    b.HasOne("EnglishCenter.DataAccess.Entities.QuesRcSingle", "PreQues")
-                        .WithMany("SubRcSingles")
-                        .HasForeignKey("PreQuesId")
-                        .IsRequired()
-                        .HasConstraintName("FK_Sub_RC_Double_Ques_RC_Single");
-
-                    b.Navigation("Answer");
-
                     b.Navigation("PreQues");
                 });
 
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.SubRcTriple", b =>
                 {
-                    b.HasOne("EnglishCenter.DataAccess.Entities.AnswerRcTriple", "Answer")
-                        .WithOne("SubRcTriple")
-                        .HasForeignKey("EnglishCenter.DataAccess.Entities.SubRcTriple", "AnswerId")
-                        .HasConstraintName("FK_Sub_Ques_RC_Answer_Triple");
-
                     b.HasOne("EnglishCenter.DataAccess.Entities.QuesRcTriple", "PreQues")
                         .WithMany("SubRcTriples")
                         .HasForeignKey("PreQuesId")
                         .IsRequired()
                         .HasConstraintName("FK_Sub_RC_Triple_Ques_RC_Triple");
-
-                    b.Navigation("Answer");
 
                     b.Navigation("PreQues");
                 });
@@ -1821,52 +1298,8 @@ namespace EnglishCenter.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.AnswerLcAudio", b =>
-                {
-                    b.Navigation("QuesLcAudio")
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.AnswerLcConversation", b =>
-                {
-                    b.Navigation("SubLcConversation")
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.AnswerLcImage", b =>
-                {
-                    b.Navigation("QuesLcImage")
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.AnswerRcDouble", b =>
-                {
-                    b.Navigation("SubRcDouble")
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.AnswerRcSentence", b =>
-                {
-                    b.Navigation("QuesRcSentence")
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.AnswerRcSingle", b =>
-                {
-                    b.Navigation("SubRcSingle")
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.AnswerRcTriple", b =>
-                {
-                    b.Navigation("SubRcTriple")
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.Assignment", b =>
                 {
-                    b.Navigation("AssignQues");
-
                     b.Navigation("HomeworkList");
                 });
 
@@ -1902,46 +1335,18 @@ namespace EnglishCenter.Migrations
                     b.Navigation("NotiStudents");
                 });
 
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.QuesLcAudio", b =>
-                {
-                    b.Navigation("AssignQues");
-                });
-
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.QuesLcConversation", b =>
                 {
-                    b.Navigation("AssignQues");
-
                     b.Navigation("SubLcConversations");
-                });
-
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.QuesLcImage", b =>
-                {
-                    b.Navigation("AssignQues");
                 });
 
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.QuesRcDouble", b =>
                 {
-                    b.Navigation("AssignQues");
-
                     b.Navigation("SubRcDoubles");
-                });
-
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.QuesRcSentence", b =>
-                {
-                    b.Navigation("AssignQues");
-                });
-
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.QuesRcSingle", b =>
-                {
-                    b.Navigation("AssignQues");
-
-                    b.Navigation("SubRcSingles");
                 });
 
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.QuesRcTriple", b =>
                 {
-                    b.Navigation("AssignQues");
-
                     b.Navigation("SubRcTriples");
                 });
 

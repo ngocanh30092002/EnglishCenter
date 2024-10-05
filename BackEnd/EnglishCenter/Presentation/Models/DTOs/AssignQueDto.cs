@@ -2,7 +2,7 @@
 
 namespace EnglishCenter.Presentation.Models.DTOs
 {
-    public class AssignQuesDto
+    public class AssignQueDto
     {
         [Required]
         public long QuesId { set; get; }

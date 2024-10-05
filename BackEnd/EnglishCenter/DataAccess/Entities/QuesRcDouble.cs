@@ -23,7 +23,7 @@ public partial class QuesRcDouble
     public string? Image2 { get; set; }
 
     [InverseProperty("QuesDouble")]
-    public virtual AssignQue? AssignQue { get; set; }
+    public virtual ICollection<AssignQue> AssignQues { get; set; } = new List<AssignQue>();
 
     [InverseProperty("PreQues")]
     public virtual ICollection<SubRcDouble> SubRcDoubles { get; set; } = new List<SubRcDouble>();

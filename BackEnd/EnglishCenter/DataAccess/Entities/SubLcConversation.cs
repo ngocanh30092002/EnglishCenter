@@ -16,9 +16,6 @@ public partial class SubLcConversation
 
     public string Question { get; set; } = null!;
 
-    [StringLength(5)]
-    public string CorrectAnswer { get; set; } = null!;
-
     [StringLength(300)]
     public string AnswerA { get; set; } = null!;
 
@@ -30,6 +27,12 @@ public partial class SubLcConversation
 
     [StringLength(300)]
     public string AnswerD { get; set; } = null!;
+
+    public long? AnswerId { set; get; }
+
+    [ForeignKey("AnswerId")]
+    [InverseProperty("SubLcConversation")]
+    public virtual AnswerLcConversation? Answer { set; get; }
 
     [ForeignKey("PreQuesId")]
     [InverseProperty("SubLcConversations")]

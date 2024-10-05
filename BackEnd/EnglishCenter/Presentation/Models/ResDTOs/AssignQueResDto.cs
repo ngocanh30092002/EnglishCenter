@@ -1,6 +1,6 @@
 ﻿namespace EnglishCenter.Presentation.Models.ResDTOs
 {
-    public class AssignQuesResDto
+    public class AssignQueResDto
     {
         public long? AssignQuesId { set; get; }
         public string? Type { set; get; }

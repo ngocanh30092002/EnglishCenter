@@ -4,6 +4,7 @@ using EnglishCenter.DataAccess.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EnglishCenter.Migrations
 {
     [DbContext(typeof(EnglishCenterContext))]
-    partial class EnglishCenterContextModelSnapshot : ModelSnapshot
+    [Migration("20241005102224_addAnswerDouble")]
+    partial class addAnswerDouble
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -235,44 +238,6 @@ namespace EnglishCenter.Migrations
                     b.HasKey("AnswerId");
 
                     b.ToTable("Answer_RC_Single");
-                });
-
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.AnswerRcTriple", b =>
-                {
-                    b.Property<long>("AnswerId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("AnswerId"));
-
-                    b.Property<string>("AnswerA")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AnswerB")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AnswerC")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AnswerD")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CorrectAnswer")
-                        .IsRequired()
-                        .HasMaxLength(1)
-                        .HasColumnType("nvarchar(1)");
-
-                    b.Property<string>("Question")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("AnswerId");
-
-                    b.ToTable("Answer_RC_Triple");
                 });
 
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.AssignQue", b =>
@@ -1066,6 +1031,11 @@ namespace EnglishCenter.Migrations
                     b.Property<long?>("AnswerId")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("CorrectAnswer")
+                        .IsRequired()
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
+
                     b.Property<long>("PreQuesId")
                         .HasColumnType("bigint");
 
@@ -1161,8 +1131,10 @@ namespace EnglishCenter.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
 
-                    b.Property<long?>("AnswerId")
-                        .HasColumnType("bigint");
+                    b.Property<string>("CorrectAnswer")
+                        .IsRequired()
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
 
                     b.Property<long>("PreQuesId")
                         .HasColumnType("bigint");
@@ -1172,10 +1144,6 @@ namespace EnglishCenter.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("SubId");
-
-                    b.HasIndex("AnswerId")
-                        .IsUnique()
-                        .HasFilter("[AnswerId] IS NOT NULL");
 
                     b.HasIndex("PreQuesId");
 
@@ -1727,18 +1695,11 @@ namespace EnglishCenter.Migrations
 
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.SubRcTriple", b =>
                 {
-                    b.HasOne("EnglishCenter.DataAccess.Entities.AnswerRcTriple", "Answer")
-                        .WithOne("SubRcTriple")
-                        .HasForeignKey("EnglishCenter.DataAccess.Entities.SubRcTriple", "AnswerId")
-                        .HasConstraintName("FK_Sub_Ques_RC_Answer_Triple");
-
                     b.HasOne("EnglishCenter.DataAccess.Entities.QuesRcTriple", "PreQues")
                         .WithMany("SubRcTriples")
                         .HasForeignKey("PreQuesId")
                         .IsRequired()
                         .HasConstraintName("FK_Sub_RC_Triple_Ques_RC_Triple");
-
-                    b.Navigation("Answer");
 
                     b.Navigation("PreQues");
                 });
@@ -1854,12 +1815,6 @@ namespace EnglishCenter.Migrations
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.AnswerRcSingle", b =>
                 {
                     b.Navigation("SubRcSingle")
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.AnswerRcTriple", b =>
-                {
-                    b.Navigation("SubRcTriple")
                         .IsRequired();
                 });
 

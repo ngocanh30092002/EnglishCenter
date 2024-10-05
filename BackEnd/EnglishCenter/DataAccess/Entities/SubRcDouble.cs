@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.DataAccess.Entities;
 
@@ -16,9 +13,6 @@ public partial class SubRcDouble
 
     public string Question { get; set; } = null!;
 
-    [StringLength(5)]
-    public string CorrectAnswer { get; set; } = null!;
-
     [StringLength(300)]
     public string AnswerA { get; set; } = null!;
 
@@ -30,6 +24,12 @@ public partial class SubRcDouble
 
     [StringLength(300)]
     public string AnswerD { get; set; } = null!;
+
+    public long? AnswerId { set; get; }
+
+    [ForeignKey("AnswerId")]
+    [InverseProperty("SubRcDouble")]
+    public virtual AnswerRcDouble? Answer { set; get; }
 
     [ForeignKey("PreQuesId")]
     [InverseProperty("SubRcDoubles")]

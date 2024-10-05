@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using EnglishCenter.Business.IServices;
+using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.UnitOfWork;
+using EnglishCenter.Presentation.Global.Enum;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
 using EnglishCenter.Presentation.Models.ResDTOs;
@@ -12,36 +14,173 @@ namespace EnglishCenter.Business.Services.Assignments
         private readonly IUnitOfWork _unit;
         private readonly IMapper _mapper;
 
-        public AssignQuesService(IUnitOfWork unit, IMapper mapper) 
+        public AssignQuesService(IUnitOfWork unit, IMapper mapper)
         {
             _unit = unit;
             _mapper = mapper;
         }
-        public Task<Response> ChangeAssignmentIdAsync(long id, long assignmentId)
+
+        public async Task<Response> ChangeAssignmentIdAsync(long id, long assignmentId)
         {
-            throw new NotImplementedException();
+            var assignQuesModel = _unit.AssignQues.GetById(id);
+            if(assignQuesModel == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any Assignment Question",
+                    Success = false
+                };
+            }
+
+            var isExistAssignment = _unit.Assignments.IsExist(a => a.AssignmentId == assignmentId);
+            if (!isExistAssignment)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any assignments",
+                    Success = false
+                };
+            }
+
+            var isChangeSuccess = await _unit.AssignQues.ChangeAssignmentIdAsync(assignQuesModel, assignmentId);
+            if (!isChangeSuccess)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Success = false
+                };
+            }
+
+            await _unit.CompleteAsync();
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = "",
+                Success = true
+            };
         }
 
-        public Task<Response> ChangeQuesAsync(long id, int type, long quesId)
+        public async Task<Response> ChangeQuesAsync(long id, int type, long quesId)
         {
-            throw new NotImplementedException();
+            var assignQuesModel = _unit.AssignQues.GetById(id);
+            if(assignQuesModel == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any Assignment Question",
+                    Success = false
+                };
+            }
+
+            if(!Enum.IsDefined(typeof(QuesTypeEnum), type))
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Invalid type",
+                    Success = false
+                };
+            }
+
+            var isChangeSuccess = await _unit.AssignQues.ChangeQuesAsync(assignQuesModel, (QuesTypeEnum)type, quesId);
+            if (!isChangeSuccess)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Success = false
+                };
+            }
+
+            await _unit.CompleteAsync();
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = "",
+                Success = true
+            };
+
         }
 
-        public Task<Response> CreateAsync(AssignQuesDto model)
+        public async Task<Response> CreateAsync(AssignQueDto model)
         {
-            throw new NotImplementedException();
+            var isExistAssignment = _unit.Assignments.IsExist(a => a.AssignmentId == model.AssignmentId);
+            if (!isExistAssignment)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any assignments",
+                    Success = false
+                };
+            }
+
+            if(!Enum.IsDefined(typeof(QuesTypeEnum), model.Type))
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Invalid Type",
+                    Success = false
+                };
+            }
+
+            var isExistQuesType = await _unit.AssignQues.IsExistQuesIdAsync((QuesTypeEnum)model.Type, model.QuesId);
+            if (!isExistQuesType) 
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any question",
+                    Success = false
+                };
+            }
+
+            var assignModel = _mapper.Map<AssignQue>(model);
+
+            _unit.AssignQues.Add(assignModel);
+            await _unit.CompleteAsync();
+
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = "",
+                Success = true
+            };
         }
 
-        public Task<Response> DeleteAsync(long id)
+        public async Task<Response> DeleteAsync(long id)
         {
-            throw new NotImplementedException();
+            var assignQuesModel = _unit.AssignQues.GetById(id);
+            if(assignQuesModel == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any Assignment Question",
+                    Success = false
+                };
+            }
+
+            _unit.AssignQues.Remove(assignQuesModel);
+            await _unit.CompleteAsync();
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = "",
+                Success = true
+            };
         }
 
         public async Task<Response> GetAllAsync()
         {
             var models = _unit.AssignQues.GetAll();
-            
-            foreach(var model in models)
+
+            foreach (var model in models)
             {
                 var isSuccess = await _unit.AssignQues.LoadQuestionAsync(model);
                 if (!isSuccess)
@@ -58,7 +197,7 @@ namespace EnglishCenter.Business.Services.Assignments
             return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Message = _mapper.Map<List<AssignQuesResDto>>(models),
+                Message = _mapper.Map<List<AssignQueResDto>>(models),
                 Success = true
             };
         }
@@ -81,7 +220,7 @@ namespace EnglishCenter.Business.Services.Assignments
             return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Message = _mapper.Map<List<AssignQuesResDto>>(assignQues),
+                Message = _mapper.Map<List<AssignQueResDto>>(assignQues),
                 Success = true
             };
         }
@@ -94,14 +233,30 @@ namespace EnglishCenter.Business.Services.Assignments
             return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Message = _mapper.Map<AssignQuesResDto>(model),
+                Message = _mapper.Map<AssignQueResDto>(model),
                 Success = true
             };
         }
 
-        public Task<Response> UpdateAsync(long id, AssignQuesDto model)
+        public async Task<Response> UpdateAsync(long id, AssignQueDto model)
         {
-            throw new NotImplementedException();
+            var isSuccess = await _unit.AssignQues.UpdateAsync(id, model);
+            if (!isSuccess)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Success = false
+                };
+            }
+
+            await _unit.CompleteAsync();
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = "",
+                Success = true
+            };
         }
     }
 }

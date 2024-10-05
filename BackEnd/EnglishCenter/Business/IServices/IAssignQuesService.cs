@@ -10,8 +10,8 @@ namespace EnglishCenter.Business.IServices
         public Task<Response> GetByAssignmentAsync(long assignmentId);
         public Task<Response> ChangeAssignmentIdAsync(long id, long assignmentId);
         public Task<Response> ChangeQuesAsync(long id, int type, long quesId);
-        public Task<Response> CreateAsync(AssignQuesDto model);
-        public Task<Response> UpdateAsync(long id, AssignQuesDto model);
+        public Task<Response> CreateAsync(AssignQueDto model);
+        public Task<Response> UpdateAsync(long id, AssignQueDto model);
         public Task<Response> DeleteAsync(long id);
     }
 }

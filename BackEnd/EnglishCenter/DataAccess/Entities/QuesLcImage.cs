@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.DataAccess.Entities;
 
@@ -18,9 +15,13 @@ public partial class QuesLcImage
     [StringLength(300)]
     public string Audio { get; set; } = null!;
 
-    [StringLength(5)]
-    public string CorrectAnswer { get; set; } = null!;
+    public long? AnswerId { set; get; }
+
+    [ForeignKey("AnswerId")]
+    [InverseProperty("QuesLcImage")]
+    public virtual AnswerLcImage? Answer { set; get; }
 
     [InverseProperty("QuesImage")]
-    public virtual AssignQue? AssignQue { get; set; }
+    public virtual ICollection<AssignQue> AssignQues { get; set; } = new List<AssignQue>();
+
 }
