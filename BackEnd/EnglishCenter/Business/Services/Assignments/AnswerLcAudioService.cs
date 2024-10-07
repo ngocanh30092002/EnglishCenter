@@ -11,11 +11,13 @@ namespace EnglishCenter.Business.Services.Assignments
     {
         private readonly IUnitOfWork _unit;
         private readonly IMapper _mapper;
+        private readonly IQuesLcAudioService _quesService;
 
-        public AnswerLcAudioService(IUnitOfWork unit, IMapper mapper)
+        public AnswerLcAudioService(IUnitOfWork unit, IMapper mapper, IQuesLcAudioService quesService)
         {
             _unit = unit;
             _mapper = mapper;
+            _quesService = quesService;
         }
         public async Task<Response> ChangeAnswerAAsync(long id, string newAnswer)
         {
@@ -149,6 +151,38 @@ namespace EnglishCenter.Business.Services.Assignments
             };
         }
 
+        public async Task<Response> ChangeQuestionAsync(long id, string newQues)
+        {
+            var answerModel = _unit.AnswerLcAudio.GetById(id);
+            if (answerModel == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any answers",
+                    Success = false
+                };
+            }
+
+            var isSuccess = await _unit.AnswerLcAudio.ChangeQuestionAsync(answerModel, newQues);
+            if (!isSuccess)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Success = false
+                };
+            }
+
+            await _unit.CompleteAsync();
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = "",
+                Success = true
+            };
+        }
+
         public async Task<Response> CreateAsync(AnswerLcAudioDto model)
         {
             var answerModel = _mapper.Map<AnswerLcAudio>(model);
@@ -166,7 +200,10 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public async Task<Response> DeleteAsync(long id)
         {
-            var answerModel = _unit.AnswerLcAudio.GetById(id);
+            var answerModel = _unit.AnswerLcAudio
+                                    .Include(a => a.QuesLcAudio)
+                                    .FirstOrDefault(a => a.AnswerId == id);
+
             if (answerModel == null)
             {
                 return new Response()
@@ -177,15 +214,22 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
-            _unit.AnswerLcAudio.Remove(answerModel);
-            await _unit.CompleteAsync();
-
-            return new Response()
+            if(answerModel.QuesLcAudio != null)
             {
-                StatusCode = System.Net.HttpStatusCode.OK,
-                Message = "",
-                Success = true
-            };
+                return await _quesService.DeleteAsync(answerModel.QuesLcAudio.QuesId);
+            }
+            else
+            {
+                _unit.AnswerLcAudio.Remove(answerModel);
+                await _unit.CompleteAsync();
+
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Message = "",
+                    Success = true
+                };
+            }
         }
 
         public Task<Response> GetAllAsync()

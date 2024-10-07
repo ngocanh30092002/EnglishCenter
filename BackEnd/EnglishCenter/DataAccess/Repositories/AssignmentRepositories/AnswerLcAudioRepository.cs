@@ -47,6 +47,15 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
             return Task.FromResult(true);
         }
 
+        public Task<bool> ChangeQuestionAsync(AnswerLcAudio model, string newQues)
+        {
+            if (model == null) return Task.FromResult(false);
+
+            model.Question = newQues;
+
+            return Task.FromResult(true);
+        }
+
         public async Task<bool> UpdateAsync(long answerId, AnswerLcAudioDto model)
         {
             var answerModel = await context.AnswerLcAudios.FindAsync(answerId);
@@ -54,6 +63,12 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
             if (answerModel == null)
             {
                 return false;
+            }
+
+            if(answerModel.Question != model.Question)
+            {
+                var isSuccess = await ChangeQuestionAsync(answerModel, model.Question);
+                if (!isSuccess) return false;
             }
 
             if (answerModel.AnswerA != model.AnswerA)

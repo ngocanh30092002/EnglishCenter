@@ -110,6 +110,14 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
             return await response.ChangeActionAsync();
         }
 
+        [HttpPatch("answers/{answerId}/change-question")]
+        [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
+        public async Task<IActionResult> ChangeQuestionAsync([FromRoute] long answerId, [FromBody] string newQues)
+        {
+            var response = await _answerService.ChangeQuestionAsync(answerId, newQues);
+            return await response.ChangeActionAsync();
+        }
+
         [HttpPatch("answers/{answerId}/change-answerA")]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> ChangeAnswerAAsync([FromRoute] long answerId, [FromBody] string newAnswer)

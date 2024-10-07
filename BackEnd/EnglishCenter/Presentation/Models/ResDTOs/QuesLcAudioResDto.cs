@@ -6,6 +6,6 @@ namespace EnglishCenter.Presentation.Models.ResDTOs
     {
         public long? Id { set; get; }
         public string? AudioUrl { set; get; }
-        public AnswerLcAudioDto? AnswerLcAudio { set; get; }
+        public AnswerLcAudioDto? AnswerInfo { set; get; }
     }
 }

@@ -5,6 +5,7 @@ namespace EnglishCenter.DataAccess.IRepositories
 {
     public interface IAnswerLcAudioRepository : IGenericRepository<AnswerLcAudio>
     {
+        Task<bool> ChangeQuestionAsync(AnswerLcAudio model, string newQues);
         Task<bool> ChangeAnswerAAsync(AnswerLcAudio model, string newAnswer);
         Task<bool> ChangeAnswerBAsync(AnswerLcAudio model, string newAnswer);
         Task<bool> ChangeAnswerCAsync(AnswerLcAudio model, string newAnswer);

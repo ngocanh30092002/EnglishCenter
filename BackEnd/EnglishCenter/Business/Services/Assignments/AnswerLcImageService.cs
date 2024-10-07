@@ -11,11 +11,13 @@ namespace EnglishCenter.Business.Services.Assignments
     {
         private readonly IUnitOfWork _unit;
         private readonly IMapper _mapper;
+        private readonly IQuesLcImageService _quesService;
 
-        public AnswerLcImageService(IUnitOfWork unit, IMapper mapper)
+        public AnswerLcImageService(IUnitOfWork unit, IMapper mapper, IQuesLcImageService quesService)
         {
             _unit = unit;
             _mapper = mapper;
+            _quesService = quesService;
         }
 
         public async Task<Response> ChangeAnswerAAsync(long id, string newAnswer)
@@ -200,7 +202,9 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public async Task<Response> DeleteAsync(long id)
         {
-            var answerModel = _unit.AnswerLcImage.GetById(id);
+            var answerModel = _unit.AnswerLcImage
+                                   .Include(a => a.QuesLcImage)
+                                   .FirstOrDefault(a => a.AnswerId == id);
             if (answerModel == null)
             {
                 return new Response()
@@ -211,15 +215,22 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
-            _unit.AnswerLcImage.Remove(answerModel);
-            await _unit.CompleteAsync();
-
-            return new Response()
+            if(answerModel.QuesLcImage != null)
             {
-                StatusCode = System.Net.HttpStatusCode.OK,
-                Message = "",
-                Success = true
-            };
+                return await _quesService.DeleteAsync(answerModel.QuesLcImage.QuesId);
+            }
+            else
+            {
+                _unit.AnswerLcImage.Remove(answerModel);
+                await _unit.CompleteAsync();
+
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Message = "",
+                    Success = true
+                };
+            }
         }
 
         public Task<Response> GetAllAsync()

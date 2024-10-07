@@ -32,7 +32,7 @@ namespace EnglishCenter.Presentation.Extensions.Repository
             services.AddScoped<IQuesLcImageRepository , QuesLcImageRepository>();
             services.AddScoped<IAnswerLcImageRepository, AnswerLcImageRepository>();
             services.AddScoped<IQuesLcAudioRepository, QuesLcAudioRepository>();
-            services.AddScoped<IAnswerLcAudioRepository , AnswerLcAudioRepository>();
+            services.AddScoped<IAnswerLcAudioRepository, AnswerLcAudioRepository>();
             services.AddScoped<MailHelper>();
             
             return services;

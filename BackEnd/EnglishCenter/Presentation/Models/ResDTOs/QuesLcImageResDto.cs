@@ -7,6 +7,6 @@ namespace EnglishCenter.Presentation.Models.ResDTOs
         public long? Id { set; get; }
         public string? ImageUrl { set; get; }
         public string? AudioUrl { set;get; }
-        public AnswerLcImageDto? AnswerLcImage { set; get;}
+        public AnswerLcImageDto? AnswerInfo { set; get;}
     }
 }

@@ -4,6 +4,7 @@ using EnglishCenter.DataAccess.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EnglishCenter.Migrations
 {
     [DbContext(typeof(EnglishCenterContext))]
-    partial class EnglishCenterContextModelSnapshot : ModelSnapshot
+    [Migration("20241007091035_dropAnswerLcAudio2")]
+    partial class dropAnswerLcAudio2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,40 +24,6 @@ namespace EnglishCenter.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.AnswerLcAudio", b =>
-                {
-                    b.Property<long>("AnswerId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("AnswerId"));
-
-                    b.Property<string>("AnswerA")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AnswerB")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AnswerC")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CorrectAnswer")
-                        .IsRequired()
-                        .HasMaxLength(1)
-                        .HasColumnType("nvarchar(1)");
-
-                    b.Property<string>("Question")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("AnswerId");
-
-                    b.ToTable("Answer_LC_Audio");
-                });
 
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.AnswerLcConversation", b =>
                 {
@@ -691,19 +660,12 @@ namespace EnglishCenter.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("QuesId"));
 
-                    b.Property<long?>("AnswerId")
-                        .HasColumnType("bigint");
-
                     b.Property<string>("Audio")
                         .IsRequired()
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
 
                     b.HasKey("QuesId");
-
-                    b.HasIndex("AnswerId")
-                        .IsUnique()
-                        .HasFilter("[AnswerId] IS NOT NULL");
 
                     b.ToTable("Ques_LC_Audio");
                 });
@@ -1622,16 +1584,6 @@ namespace EnglishCenter.Migrations
                     b.Navigation("Student");
                 });
 
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.QuesLcAudio", b =>
-                {
-                    b.HasOne("EnglishCenter.DataAccess.Entities.AnswerLcAudio", "Answer")
-                        .WithOne("QuesLcAudio")
-                        .HasForeignKey("EnglishCenter.DataAccess.Entities.QuesLcAudio", "AnswerId")
-                        .HasConstraintName("FK_Ques_LC_Answer_Audio");
-
-                    b.Navigation("Answer");
-                });
-
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.QuesLcImage", b =>
                 {
                     b.HasOne("EnglishCenter.DataAccess.Entities.AnswerLcImage", "Answer")
@@ -1822,12 +1774,6 @@ namespace EnglishCenter.Migrations
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.AnswerLcAudio", b =>
-                {
-                    b.Navigation("QuesLcAudio")
                         .IsRequired();
                 });
 
