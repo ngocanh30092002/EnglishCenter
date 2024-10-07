@@ -4,6 +4,7 @@ using EnglishCenter.Business.Services.Assignments;
 using EnglishCenter.Business.Services.Authorization;
 using EnglishCenter.Business.Services.Courses;
 using EnglishCenter.DataAccess.IRepositories;
+using EnglishCenter.DataAccess.Repositories;
 using EnglishCenter.DataAccess.Repositories.AssignmentRepositories;
 using EnglishCenter.DataAccess.Repositories.AuthenticationRepositories;
 using EnglishCenter.DataAccess.Repositories.CourseRepositories;
@@ -28,6 +29,10 @@ namespace EnglishCenter.Presentation.Extensions.Repository
             services.AddScoped<IStudentRepository, StudentRepository>();
             services.AddScoped<IScoreHistoryRepository, ScoreHistoryRepository>();
             services.AddScoped<IAssignQuesRepository, AssignQuesRepository>();
+            services.AddScoped<IQuesLcImageRepository , QuesLcImageRepository>();
+            services.AddScoped<IAnswerLcImageRepository, AnswerLcImageRepository>();
+            services.AddScoped<IQuesLcAudioRepository, QuesLcAudioRepository>();
+            services.AddScoped<IAnswerLcAudioRepository , AnswerLcAudioRepository>();
             services.AddScoped<MailHelper>();
             
             return services;
@@ -52,7 +57,10 @@ namespace EnglishCenter.Presentation.Extensions.Repository
             services.AddScoped<IScoreHistoryService, ScoreHistoryService>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IAssignQuesService, AssignQuesService>();
-
+            services.AddScoped<IQuesLcImageService , QuesLcImageService>();
+            services.AddScoped<IAnswerLcImageService, AnswerLcImageService>();
+            services.AddScoped<IQuesLcAudioService, QuesLcAudioService>();
+            services.AddScoped<IAnswerLcAudioService, AnswerLcAudioService>();
             return services;
         }
     }

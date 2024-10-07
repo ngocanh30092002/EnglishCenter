@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EnglishCenter.DataAccess.Entities
 {
-    [Table("Answer_Lc_Audio")]
+    [Table("Answer_LC_Audio")]
 
     public class AnswerLcAudio
     {

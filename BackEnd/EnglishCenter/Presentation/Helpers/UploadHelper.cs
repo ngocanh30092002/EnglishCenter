@@ -1,4 +1,6 @@
-﻿namespace EnglishCenter.Presentation.Helpers
+﻿using System.IO;
+
+namespace EnglishCenter.Presentation.Helpers
 {
     public static class UploadHelper
     {
@@ -19,6 +21,7 @@
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
                 await file.CopyToAsync(stream);
+                stream.Position = 0;
             }
 
             return null;

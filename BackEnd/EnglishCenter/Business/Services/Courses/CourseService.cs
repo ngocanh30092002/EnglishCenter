@@ -13,11 +13,17 @@ namespace EnglishCenter.Business.Services.Courses
     {
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unit;
+        private readonly IWebHostEnvironment _webHostEnvironment;
+        private string _imageBase;
+        private string _imageThumbnailBase;
 
-        public CourseService(IMapper mapper, IUnitOfWork unit)
+        public CourseService(IMapper mapper, IUnitOfWork unit, IWebHostEnvironment webHostEnvironment)
         {
             _mapper = mapper;
             _unit = unit;
+            _webHostEnvironment = webHostEnvironment;
+            _imageBase = Path.Combine("courses", "images");
+            _imageThumbnailBase = Path.Combine("courses", "images-thumbnail");
         }
         public async Task<Response> ChangePriorityAsync(string courseId, int priority)
         {
@@ -135,7 +141,7 @@ namespace EnglishCenter.Business.Services.Courses
 
             if (model.Image != null)
             {
-                var uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "courses", "images");
+                var uploadFolder = Path.Combine(_webHostEnvironment.WebRootPath, _imageBase);
                 var fileName = $"{DateTime.Now.Ticks}_{model.Image?.FileName}";
                 var result = await UploadHelper.UploadFileAsync(model.Image, uploadFolder, fileName);
 
@@ -149,12 +155,12 @@ namespace EnglishCenter.Business.Services.Courses
                     };
                 }
 
-                courseModel.Image = Path.Combine("courses", "images", fileName);
+                courseModel.Image = Path.Combine(_imageBase, fileName);
             }
 
             if(model.ImageThumbnail != null)
             {
-                var uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "courses", "images-thumbnail");
+                var uploadFolder = Path.Combine(_webHostEnvironment.WebRootPath, _imageThumbnailBase);
                 var fileName = $"{DateTime.Now.Ticks}_{model.ImageThumbnail?.FileName}";
                 var result = await UploadHelper.UploadFileAsync(model.ImageThumbnail, uploadFolder, fileName);
 
@@ -168,7 +174,7 @@ namespace EnglishCenter.Business.Services.Courses
                     };
                 }
 
-                courseModel.ImageThumbnail = Path.Combine("courses", "images-thumbnail", fileName);
+                courseModel.ImageThumbnail = Path.Combine(_imageThumbnailBase, fileName);
             }
 
             _unit.Courses.Add(courseModel);
@@ -204,6 +210,24 @@ namespace EnglishCenter.Business.Services.Courses
                     Message = "There are currently classes in progress, so the subject can't be deleted",
                     Success = false
                 };
+            }
+
+            if (!string.IsNullOrEmpty(courseModel.Image))
+            {
+                var imagePath = Path.Combine(_webHostEnvironment.WebRootPath, courseModel.Image);
+                if (File.Exists(imagePath))
+                {
+                    File.Delete(imagePath);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(courseModel.ImageThumbnail))
+            {
+                var imagePath = Path.Combine(_webHostEnvironment.WebRootPath, courseModel.ImageThumbnail);
+                if (File.Exists(imagePath))
+                {
+                    File.Delete(imagePath);
+                }
             }
 
             _unit.Courses.Remove(courseModel);

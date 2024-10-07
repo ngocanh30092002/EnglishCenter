@@ -1,11 +1,14 @@
 ﻿using EnglishCenter.DataAccess.Database;
 using EnglishCenter.DataAccess.IRepositories;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace EnglishCenter.DataAccess.UnitOfWork
 {
     public class UnitOfWork : IUnitOfWork
     {
         private readonly EnglishCenterContext _context;
+        private IDbContextTransaction? _transaction;
+
         public UnitOfWork(
             EnglishCenterContext context,
             IEventRepository eventRepo,
@@ -18,7 +21,11 @@ namespace EnglishCenter.DataAccess.UnitOfWork
             ICourseContentRepository courseContentRepo,
             IAssignmentRepository assignRepo,
             IScoreHistoryRepository scoreHisRepo,
-            IAssignQuesRepository assignQues
+            IAssignQuesRepository assignQuesRepo,
+            IQuesLcImageRepository quesLcImageRepo,
+            IAnswerLcImageRepository answerLcImageRepo,
+            IQuesLcAudioRepository quesLcAudioRepo,
+            IAnswerLcAudioRepository answerLcAudioRepo
             ) 
         {
             _context = context;
@@ -32,8 +39,11 @@ namespace EnglishCenter.DataAccess.UnitOfWork
             CourseContents = courseContentRepo;
             Assignments = assignRepo;
             ScoreHis = scoreHisRepo;
-            AssignQues = assignQues;
-
+            AssignQues = assignQuesRepo;
+            QuesLcImage = quesLcImageRepo;
+            AnswerLcImage = answerLcImageRepo;
+            AnswerLcAudio = answerLcAudioRepo;
+            QuesLcAudio = quesLcAudioRepo;
         }
 
         public IEventRepository Events { get; private set; }
@@ -47,6 +57,35 @@ namespace EnglishCenter.DataAccess.UnitOfWork
         public IAssignmentRepository Assignments { get; private set; }
         public IScoreHistoryRepository ScoreHis { get; private set; }
         public IAssignQuesRepository AssignQues { get; private set; }
+        public IQuesLcImageRepository QuesLcImage { get; private set; }
+        public IAnswerLcImageRepository AnswerLcImage { get; private set; }
+        public IAnswerLcAudioRepository AnswerLcAudio { get; private set; }
+        public IQuesLcAudioRepository QuesLcAudio { get; private set; }
+
+        public async Task BeginTransAsync()
+        {
+            _transaction = await _context.Database.BeginTransactionAsync();
+        }
+
+        public async Task CommitTransAsync()
+        {
+            if(_transaction != null)
+            {
+                await _transaction.CommitAsync();
+                await _transaction.DisposeAsync();
+                _transaction = null;
+            }
+        }
+
+        public async Task RollBackTransAsync()
+        {
+            if (_transaction != null)
+            {
+                await _transaction.RollbackAsync();
+                await _transaction.DisposeAsync();
+                _transaction = null;
+            }
+        }
 
         public async Task<int> CompleteAsync()
         {

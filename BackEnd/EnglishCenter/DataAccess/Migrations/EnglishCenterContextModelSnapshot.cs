@@ -49,7 +49,7 @@ namespace EnglishCenter.Migrations
 
                     b.HasKey("AnswerId");
 
-                    b.ToTable("Answer_Lc_Audio");
+                    b.ToTable("Answer_LC_Audio");
                 });
 
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.AnswerLcConversation", b =>

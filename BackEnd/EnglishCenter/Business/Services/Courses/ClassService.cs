@@ -16,12 +16,14 @@ namespace EnglishCenter.Business.Services.Courses
         private readonly IUnitOfWork _unit;
         private readonly IMapper _mapper;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private string _imageBase;
 
         public ClassService(IMapper mapper, IUnitOfWork unit, IWebHostEnvironment webHostEnvironment)
         {
             _unit = unit;
             _mapper = mapper;
             _webHostEnvironment = webHostEnvironment;
+            _imageBase = Path.Combine("classes", "images");
         }
 
         public async Task<Response> ChangeDescriptionAsync(string classId, string newDes)
@@ -315,7 +317,7 @@ namespace EnglishCenter.Business.Services.Courses
             var classModel = _mapper.Map<Class>(model);
             if(model.Image != null)
             {
-                var uploadFolder = Path.Combine(_webHostEnvironment.WebRootPath, "classes", "images");
+                var uploadFolder = Path.Combine(_webHostEnvironment.WebRootPath, _imageBase);
                 var fileName = $"{DateTime.Now.Ticks}_{model.Image.FileName}";
                 var result = await UploadHelper.UploadFileAsync(model.Image, uploadFolder, fileName);
 
@@ -328,7 +330,7 @@ namespace EnglishCenter.Business.Services.Courses
                     };
                 }
 
-                classModel.Image = Path.Combine("classes", "images", fileName);
+                classModel.Image = Path.Combine(_imageBase, fileName);
             }
 
             _unit.Classes.Add(classModel);
@@ -353,6 +355,16 @@ namespace EnglishCenter.Business.Services.Courses
                     Message = "Can't find any classes",
                     Success = false
                 };
+            }
+
+
+            if (!string.IsNullOrEmpty(classModel.Image))
+            {
+                var imagePath = Path.Combine(_webHostEnvironment.WebRootPath, _imageBase);
+                if (File.Exists(imagePath))
+                {
+                    File.Delete(imagePath);
+                }
             }
 
             _unit.Classes.Remove(classModel);

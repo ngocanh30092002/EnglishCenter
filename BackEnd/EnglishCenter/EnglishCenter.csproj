@@ -39,6 +39,7 @@
     <Folder Include="DataAccess\Migrations\" />
     <Folder Include="wwwroot\classes\images\" />
     <Folder Include="wwwroot\notifications\images\" />
+    <Folder Include="wwwroot\questions\lc_image\" />
   </ItemGroup>
 
 </Project>

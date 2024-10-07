@@ -1,11 +1,14 @@
 ﻿using EnglishCenter.Business.IServices;
+using EnglishCenter.Presentation.Global;
 using EnglishCenter.Presentation.Models.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EnglishCenter.Presentation.Controllers.AssignmentPage
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class AssignQuesController : ControllerBase
     {
         private readonly IAssignQuesService _assignQuesService;
@@ -37,6 +40,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
         }
 
         [HttpPost]
+        [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> CreateAsync([FromForm] AssignQueDto model)
         {
             var response = await _assignQuesService.CreateAsync(model);
@@ -44,6 +48,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
         }
 
         [HttpPut("{id}")]
+        [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> UpdateAsync([FromRoute] long id, [FromForm] AssignQueDto model)
         {
             var response = await _assignQuesService.UpdateAsync(id,model);
@@ -51,6 +56,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> DeleteAsync([FromRoute] long id)
         {
             var response = await _assignQuesService.DeleteAsync(id);
@@ -58,6 +64,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
         }
 
         [HttpPatch("{id}/change-assignment")]
+        [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> ChangeAssignmentIdAsync([FromRoute]long id, [FromQuery] long assignmentId)
         {
             var response = await _assignQuesService.ChangeAssignmentIdAsync(id, assignmentId);
@@ -65,6 +72,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
         }
 
         [HttpPatch("{id}/change-ques")]
+        [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> ChangeQuesAsync([FromRoute] long id, [FromQuery]int type, [FromQuery] long quesId)
         {
             var response = await _assignQuesService.ChangeQuesAsync(id, type, quesId);
