@@ -21,7 +21,7 @@ namespace EnglishCenter.Business.Services.Assignments
         }
         public async Task<Response> ChangeAnswerAAsync(long id, string newAnswer)
         {
-            var answerModel = _unit.AnswerLcAudio.GetById(id);
+            var answerModel = _unit.AnswerLcAudios.GetById(id);
             if (answerModel == null)
             {
                 return new Response()
@@ -32,7 +32,7 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
-            var isSuccess = await _unit.AnswerLcAudio.ChangeAnswerAAsync(answerModel, newAnswer);
+            var isSuccess = await _unit.AnswerLcAudios.ChangeAnswerAAsync(answerModel, newAnswer);
 
             if (!isSuccess)
             {
@@ -54,7 +54,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public async Task<Response> ChangeAnswerBAsync(long id, string newAnswer)
         {
-            var answerModel = _unit.AnswerLcAudio.GetById(id);
+            var answerModel = _unit.AnswerLcAudios.GetById(id);
             if (answerModel == null)
             {
                 return new Response()
@@ -65,7 +65,7 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
-            var isSuccess = await _unit.AnswerLcAudio.ChangeAnswerBAsync(answerModel, newAnswer);
+            var isSuccess = await _unit.AnswerLcAudios.ChangeAnswerBAsync(answerModel, newAnswer);
 
             if (!isSuccess)
             {
@@ -87,7 +87,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public async Task<Response> ChangeAnswerCAsync(long id, string newAnswer)
         {
-            var answerModel = _unit.AnswerLcAudio.GetById(id);
+            var answerModel = _unit.AnswerLcAudios.GetById(id);
             if (answerModel == null)
             {
                 return new Response()
@@ -98,7 +98,7 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
-            var isSuccess = await _unit.AnswerLcAudio.ChangeAnswerCAsync(answerModel, newAnswer);
+            var isSuccess = await _unit.AnswerLcAudios.ChangeAnswerCAsync(answerModel, newAnswer);
 
             if (!isSuccess)
             {
@@ -120,7 +120,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public async Task<Response> ChangeCorrectAnswerAsync(long id, string newAnswer)
         {
-            var answerModel = _unit.AnswerLcAudio.GetById(id);
+            var answerModel = _unit.AnswerLcAudios.GetById(id);
             if (answerModel == null)
             {
                 return new Response()
@@ -131,7 +131,7 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
-            var isSuccess = await _unit.AnswerLcAudio.ChangeCorrectAnswerAsync(answerModel, newAnswer);
+            var isSuccess = await _unit.AnswerLcAudios.ChangeCorrectAnswerAsync(answerModel, newAnswer);
 
             if (!isSuccess)
             {
@@ -153,7 +153,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public async Task<Response> ChangeQuestionAsync(long id, string newQues)
         {
-            var answerModel = _unit.AnswerLcAudio.GetById(id);
+            var answerModel = _unit.AnswerLcAudios.GetById(id);
             if (answerModel == null)
             {
                 return new Response()
@@ -164,7 +164,7 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
-            var isSuccess = await _unit.AnswerLcAudio.ChangeQuestionAsync(answerModel, newQues);
+            var isSuccess = await _unit.AnswerLcAudios.ChangeQuestionAsync(answerModel, newQues);
             if (!isSuccess)
             {
                 return new Response()
@@ -187,7 +187,7 @@ namespace EnglishCenter.Business.Services.Assignments
         {
             var answerModel = _mapper.Map<AnswerLcAudio>(model);
 
-            _unit.AnswerLcAudio.Add(answerModel);
+            _unit.AnswerLcAudios.Add(answerModel);
             await _unit.CompleteAsync();
 
             return new Response()
@@ -200,7 +200,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public async Task<Response> DeleteAsync(long id)
         {
-            var answerModel = _unit.AnswerLcAudio
+            var answerModel = _unit.AnswerLcAudios
                                     .Include(a => a.QuesLcAudio)
                                     .FirstOrDefault(a => a.AnswerId == id);
 
@@ -220,7 +220,7 @@ namespace EnglishCenter.Business.Services.Assignments
             }
             else
             {
-                _unit.AnswerLcAudio.Remove(answerModel);
+                _unit.AnswerLcAudios.Remove(answerModel);
                 await _unit.CompleteAsync();
 
                 return new Response()
@@ -234,7 +234,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public Task<Response> GetAllAsync()
         {
-            var answerModels = _unit.AnswerLcAudio.GetAll();
+            var answerModels = _unit.AnswerLcAudios.GetAll();
 
             return Task.FromResult(new Response()
             {
@@ -246,7 +246,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public Task<Response> GetAsync(long id)
         {
-            var answerModel = _unit.AnswerLcAudio.GetById(id);
+            var answerModel = _unit.AnswerLcAudios.GetById(id);
 
             return Task.FromResult(new Response()
             {
@@ -258,7 +258,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public async Task<Response> UpdateAsync(long id, AnswerLcAudioDto model)
         {
-            var isSuccess = await _unit.AnswerLcAudio.UpdateAsync(id, model);
+            var isSuccess = await _unit.AnswerLcAudios.UpdateAsync(id, model);
             if (!isSuccess)
             {
                 return new Response()

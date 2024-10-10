@@ -2,6 +2,7 @@ using EnglishCenter.Presentation.Extensions;
 using EnglishCenter.Presentation.Extensions.Database;
 using EnglishCenter.Presentation.Extensions.Identity;
 using EnglishCenter.Presentation.Extensions.Repository;
+using EnglishCenter.Presentation.Helpers;
 using EnglishCenter.Presentation.Hub;
 using EnglishCenter.Presentation.Middleware;
 using Microsoft.AspNetCore.Http.Features;
@@ -20,6 +21,8 @@ builder.Services.Configure<FormOptions>(options =>
     options.MultipartBodyLengthLimit = 104857600; // 100 MB
 });
 var app = builder.Build();
+
+VideoHelper.Initialize(app.Configuration);
 
 if (app.Environment.IsDevelopment())
 {

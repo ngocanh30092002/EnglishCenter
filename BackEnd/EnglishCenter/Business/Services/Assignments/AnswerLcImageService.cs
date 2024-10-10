@@ -22,7 +22,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public async Task<Response> ChangeAnswerAAsync(long id, string newAnswer)
         {
-            var answerModel = _unit.AnswerLcImage.GetById(id);
+            var answerModel = _unit.AnswerLcImages.GetById(id);
             if (answerModel == null)
             {
                 return new Response()
@@ -33,7 +33,7 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
-            var isSuccess = await _unit.AnswerLcImage.ChangeAnswerAAsync(answerModel, newAnswer);
+            var isSuccess = await _unit.AnswerLcImages.ChangeAnswerAAsync(answerModel, newAnswer);
 
             if (!isSuccess)
             {
@@ -55,7 +55,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public async Task<Response> ChangeAnswerBAsync(long id, string newAnswer)
         {
-            var answerModel = _unit.AnswerLcImage.GetById(id);
+            var answerModel = _unit.AnswerLcImages.GetById(id);
             if (answerModel == null)
             {
                 return new Response()
@@ -66,7 +66,7 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
-            var isSuccess = await _unit.AnswerLcImage.ChangeAnswerBAsync(answerModel, newAnswer);
+            var isSuccess = await _unit.AnswerLcImages.ChangeAnswerBAsync(answerModel, newAnswer);
 
             if (!isSuccess)
             {
@@ -88,7 +88,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public async Task<Response> ChangeAnswerCAsync(long id, string newAnswer)
         {
-            var answerModel = _unit.AnswerLcImage.GetById(id);
+            var answerModel = _unit.AnswerLcImages.GetById(id);
             if (answerModel == null)
             {
                 return new Response()
@@ -99,7 +99,7 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
-            var isSuccess = await _unit.AnswerLcImage.ChangeAnswerCAsync(answerModel, newAnswer);
+            var isSuccess = await _unit.AnswerLcImages.ChangeAnswerCAsync(answerModel, newAnswer);
 
             if (!isSuccess)
             {
@@ -121,7 +121,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public async Task<Response> ChangeAnswerDAsync(long id, string newAnswer)
         {
-            var answerModel = _unit.AnswerLcImage.GetById(id);
+            var answerModel = _unit.AnswerLcImages.GetById(id);
             if (answerModel == null)
             {
                 return new Response()
@@ -132,7 +132,7 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
-            var isSuccess = await _unit.AnswerLcImage.ChangeAnswerDAsync(answerModel, newAnswer);
+            var isSuccess = await _unit.AnswerLcImages.ChangeAnswerDAsync(answerModel, newAnswer);
 
             if (!isSuccess)
             {
@@ -154,7 +154,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public async Task<Response> ChangeCorrectAnswerAsync(long id, string newAnswer)
         {
-            var answerModel = _unit.AnswerLcImage.GetById(id);
+            var answerModel = _unit.AnswerLcImages.GetById(id);
             if (answerModel == null)
             {
                 return new Response()
@@ -165,7 +165,7 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
-            var isSuccess = await _unit.AnswerLcImage.ChangeCorrectAnswerAsync(answerModel, newAnswer);
+            var isSuccess = await _unit.AnswerLcImages.ChangeCorrectAnswerAsync(answerModel, newAnswer);
 
             if (!isSuccess)
             {
@@ -189,7 +189,7 @@ namespace EnglishCenter.Business.Services.Assignments
         {
             var answerModel = _mapper.Map<AnswerLcImage>(model);
 
-            _unit.AnswerLcImage.Add(answerModel);
+            _unit.AnswerLcImages.Add(answerModel);
             await _unit.CompleteAsync();
 
             return new Response()
@@ -202,7 +202,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public async Task<Response> DeleteAsync(long id)
         {
-            var answerModel = _unit.AnswerLcImage
+            var answerModel = _unit.AnswerLcImages
                                    .Include(a => a.QuesLcImage)
                                    .FirstOrDefault(a => a.AnswerId == id);
             if (answerModel == null)
@@ -221,7 +221,7 @@ namespace EnglishCenter.Business.Services.Assignments
             }
             else
             {
-                _unit.AnswerLcImage.Remove(answerModel);
+                _unit.AnswerLcImages.Remove(answerModel);
                 await _unit.CompleteAsync();
 
                 return new Response()
@@ -235,7 +235,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public Task<Response> GetAllAsync()
         {
-            var answerModels = _unit.AnswerLcImage.GetAll();
+            var answerModels = _unit.AnswerLcImages.GetAll();
 
             return Task.FromResult(new Response()
             {
@@ -247,7 +247,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public Task<Response> GetAsync(long id)
         {
-            var answerModel = _unit.AnswerLcImage.GetById(id);
+            var answerModel = _unit.AnswerLcImages.GetById(id);
 
             return Task.FromResult(new Response()
             {
@@ -259,7 +259,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public async Task<Response> UpdateAsync(long id, AnswerLcImageDto model)
         {
-            var isSuccess = await _unit.AnswerLcImage.UpdateAsync(id, model);
+            var isSuccess = await _unit.AnswerLcImages.UpdateAsync(id, model);
             if (!isSuccess)
             {
                 return new Response()

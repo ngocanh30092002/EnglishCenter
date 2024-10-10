@@ -1,5 +1,6 @@
 ﻿using EnglishCenter.Business.IServices;
 using EnglishCenter.Presentation.Global;
+using EnglishCenter.Presentation.Helpers;
 using EnglishCenter.Presentation.Models.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -40,6 +41,15 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> CreateAsync([FromForm] QuesLcAudioDto queModel)
         {
+            if(queModel.Audio != null)
+            {
+                var isAudioFile = await UploadHelper.IsAudioAsync(queModel.Audio);
+                if (!isAudioFile)
+                {
+                    return BadRequest(new { message = "The audio file is invalid. Only MP3, WAV and OGG are allowed. ", success = false });
+                }
+            }
+
             var response = await _audioService.CreateAsync(queModel);
             return await response.ChangeActionAsync();
         }
@@ -48,6 +58,15 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> UpdateAsync([FromRoute] long quesId, [FromForm] QuesLcAudioDto queModel)
         {
+            if (queModel.Audio != null)
+            {
+                var isAudioFile = await UploadHelper.IsAudioAsync(queModel.Audio);
+                if (!isAudioFile)
+                {
+                    return BadRequest(new { message = "The audio file is invalid. Only MP3, WAV and OGG are allowed. ", success = false });
+                }
+            }
+
             var response = await _audioService.UpdateAsync(quesId, queModel);
             return await response.ChangeActionAsync();
         }
@@ -60,10 +79,48 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
             return await response.ChangeActionAsync();
         }
 
+        [HttpPatch("{quesId}/change-answerA")]
+        [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
+        public async Task<IActionResult> ChangeQuesAnswerAAsync([FromRoute] long quesId, [FromBody]string newAnswer)
+        {
+            var response = await _audioService.ChangeAnswerAAsync(quesId, newAnswer);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpPatch("{quesId}/change-answerB")]
+        [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
+        public async Task<IActionResult> ChangeQuesAnswerBAsync([FromRoute] long quesId, [FromBody] string newAnswer)
+        {
+            var response = await _audioService.ChangeAnswerBAsync(quesId, newAnswer);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpPatch("{quesId}/change-answerC")]
+        [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
+        public async Task<IActionResult> ChangeQuesAnswerCAsync([FromRoute] long quesId, [FromBody] string newAnswer)
+        {
+            var response = await _audioService.ChangeAnswerCAsync(quesId, newAnswer);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpPatch("{quesId}/change-question")]
+        [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
+        public async Task<IActionResult> ChangeQuesQuestionAsync([FromRoute] long quesId, [FromBody] string newQues)
+        {
+            var response = await _audioService.ChangeQuestionAsync(quesId, newQues);
+            return await response.ChangeActionAsync();
+        }
+
         [HttpPatch("{quesId}/change-audio")]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> ChangeAudioAsync([FromRoute] long quesId, IFormFile audioFile)
         {
+            var isAudioFile = await UploadHelper.IsAudioAsync(audioFile);
+            if (!isAudioFile)
+            {
+                return BadRequest(new { message = "The audio file is invalid. Only MP3, WAV and OGG are allowed. ", success = false });
+            }
+            
             var response = await _audioService.ChangeAudioAsync(quesId, audioFile);
             return await response.ChangeActionAsync();
         }

@@ -13,7 +13,9 @@ public partial class QuesRcSingle
 
     [Column("Image")]
     [StringLength(300)]
-    public string? Image { get; set; }
+    public string Image { get; set; } = null!;
+
+    public TimeOnly? Time { set; get; }
 
     [InverseProperty("QuesSingle")]
     public virtual ICollection<AssignQue> AssignQues { get; set; } = new List<AssignQue>();

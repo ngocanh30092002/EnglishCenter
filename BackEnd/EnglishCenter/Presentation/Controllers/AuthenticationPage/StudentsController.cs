@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using EnglishCenter.Business.IServices;
+using EnglishCenter.Presentation.Helpers;
 using EnglishCenter.Presentation.Models.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -24,14 +25,11 @@ namespace EnglishCenter.Presentation.Controllers.AuthenticationPage
         public async Task<IActionResult> ChangeUserImageAsync(IFormFile file)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
-
-            var allowedMimeTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/svg+xml" };
-            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".svg" };
-            var fileExtension = Path.GetExtension(file.FileName).ToLower();
-
-            if (!allowedMimeTypes.Contains(file.ContentType.ToLower()) || !allowedExtensions.Contains(fileExtension))
+            
+            var isImageFile = await UploadHelper.IsImageAsync(file);
+            if (!isImageFile)
             {
-                return BadRequest(new { message = "Invalid file type or extension. Only JPEG, PNG, GIF, and SVG are allowed." });
+                return BadRequest(new { message = "The image file is invalid. Only JPEG, PNG, GIF, and SVG are allowed.", success = false });
             }
 
             var response = await _studentService.ChangeStudentImageAsync(file, userId);
@@ -44,13 +42,10 @@ namespace EnglishCenter.Presentation.Controllers.AuthenticationPage
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
 
-            var allowedMimeTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/svg+xml" };
-            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".svg" };
-            var fileExtension = Path.GetExtension(file.FileName).ToLower();
-
-            if (!allowedMimeTypes.Contains(file.ContentType.ToLower()) || !allowedExtensions.Contains(fileExtension))
+            var isImageFile = await UploadHelper.IsImageAsync(file);
+            if (!isImageFile)
             {
-                return BadRequest(new { message = "Invalid file type or extension. Only JPEG, PNG, GIF, and SVG are allowed." });
+                return BadRequest(new { message = "The image file is invalid. Only JPEG, PNG, GIF, and SVG are allowed.", success = false });
             }
 
             var response = await _studentService.ChangeBackgroundImageAsync(file, userId);

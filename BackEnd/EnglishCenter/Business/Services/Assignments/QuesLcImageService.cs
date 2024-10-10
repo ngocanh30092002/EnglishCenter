@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System;
+using AutoMapper;
 using EnglishCenter.Business.IServices;
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.UnitOfWork;
@@ -29,7 +30,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public async Task<Response> ChangeAnswerAsync(long quesId, long answerId)
         {
-            var queModel = _unit.QuesLcImage.GetById(quesId);
+            var queModel = _unit.QuesLcImages.GetById(quesId);
             if(queModel == null)
             {
                 return new Response()
@@ -40,7 +41,7 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
-            var isExistAnswer = _unit.AnswerLcImage.IsExist(a => a.AnswerId == answerId);
+            var isExistAnswer = _unit.AnswerLcImages.IsExist(a => a.AnswerId == answerId);
             if (!isExistAnswer)
             {
                 return new Response()
@@ -51,7 +52,7 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
-            var isChangeSuccess = await _unit.QuesLcImage.ChangeAnswerAsync(queModel, answerId);
+            var isChangeSuccess = await _unit.QuesLcImages.ChangeAnswerAsync(queModel, answerId);
             if (!isChangeSuccess)
             {
                 return new Response()
@@ -73,7 +74,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public async Task<Response> ChangeAudioAsync(long quesId, IFormFile audioFile)
         {
-            var queModel = _unit.QuesLcImage.GetById(quesId);
+            var queModel = _unit.QuesLcImages.GetById(quesId);
             if(queModel == null)
             {
                 return new Response()
@@ -83,9 +84,26 @@ namespace EnglishCenter.Business.Services.Assignments
                     Success = false
                 };
             }
-
+            
+            var previousPath = Path.Combine(_webHostEnvironment.WebRootPath, queModel.Audio);
             var folderPath = Path.Combine(_webHostEnvironment.WebRootPath, _audioBasePath);
             var fileAudio = $"audio_{DateTime.Now.Ticks}{Path.GetExtension(audioFile.FileName)}";
+
+            var isChangeSuccess = await _unit.QuesLcImages.ChangeAudioAsync(queModel, Path.Combine(_audioBasePath, fileAudio));
+            if (!isChangeSuccess)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't change file audio",
+                    Success = false
+                };
+            }
+
+            if (File.Exists(previousPath))
+            {
+                File.Delete(previousPath);
+            }
 
             var result = await UploadHelper.UploadFileAsync(audioFile, folderPath, fileAudio);
             if (!string.IsNullOrEmpty(result))
@@ -98,19 +116,13 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
-            var previousPath = Path.Combine(_webHostEnvironment.WebRootPath, queModel.Audio);
-            if (File.Exists(previousPath))
-            {
-                File.Delete(previousPath);
-            }
-
-            var isChangeSuccess = await _unit.QuesLcImage.ChangeAudioAsync(queModel, Path.Combine(_audioBasePath, fileAudio));
+            var durationAudio = await VideoHelper.GetDurationAsync(Path.Combine(folderPath, fileAudio));
+            isChangeSuccess = await _unit.QuesLcImages.ChangeTimeAsync(queModel, TimeOnly.FromTimeSpan(durationAudio));
             if (!isChangeSuccess)
             {
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Can't change file audio",
                     Success = false
                 };
             }
@@ -126,7 +138,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public async Task<Response> ChangeImageAsync(long quesId, IFormFile imageFile)
         {
-            var queModel = _unit.QuesLcImage.GetById(quesId);
+            var queModel = _unit.QuesLcImages.GetById(quesId);
             if (queModel == null)
             {
                 return new Response()
@@ -139,6 +151,23 @@ namespace EnglishCenter.Business.Services.Assignments
 
             var folderPath = Path.Combine(_webHostEnvironment.WebRootPath, _imageBasePath);
             var fileImage = $"image_{DateTime.Now.Ticks}{Path.GetExtension(imageFile.FileName)}";
+            var previousPath = Path.Combine(_webHostEnvironment.WebRootPath, queModel.Image);
+
+            var isChangeSuccess = await _unit.QuesLcImages.ChangeImageAsync(queModel, Path.Combine(_imageBasePath, fileImage));
+            if (!isChangeSuccess)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't change file image",
+                    Success = false
+                };
+            }
+
+            if (File.Exists(previousPath))
+            {
+                File.Delete(previousPath);
+            }
 
             var result = await UploadHelper.UploadFileAsync(imageFile, folderPath, fileImage);
             if (!string.IsNullOrEmpty(result))
@@ -147,23 +176,6 @@ namespace EnglishCenter.Business.Services.Assignments
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
                     Message = result,
-                    Success = false
-                };
-            }
-
-            var previousPath = Path.Combine(_webHostEnvironment.WebRootPath, queModel.Image);
-            if (File.Exists(previousPath))
-            {
-                File.Delete(previousPath);
-            }
-
-            var isChangeSuccess = await _unit.QuesLcImage.ChangeImageAsync(queModel, Path.Combine(_imageBasePath, fileImage));
-            if (!isChangeSuccess)
-            {
-                return new Response()
-                {
-                    StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Can't change file image",
                     Success = false
                 };
             }
@@ -227,20 +239,34 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
+            var durationAudio = await VideoHelper.GetDurationAsync(Path.Combine(audioFolderPath, fileAudio));
 
             var queEntity = new QuesLcImage();
             queEntity.Image = Path.Combine(_imageBasePath, fileImage);
             queEntity.Audio = Path.Combine(_audioBasePath, fileAudio);
+            queEntity.Time = TimeOnly.FromTimeSpan(durationAudio);
 
-            if(queModel.AnswerId != null)
+            if (queModel.AnswerId != null)
             {
-                var isExistAnswer = _unit.AnswerLcImage.IsExist(a => a.AnswerId == queModel.AnswerId);
-                if(!isExistAnswer)
+                var answerModel = await _unit.AnswerLcImages
+                                            .Include(a => a.QuesLcImage)
+                                            .FirstOrDefaultAsync(a => a.AnswerId == queModel.AnswerId);
+                if (answerModel == null)
                 {
                     return new Response()
                     {
                         StatusCode = System.Net.HttpStatusCode.BadRequest,
                         Message = "Can't find any answers",
+                        Success = false
+                    };
+                }
+
+                if (answerModel.QuesLcImage != null)
+                {
+                    return new Response()
+                    {
+                        StatusCode = System.Net.HttpStatusCode.BadRequest,
+                        Message = "This answer is from another question",
                         Success = false
                     };
                 }
@@ -252,13 +278,13 @@ namespace EnglishCenter.Business.Services.Assignments
                 if(queModel.Answer != null)
                 {
                     var answerModel = _mapper.Map<AnswerLcImage>(queModel.Answer);
-                    _unit.AnswerLcImage.Add(answerModel);
+                    _unit.AnswerLcImages.Add(answerModel);
 
                     queEntity.Answer = answerModel;
                 }
             }
 
-            _unit.QuesLcImage.Add(queEntity);
+            _unit.QuesLcImages.Add(queEntity);
             
             await _unit.CompleteAsync();
             return new Response()
@@ -271,7 +297,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public async Task<Response> DeleteAsync(long quesId)
         {
-            var quesModel = _unit.QuesLcImage.GetById(quesId);
+            var quesModel = _unit.QuesLcImages.GetById(quesId);
             if(quesModel == null)
             {
                 return new Response()
@@ -297,11 +323,11 @@ namespace EnglishCenter.Business.Services.Assignments
 
             if (quesModel.AnswerId.HasValue)
             {
-                var answerModel = _unit.AnswerLcImage.GetById((long) quesModel.AnswerId);
-                _unit.AnswerLcImage.Remove(answerModel);
+                var answerModel = _unit.AnswerLcImages.GetById((long) quesModel.AnswerId);
+                _unit.AnswerLcImages.Remove(answerModel);
             }
 
-            _unit.QuesLcImage.Remove(quesModel);
+            _unit.QuesLcImages.Remove(quesModel);
             
             await _unit.CompleteAsync();
             return new Response()
@@ -314,7 +340,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public async Task<Response> GetAllAsync()
         {
-            var queModels = await _unit.QuesLcImage
+            var queModels = await _unit.QuesLcImages
                                  .Include(q => q.Answer)
                                  .ToListAsync();
 
@@ -328,7 +354,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public Task<Response> GetAsync(long quesId)
         {
-            var queModel = _unit.QuesLcImage
+            var queModel = _unit.QuesLcImages
                                 .Include(q => q.Answer)
                                 .FirstOrDefault(q => q.QuesId == quesId);
 
@@ -344,7 +370,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public async Task<Response> UpdateAsync(long quesId, QuesLcImageDto queModel)
         {
-            var queEntity = _unit.QuesLcImage.GetById(quesId);
+            var queEntity = _unit.QuesLcImages.GetById(quesId);
             if(queEntity == null)
             {
                 return new Response()

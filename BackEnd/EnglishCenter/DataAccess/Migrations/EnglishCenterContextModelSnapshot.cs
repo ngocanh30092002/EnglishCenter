@@ -198,6 +198,10 @@ namespace EnglishCenter.Migrations
                     b.Property<string>("Explanation")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Question")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("AnswerId");
 
                     b.ToTable("Answer_RC_Sentence");
@@ -691,6 +695,21 @@ namespace EnglishCenter.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("QuesId"));
 
+                    b.Property<string>("AnswerA")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("AnswerB")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("AnswerC")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
                     b.Property<long?>("AnswerId")
                         .HasColumnType("bigint");
 
@@ -698,6 +717,13 @@ namespace EnglishCenter.Migrations
                         .IsRequired()
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("Question")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<TimeOnly?>("Time")
+                        .HasColumnType("time");
 
                     b.HasKey("QuesId");
 
@@ -722,12 +748,14 @@ namespace EnglishCenter.Migrations
                         .HasColumnType("nvarchar(300)");
 
                     b.Property<string>("Image")
-                        .IsRequired()
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
+
+                    b.Property<TimeOnly?>("Time")
+                        .HasColumnType("time");
 
                     b.HasKey("QuesId");
 
@@ -754,6 +782,9 @@ namespace EnglishCenter.Migrations
                         .IsRequired()
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
+
+                    b.Property<TimeOnly?>("Time")
+                        .HasColumnType("time");
 
                     b.HasKey("QuesId");
 
@@ -843,12 +874,16 @@ namespace EnglishCenter.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("QuesId"));
 
                     b.Property<string>("Image")
+                        .IsRequired()
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)")
                         .HasColumnName("Image");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
+
+                    b.Property<TimeOnly?>("Time")
+                        .HasColumnType("time");
 
                     b.HasKey("QuesId");
 
@@ -1021,6 +1056,9 @@ namespace EnglishCenter.Migrations
                     b.Property<long?>("AnswerId")
                         .HasColumnType("bigint");
 
+                    b.Property<int>("NoNum")
+                        .HasColumnType("int");
+
                     b.Property<long>("PreQuesId")
                         .HasColumnType("bigint");
 
@@ -1118,6 +1156,9 @@ namespace EnglishCenter.Migrations
 
                     b.Property<long?>("AnswerId")
                         .HasColumnType("bigint");
+
+                    b.Property<int>("NoNum")
+                        .HasColumnType("int");
 
                     b.Property<long>("PreQuesId")
                         .HasColumnType("bigint");

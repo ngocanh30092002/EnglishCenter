@@ -4,7 +4,6 @@ using EnglishCenter.Business.Services.Assignments;
 using EnglishCenter.Business.Services.Authorization;
 using EnglishCenter.Business.Services.Courses;
 using EnglishCenter.DataAccess.IRepositories;
-using EnglishCenter.DataAccess.Repositories;
 using EnglishCenter.DataAccess.Repositories.AssignmentRepositories;
 using EnglishCenter.DataAccess.Repositories.AuthenticationRepositories;
 using EnglishCenter.DataAccess.Repositories.CourseRepositories;
@@ -33,6 +32,14 @@ namespace EnglishCenter.Presentation.Extensions.Repository
             services.AddScoped<IAnswerLcImageRepository, AnswerLcImageRepository>();
             services.AddScoped<IQuesLcAudioRepository, QuesLcAudioRepository>();
             services.AddScoped<IAnswerLcAudioRepository, AnswerLcAudioRepository>();
+            services.AddScoped<IQuesRcSentenceRepository, QuesRcSentenceRepository>();
+            services.AddScoped<IAnswerRcSentenceRepository, AnswerRcSentenceRepository>();
+            services.AddScoped<IQuesLcConRepository, QuesLcConRepository>();
+            services.AddScoped<ISubLcConRepository, SubLcConRepository>();
+            services.AddScoped<IAnswerLcConRepository, AnswerLcConRepository>();
+            services.AddScoped<IQuesRcSingleRepository, QuesRcSingleRepository>();
+            services.AddScoped<ISubRcSingleRepository, SubRcSingleRepository>();
+            services.AddScoped<IAnswerRcSingleRepository, AnswerRcSingleRepository>();
             services.AddScoped<MailHelper>();
             
             return services;
@@ -61,6 +68,14 @@ namespace EnglishCenter.Presentation.Extensions.Repository
             services.AddScoped<IAnswerLcImageService, AnswerLcImageService>();
             services.AddScoped<IQuesLcAudioService, QuesLcAudioService>();
             services.AddScoped<IAnswerLcAudioService, AnswerLcAudioService>();
+            services.AddScoped<IQuesRcSentenceService, QuesRcSentenceService>();
+            services.AddScoped<IAnswerRcSentenceService, AnswerRcSentenceService>();
+            services.AddScoped<IQuesLcConService, QuesLcConService>();
+            services.AddScoped<ISubLcConService, SubLcConService>();
+            services.AddScoped<IAnswerLcConService, AnswerLcConService>(); 
+            services.AddScoped<IQuesRcSingleService, QuesRcSingleService>();
+            services.AddScoped<ISubRcSingleService, SubRcSingleService>();
+            services.AddScoped<IAnswerRcSingleService, AnswerRcSingleService>();
             return services;
         }
     }

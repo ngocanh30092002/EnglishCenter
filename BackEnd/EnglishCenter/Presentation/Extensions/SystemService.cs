@@ -1,10 +1,4 @@
-﻿using System;
-using System.ComponentModel;
-using System.Reflection;
-using AutoMapper;
-using EnglishCenter.DataAccess.IRepositories;
-using EnglishCenter.Presentation.Models;
-using Microsoft.Extensions.DependencyInjection;
+﻿using EnglishCenter.Presentation.Models;
 using Microsoft.OpenApi.Models;
 
 namespace EnglishCenter.Presentation.Extensions

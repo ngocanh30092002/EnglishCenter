@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.DataAccess.Entities;
 
@@ -15,10 +12,12 @@ public partial class QuesLcConversation
     public int Quantity { get; set; }
 
     [StringLength(300)]
-    public string Image { get; set; } = null!;
+    public string? Image { get; set; }
 
     [StringLength(300)]
     public string Audio { get; set; } = null!;
+
+    public TimeOnly? Time { set; get; }
 
     [InverseProperty("QuesConversation")]
     public virtual ICollection<AssignQue> AssignQues { get; set; } = new List<AssignQue>();

@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Linq;
 
 namespace EnglishCenter.Presentation.Helpers
 {
@@ -25,6 +26,34 @@ namespace EnglishCenter.Presentation.Helpers
             }
 
             return null;
+        }
+
+        public static Task<bool> IsImageAsync(IFormFile imageFile)
+        {
+            var allowedMimeTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/svg+xml" };
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".svg" };
+            var fileExtension = Path.GetExtension(imageFile.FileName).ToLower();
+
+            if (!allowedMimeTypes.Contains(imageFile.ContentType.ToLower()) || !allowedExtensions.Contains(fileExtension))
+            {
+                return Task.FromResult(false);
+            }
+
+            return Task.FromResult(true);
+        }
+
+        public static Task<bool> IsAudioAsync(IFormFile audioFile)
+        {
+            var allowedMimeTypes = new[] { "audio/mpeg", "audio/wav", "audio/ogg" };
+            var allowedExtensions = new[] { ".mp3", ".mp4", ".wav", ".ogg" };
+            var fileExtension = Path.GetExtension(audioFile.FileName).ToLower();
+
+            if (!allowedMimeTypes.Contains(audioFile.ContentType.ToLower()) || !allowedExtensions.Contains(fileExtension))
+            {
+                return Task.FromResult(false);
+            }
+
+            return Task.FromResult(true);
         }
     }
 }

@@ -3,6 +3,7 @@ using AutoMapper;
 using EnglishCenter.Business.IServices;
 using EnglishCenter.Business.Services.Courses;
 using EnglishCenter.DataAccess.IRepositories;
+using EnglishCenter.Presentation.Helpers;
 using EnglishCenter.Presentation.Models.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -69,16 +70,26 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
         [HttpPatch("image/{courseId}")]
         public async Task<IActionResult> UploadCourseImageAsync([FromRoute] string courseId, IFormFile file)
         {
-            var response = await _courseService.UploadImageAsync(courseId, file);
+            var isImageFile = await UploadHelper.IsImageAsync(file);
+            if(isImageFile)
+            {
+                return BadRequest(new { message = "The image file is invalid. Only JPEG, PNG, GIF, and SVG are allowed.", success = false });
+            }
 
+            var response = await _courseService.UploadImageAsync(courseId, file);
             return await response.ChangeActionAsync();
         }
 
         [HttpPatch("image-thumbnail/{courseId}")]
         public async Task<IActionResult> UploadCourseImageThumbnailAsync([FromRoute] string courseId, IFormFile file)
         {
-            var response = await _courseService.UploadImageThumbnailAsync(courseId, file);
+            var isImageFile = await UploadHelper.IsImageAsync(file);
+            if (isImageFile)
+            {
+                return BadRequest(new { message = "The image file is invalid. Only JPEG, PNG, GIF, and SVG are allowed.", success = false});
+            }
 
+            var response = await _courseService.UploadImageThumbnailAsync(courseId, file);
             return await response.ChangeActionAsync();
         }
 

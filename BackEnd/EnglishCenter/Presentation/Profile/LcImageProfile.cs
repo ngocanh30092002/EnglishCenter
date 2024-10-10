@@ -21,6 +21,7 @@ namespace EnglishCenter.Presentation
                 .ForMember(d => d.Id, opt => opt.MapFrom(src => src.QuesId))
                 .ForMember(d => d.ImageUrl, opt => opt.MapFrom(src => src.Image.Replace("\\", "/")))
                 .ForMember(d => d.AudioUrl, opt => opt.MapFrom(src => src.Audio.Replace("\\", "/")))
+                .ForMember(d => d.Time, opt => opt.MapFrom(src => src.Time))
                 .ForMember(d => d.AnswerInfo, opt => opt.MapFrom(src => src.Answer));
         }
     }

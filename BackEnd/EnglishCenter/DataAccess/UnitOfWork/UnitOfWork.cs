@@ -1,4 +1,5 @@
 ﻿using EnglishCenter.DataAccess.Database;
+using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.IRepositories;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -25,7 +26,15 @@ namespace EnglishCenter.DataAccess.UnitOfWork
             IQuesLcImageRepository quesLcImageRepo,
             IAnswerLcImageRepository answerLcImageRepo,
             IQuesLcAudioRepository quesLcAudioRepo,
-            IAnswerLcAudioRepository answerLcAudioRepo
+            IAnswerLcAudioRepository answerLcAudioRepo,
+            IQuesLcConRepository quesLcConRepo,
+            ISubLcConRepository subLcConRepo,
+            IAnswerLcConRepository answerLcConRepo,
+            IQuesRcSentenceRepository quesRcSentenceRepo,
+            IAnswerRcSentenceRepository answerRcSentenceRepo,
+            IQuesRcSingleRepository quesRcSingleRepo,
+            ISubRcSingleRepository subRcSingleRepo,
+            IAnswerRcSingleRepository answerRcSingleRepo
             ) 
         {
             _context = context;
@@ -40,10 +49,18 @@ namespace EnglishCenter.DataAccess.UnitOfWork
             Assignments = assignRepo;
             ScoreHis = scoreHisRepo;
             AssignQues = assignQuesRepo;
-            QuesLcImage = quesLcImageRepo;
-            AnswerLcImage = answerLcImageRepo;
-            AnswerLcAudio = answerLcAudioRepo;
-            QuesLcAudio = quesLcAudioRepo;
+            QuesLcImages = quesLcImageRepo;
+            AnswerLcImages = answerLcImageRepo;
+            AnswerLcAudios = answerLcAudioRepo;
+            QuesLcAudios = quesLcAudioRepo;
+            QuesLcCons = quesLcConRepo;
+            SubLcCons = subLcConRepo;
+            AnswerLcCons = answerLcConRepo;
+            AnswerRcSentences = answerRcSentenceRepo;
+            QuesRcSentences = quesRcSentenceRepo;
+            QuesRcSingles = quesRcSingleRepo;
+            SubRcSingles = subRcSingleRepo;
+            AnswerRcSingles = answerRcSingleRepo;
         }
 
         public IEventRepository Events { get; private set; }
@@ -57,10 +74,18 @@ namespace EnglishCenter.DataAccess.UnitOfWork
         public IAssignmentRepository Assignments { get; private set; }
         public IScoreHistoryRepository ScoreHis { get; private set; }
         public IAssignQuesRepository AssignQues { get; private set; }
-        public IQuesLcImageRepository QuesLcImage { get; private set; }
-        public IAnswerLcImageRepository AnswerLcImage { get; private set; }
-        public IAnswerLcAudioRepository AnswerLcAudio { get; private set; }
-        public IQuesLcAudioRepository QuesLcAudio { get; private set; }
+        public IQuesLcImageRepository QuesLcImages { get; private set; }
+        public IAnswerLcImageRepository AnswerLcImages { get; private set; }
+        public IAnswerLcAudioRepository AnswerLcAudios { get; private set; }
+        public IQuesLcAudioRepository QuesLcAudios { get; private set; }
+        public IAnswerRcSentenceRepository AnswerRcSentences { get; private set; }
+        public IQuesRcSentenceRepository QuesRcSentences { get; private set; }
+        public IQuesLcConRepository QuesLcCons { get; private set; }
+        public IAnswerLcConRepository AnswerLcCons { get; private set; }
+        public ISubLcConRepository SubLcCons { get; private set; }
+        public IQuesRcSingleRepository QuesRcSingles { get; private set; }
+        public IAnswerRcSingleRepository AnswerRcSingles { get; private set; }
+        public ISubRcSingleRepository SubRcSingles { get; private set; }
 
         public async Task BeginTransAsync()
         {

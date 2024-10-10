@@ -8,6 +8,7 @@ namespace EnglishCenter.DataAccess.Entities
     {
         [Key]
         public long AnswerId { set; get; }
+        public string Question { set; get; } = null!;
         public string AnswerA { set; get; } = null!;
         public string AnswerB { set; get; } = null!;
         public string AnswerC { set; get; } = null!;

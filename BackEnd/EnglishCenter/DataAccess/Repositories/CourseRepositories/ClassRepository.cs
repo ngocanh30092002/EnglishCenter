@@ -62,16 +62,16 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
             if (model == null) return false;
 
             var oldPathImage = Path.Combine(_webHostEnvironment.WebRootPath, model.Image ?? "");
+            var uploadFolder = Path.Combine(_webHostEnvironment.WebRootPath, "classes", "images");
+            var fileName = $"{DateTime.Now.Ticks}_{image.FileName}";
+            
+            var result = await UploadHelper.UploadFileAsync(image, uploadFolder, fileName);
+            if (!string.IsNullOrEmpty(result)) return false;
+
             if (File.Exists(oldPathImage))
             {
                 File.Delete(oldPathImage);
             }
-
-            var uploadFolder = Path.Combine(_webHostEnvironment.WebRootPath, "classes", "images");
-            var fileName = $"{DateTime.Now.Ticks}_{image.FileName}";
-            var result = await UploadHelper.UploadFileAsync(image, uploadFolder, fileName);
-
-            if (!string.IsNullOrEmpty(result)) return false;
 
             model.Image = Path.Combine("classes", "images", fileName);
 

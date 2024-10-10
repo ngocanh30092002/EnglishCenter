@@ -15,10 +15,19 @@ namespace EnglishCenter.DataAccess.UnitOfWork
         IAssignmentRepository Assignments { get; }
         IScoreHistoryRepository ScoreHis { get; }
         IAssignQuesRepository AssignQues { get; }
-        IQuesLcImageRepository QuesLcImage { get; }
-        IAnswerLcImageRepository AnswerLcImage { get; }
-        IQuesLcAudioRepository QuesLcAudio { get; }
-        IAnswerLcAudioRepository AnswerLcAudio { get; }
+        IQuesLcImageRepository QuesLcImages { get; }
+        IAnswerLcImageRepository AnswerLcImages { get; }
+        IQuesLcAudioRepository QuesLcAudios { get; }
+        IAnswerLcAudioRepository AnswerLcAudios { get; }
+        IQuesLcConRepository QuesLcCons { get; }
+        ISubLcConRepository SubLcCons { get; }
+        IAnswerLcConRepository AnswerLcCons { get; }
+        IQuesRcSentenceRepository QuesRcSentences { get; }
+        IAnswerRcSentenceRepository AnswerRcSentences { get; }
+        IQuesRcSingleRepository QuesRcSingles { get; }
+        ISubRcSingleRepository SubRcSingles { get; }
+        IAnswerRcSingleRepository AnswerRcSingles { get; }
+
         public Task<int> CompleteAsync();
         public Task BeginTransAsync();
         public Task CommitTransAsync();

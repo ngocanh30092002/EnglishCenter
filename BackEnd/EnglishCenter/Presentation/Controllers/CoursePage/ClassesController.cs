@@ -1,5 +1,6 @@
 ﻿using EnglishCenter.Business.IServices;
 using EnglishCenter.DataAccess.IRepositories;
+using EnglishCenter.Presentation.Helpers;
 using EnglishCenter.Presentation.Models.DTOs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -83,6 +84,12 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
         [HttpPatch("{classId}/image")]
         public async Task<IActionResult> ChangeImageAsync([FromRoute] string classId, IFormFile image)
         {
+            var isImageFile = await UploadHelper.IsImageAsync(image);
+            if (!isImageFile)
+            {
+                return BadRequest(new { message = "The image file is invalid. Only JPEG, PNG, GIF, and SVG are allowed.", success = false });
+            }
+
             var response = await _classService.ChangeImageAsync(classId, image);
             return await response.ChangeActionAsync();
         }
