@@ -54,6 +54,24 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
         [HttpPost("")]
         public async Task<IActionResult> CreateCourseAsync([FromForm] CourseDto model)
         {
+            if (model.Image != null)
+            {
+                var isImageFile = await UploadHelper.IsImageAsync(model.Image);
+                if (!isImageFile)
+                {
+                    return BadRequest(new { message = "The image file is invalid. Only JPEG, PNG, GIF, and SVG are allowed.", success = false });
+                }
+            }
+
+            if (model.ImageThumbnail != null)
+            {
+                var isImageFile = await UploadHelper.IsImageAsync(model.ImageThumbnail);
+                if (!isImageFile)
+                {
+                    return BadRequest(new { message = "The image thumbnail file is invalid. Only JPEG, PNG, GIF, and SVG are allowed.", success = false });
+                }
+            }
+
             var response = await _courseService.CreateAsync(model);
 
             return await response.ChangeActionAsync();
@@ -62,6 +80,24 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
         [HttpPut("{courseId}")]
         public async Task<IActionResult> UpdateCourseAsync([FromRoute] string courseId, [FromForm] CourseDto model)
         {
+            if (model.Image != null)
+            {
+                var isImageFile = await UploadHelper.IsImageAsync(model.Image);
+                if (!isImageFile)
+                {
+                    return BadRequest(new { message = "The image file is invalid. Only JPEG, PNG, GIF, and SVG are allowed.", success = false });
+                }
+            }
+
+            if (model.ImageThumbnail != null)
+            {
+                var isImageFile = await UploadHelper.IsImageAsync(model.ImageThumbnail);
+                if (!isImageFile)
+                {
+                    return BadRequest(new { message = "The image thumbnail file is invalid. Only JPEG, PNG, GIF, and SVG are allowed.", success = false });
+                }
+            }
+
             var response = await _courseService.UpdateAsync(courseId, model);
 
             return await response.ChangeActionAsync();

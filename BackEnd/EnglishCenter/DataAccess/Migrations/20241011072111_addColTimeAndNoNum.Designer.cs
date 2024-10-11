@@ -4,6 +4,7 @@ using EnglishCenter.DataAccess.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EnglishCenter.Migrations
 {
     [DbContext(typeof(EnglishCenterContext))]
-    partial class EnglishCenterContextModelSnapshot : ModelSnapshot
+    [Migration("20241011072111_addColTimeAndNoNum")]
+    partial class addColTimeAndNoNum
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -804,13 +807,11 @@ namespace EnglishCenter.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("QuesId"));
 
                     b.Property<string>("Image1")
-                        .IsRequired()
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)")
                         .HasColumnName("Image_1");
 
                     b.Property<string>("Image2")
-                        .IsRequired()
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)")
                         .HasColumnName("Image_2");

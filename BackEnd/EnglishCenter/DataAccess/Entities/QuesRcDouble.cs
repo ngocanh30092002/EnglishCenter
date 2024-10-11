@@ -16,11 +16,13 @@ public partial class QuesRcDouble
 
     [Column("Image_1")]
     [StringLength(300)]
-    public string? Image1 { get; set; }
+    public string Image1 { get; set; } = null!;
 
     [Column("Image_2")]
     [StringLength(300)]
-    public string? Image2 { get; set; }
+    public string Image2 { get; set; } = null!;
+
+    public TimeOnly? Time { set; get; }
 
     [InverseProperty("QuesDouble")]
     public virtual ICollection<AssignQue> AssignQues { get; set; } = new List<AssignQue>();

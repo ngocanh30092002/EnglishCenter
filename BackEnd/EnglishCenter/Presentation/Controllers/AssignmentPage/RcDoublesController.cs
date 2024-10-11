@@ -1,4 +1,5 @@
 ﻿using EnglishCenter.Business.IServices;
+using EnglishCenter.Business.Services.Assignments;
 using EnglishCenter.Presentation.Global;
 using EnglishCenter.Presentation.Helpers;
 using EnglishCenter.Presentation.Models.DTOs;
@@ -8,93 +9,92 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EnglishCenter.Presentation.Controllers.AssignmentPage
 {
-    [Route("api/lc-con")]
+    [Route("api/rc-double")]
     [ApiController]
-    [Authorize]
-    public class LcConController : ControllerBase
+    public class RcDoublesController : ControllerBase
     {
-        private readonly IQuesLcConService _queLcConService;
-        private readonly IAnswerLcConService _answerService;
-        private readonly ISubLcConService _subLcConService;
+        private readonly IQuesRcDoubleService _quesService;
+        private readonly ISubRcDoubleService _subService;
+        private readonly IAnswerRcDoubleService _answerService;
 
-        public LcConController(IQuesLcConService queLcConService, IAnswerLcConService answerService, ISubLcConService subLcConService) 
+        public RcDoublesController(IQuesRcDoubleService quesService, ISubRcDoubleService subService, IAnswerRcDoubleService answerService)
         {
-            _queLcConService = queLcConService;
+            _quesService = quesService;
+            _subService = subService;
             _answerService = answerService;
-            _subLcConService = subLcConService;
         }
 
         #region Question
 
         [HttpGet]
-        public async Task<IActionResult> GetQuesConversationsAsync()
+        public async Task<IActionResult> GetQuesDoubleAsync()
         {
-            var response = await _queLcConService.GetAllAsync();
+            var response = await _quesService.GetAllAsync();
             return await response.ChangeActionAsync();
         }
 
         [HttpGet("{quesId}")]
-        public async Task<IActionResult> GetQuesConversationAsync([FromRoute] long quesId)
+        public async Task<IActionResult> GetQuesDoubleAsync([FromRoute] long quesId)
         {
-            var response = await _queLcConService.GetAsync(quesId);
+            var response = await _quesService.GetAsync(quesId);
             return await response.ChangeActionAsync();
         }
 
         [HttpPost]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
-        public async Task<IActionResult> CreateAsync([FromForm] QuesLcConDto queModel)
+        public async Task<IActionResult> CreateAsync([FromForm] QuesRcDoubleDto queModel)
         {
-            if(queModel.Image != null)
+            if (queModel.Image1 != null)
             {
-                var isImageFile = await UploadHelper.IsImageAsync(queModel.Image);
+                var isImageFile = await UploadHelper.IsImageAsync(queModel.Image1);
                 if (!isImageFile)
                 {
                     return BadRequest(new { message = "The image file is invalid. Only JPEG, PNG, GIF, and SVG are allowed.", success = false });
                 }
             }
 
-            if(queModel.Audio != null)
+            if (queModel.Image2 != null)
             {
-                var isAudioFile = await UploadHelper.IsAudioAsync(queModel.Audio);
-                if (!isAudioFile)
+                var isImageFile = await UploadHelper.IsImageAsync(queModel.Image2);
+                if (!isImageFile)
                 {
-                    return BadRequest(new { message = "The audio file is invalid. Only MP3, WAV and OGG are allowed. ", success = false });
+                    return BadRequest(new { message = "The image file is invalid. Only JPEG, PNG, GIF, and SVG are allowed.", success = false });
                 }
             }
 
-            var response = await _queLcConService.CreateAsync(queModel);
+            var response = await _quesService.CreateAsync(queModel);
             return await response.ChangeActionAsync();
         }
 
         [HttpPut("{quesId}")]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
-        public async Task<IActionResult> UpdateAsync([FromRoute] long quesId, [FromForm] QuesLcConDto queModel)
+        public async Task<IActionResult> UpdateAsync([FromRoute] long quesId, [FromForm] QuesRcDoubleDto queModel)
         {
-            if (queModel.Image != null)
+            if (queModel.Image1 != null)
             {
-                var isImageFile = await UploadHelper.IsImageAsync(queModel.Image);
+                var isImageFile = await UploadHelper.IsImageAsync(queModel.Image1);
                 if (!isImageFile)
                 {
                     return BadRequest(new { message = "The image file is invalid. Only JPEG, PNG, GIF, and SVG are allowed.", success = false });
                 }
             }
 
-            if (queModel.Audio != null)
+            if (queModel.Image2 != null)
             {
-                var isAudioFile = await UploadHelper.IsAudioAsync(queModel.Audio);
-                if (!isAudioFile)
+                var isImageFile = await UploadHelper.IsImageAsync(queModel.Image2);
+                if (!isImageFile)
                 {
-                    return BadRequest(new { message = "The audio file is invalid. Only MP3, WAV and OGG are allowed. ", success = false });
+                    return BadRequest(new { message = "The image file is invalid. Only JPEG, PNG, GIF, and SVG are allowed.", success = false });
                 }
             }
 
-            var response = await _queLcConService.UpdateAsync(quesId, queModel);
+            var response = await _quesService.UpdateAsync(quesId, queModel);
             return await response.ChangeActionAsync();
         }
 
-        [HttpPatch("{quesId}/change-image")]
+        [HttpPatch("{quesId}/change-image1")]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
-        public async Task<IActionResult> ChangeImageAsync([FromRoute] long quesId, IFormFile imageFile)
+        public async Task<IActionResult> ChangeImage1Async([FromRoute] long quesId, IFormFile imageFile)
         {
             var isImageFile = await UploadHelper.IsImageAsync(imageFile);
             if (!isImageFile)
@@ -102,21 +102,21 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
                 return BadRequest(new { message = "The image file is invalid. Only JPEG, PNG, GIF, and SVG are allowed.", success = false });
             }
 
-            var response = await _queLcConService.ChangeImageAsync(quesId, imageFile);
+            var response = await _quesService.ChangeImage1Async(quesId, imageFile);
             return await response.ChangeActionAsync();
         }
 
-        [HttpPatch("{quesId}/change-audio")]
+        [HttpPatch("{quesId}/change-image2")]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
-        public async Task<IActionResult> ChangeAudioAsync([FromRoute] long quesId, IFormFile audioFile)
+        public async Task<IActionResult> ChangeImage2Async([FromRoute] long quesId, IFormFile imageFile)
         {
-            var isAudioFile = await UploadHelper.IsAudioAsync(audioFile);
-            if (!isAudioFile)
+            var isImageFile = await UploadHelper.IsImageAsync(imageFile);
+            if (!isImageFile)
             {
-                return BadRequest(new { message = "The audio file is invalid. Only MP3, WAV and OGG are allowed. ", success = false });
+                return BadRequest(new { message = "The image file is invalid. Only JPEG, PNG, GIF, and SVG are allowed.", success = false });
             }
 
-            var response = await _queLcConService.ChangeAudioAsync(quesId, audioFile);
+            var response = await _quesService.ChangeImage2Async(quesId, imageFile);
             return await response.ChangeActionAsync();
         }
 
@@ -124,7 +124,20 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> ChangeQuantityAsync([FromRoute] long quesId, [FromQuery] int quantity)
         {
-            var response = await _queLcConService.ChangeQuantityAsync(quesId, quantity);
+            var response = await _quesService.ChangeQuantityAsync(quesId, quantity);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpPatch("{quesId}/change-time")]
+        [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
+        public async Task<IActionResult> ChangeTimeAsync([FromRoute] long quesId, [FromBody] string time)
+        {
+            if (!TimeOnly.TryParse(time, out TimeOnly timeOnly))
+            {
+                return BadRequest(new { message = "Time is not in correct format", success = false });
+            }
+
+            var response = await _quesService.ChangeTimeAsync(quesId, timeOnly);
             return await response.ChangeActionAsync();
         }
 
@@ -132,48 +145,48 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> DeleteAsync([FromRoute] long quesId)
         {
-            var response = await _queLcConService.DeleteAsync(quesId);
+            var response = await _quesService.DeleteAsync(quesId);
             return await response.ChangeActionAsync();
         }
         #endregion
 
         #region SubQuestion
+
         [HttpGet("subs")]
         public async Task<IActionResult> GetSubsAsync()
         {
-            var response = await _subLcConService.GetAllAsync();
+            var response = await _subService.GetAllAsync();
             return await response.ChangeActionAsync();
         }
 
         [HttpGet("subs/{subId}")]
-        public async Task<IActionResult> GetSubAsync([FromRoute]long subId)
+        public async Task<IActionResult> GetSubAsync([FromRoute] long subId)
         {
-            var response = await _subLcConService.GetAsync(subId);
+            var response = await _subService.GetAsync(subId);
             return await response.ChangeActionAsync();
         }
 
         [HttpPost("subs")]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
-        public async Task<IActionResult> CreateSubAsync([FromForm] SubLcConDto queModel)
+        public async Task<IActionResult> CreateSubAsync([FromForm] SubRcDoubleDto queModel)
         {
-            var response = await _subLcConService.CreateAsync(queModel);
+            var response = await _subService.CreateAsync(queModel);
             return await response.ChangeActionAsync();
         }
 
         [HttpPut("subs/{subId}")]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
-        public async Task<IActionResult> UpdateAsync([FromRoute] long subId, [FromForm] SubLcConDto queModel)
+        public async Task<IActionResult> UpdateAsync([FromRoute] long subId, [FromForm] SubRcDoubleDto queModel)
         {
-            var response = await _subLcConService.UpdateAsync(subId, queModel);
+            var response = await _subService.UpdateAsync(subId, queModel);
             return await response.ChangeActionAsync();
         }
-
 
         [HttpPatch("subs/{subId}/change-answerA")]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> ChangeSubAnswerAAsync([FromRoute] long subId, [FromBody] string newAnswer)
         {
-            var response = await _subLcConService.ChangeAnswerAAsync(subId, newAnswer);
+            var response = await _subService.ChangeAnswerAAsync(subId, newAnswer);
             return await response.ChangeActionAsync();
         }
 
@@ -181,7 +194,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> ChangeSubAnswerBAsync([FromRoute] long subId, [FromBody] string newAnswer)
         {
-            var response = await _subLcConService.ChangeAnswerBAsync(subId, newAnswer);
+            var response = await _subService.ChangeAnswerBAsync(subId, newAnswer);
             return await response.ChangeActionAsync();
         }
 
@@ -189,7 +202,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> ChangeSubAnswerCAsync([FromRoute] long subId, [FromBody] string newAnswer)
         {
-            var response = await _subLcConService.ChangeAnswerCAsync(subId, newAnswer);
+            var response = await _subService.ChangeAnswerCAsync(subId, newAnswer);
             return await response.ChangeActionAsync();
         }
 
@@ -197,7 +210,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> ChangeSubAnswerDAsync([FromRoute] long subId, [FromBody] string newAnswer)
         {
-            var response = await _subLcConService.ChangeAnswerDAsync(subId, newAnswer);
+            var response = await _subService.ChangeAnswerDAsync(subId, newAnswer);
             return await response.ChangeActionAsync();
         }
 
@@ -205,7 +218,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> ChangeSubAnswerAsync([FromRoute] long subId, [FromBody] int answerId)
         {
-            var response = await _subLcConService.ChangeAnswerAsync(subId, answerId);
+            var response = await _subService.ChangeAnswerAsync(subId, answerId);
             return await response.ChangeActionAsync();
         }
 
@@ -213,7 +226,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> ChangeSubQuestionAsync([FromRoute] long subId, [FromBody] string newQues)
         {
-            var response = await _subLcConService.ChangeQuestionAsync(subId, newQues);
+            var response = await _subService.ChangeQuestionAsync(subId, newQues);
             return await response.ChangeActionAsync();
         }
 
@@ -221,7 +234,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> ChangeSubNoNumAsync([FromRoute] long subId, [FromBody] int noNum)
         {
-            var response = await _subLcConService.ChangeNoNumAsync(subId, noNum);
+            var response = await _subService.ChangeNoNumAsync(subId, noNum);
             return await response.ChangeActionAsync();
         }
 
@@ -229,7 +242,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> ChangeSubPreQuesAsync([FromRoute] long subId, [FromBody] long preQues)
         {
-            var response = await _subLcConService.ChangePreQuesAsync(subId, preQues);
+            var response = await _subService.ChangePreQuesAsync(subId, preQues);
             return await response.ChangeActionAsync();
         }
 
@@ -237,15 +250,13 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> DeleteSubAsync([FromRoute] long subId)
         {
-            var response = await _subLcConService.DeleteAsync(subId);
+            var response = await _subService.DeleteAsync(subId);
             return await response.ChangeActionAsync();
         }
-
 
         #endregion
 
         #region Answer
-
         [HttpGet("answers")]
         public async Task<IActionResult> GetAnswersAsync()
         {
@@ -262,7 +273,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
 
         [HttpPost("answers")]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
-        public async Task<IActionResult> CreateAnswerAsync([FromForm] AnswerLcConDto model)
+        public async Task<IActionResult> CreateAnswerAsync([FromForm] AnswerRcDoubleDto model)
         {
             var response = await _answerService.CreateAsync(model);
             return await response.ChangeActionAsync();
@@ -270,7 +281,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
 
         [HttpPut("answers/{answerId}")]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
-        public async Task<IActionResult> UpdateAnswerAsync([FromRoute] long answerId, [FromForm] AnswerLcConDto model)
+        public async Task<IActionResult> UpdateAnswerAsync([FromRoute] long answerId, [FromForm] AnswerRcDoubleDto model)
         {
             var response = await _answerService.UpdateAsync(answerId, model);
             return await response.ChangeActionAsync();

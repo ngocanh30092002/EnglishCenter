@@ -43,6 +43,15 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> CreateAsync([FromForm] QuesRcSingleDto queModel)
         {
+            if(queModel.Image != null)
+            {
+                var isImageFile = await UploadHelper.IsImageAsync(queModel.Image);
+                if (!isImageFile)
+                {
+                    return BadRequest(new { message = "The image file is invalid. Only JPEG, PNG, GIF, and SVG are allowed.", success = false });
+                }
+            }
+
             var response = await _queRcSingleService.CreateAsync(queModel);
             return await response.ChangeActionAsync();
         }
@@ -51,6 +60,15 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> UpdateAsync([FromRoute] long quesId, [FromForm] QuesRcSingleDto queModel)
         {
+            if (queModel.Image != null)
+            {
+                var isImageFile = await UploadHelper.IsImageAsync(queModel.Image);
+                if (!isImageFile)
+                {
+                    return BadRequest(new { message = "The image file is invalid. Only JPEG, PNG, GIF, and SVG are allowed.", success = false });
+                }
+            }
+
             var response = await _queRcSingleService.UpdateAsync(quesId, queModel);
             return await response.ChangeActionAsync();
         }

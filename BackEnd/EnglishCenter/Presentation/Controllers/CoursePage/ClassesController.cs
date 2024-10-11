@@ -49,6 +49,15 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
         [HttpPut("{classId}")]
         public async Task<IActionResult> UpdateClassAsync([FromRoute] string classId, [FromForm] ClassDto model)
         {
+            if (model.Image != null)
+            {
+                var isImageFile = await UploadHelper.IsImageAsync(model.Image);
+                if (!isImageFile)
+                {
+                    return BadRequest(new { message = "The image file is invalid. Only JPEG, PNG, GIF, and SVG are allowed.", success = false });
+                }
+            }
+
             var response = await _classService.UpdateAsync(classId, model);
             return await response.ChangeActionAsync();
         }
@@ -63,6 +72,15 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
         [HttpPost]
         public async Task<IActionResult> CreateClassAsync([FromForm] ClassDto model)
         {
+            if(model.Image != null)
+            {
+                var isImageFile = await UploadHelper.IsImageAsync(model.Image);
+                if (!isImageFile)
+                {
+                    return BadRequest(new { message = "The image file is invalid. Only JPEG, PNG, GIF, and SVG are allowed.", success = false });
+                }
+            }
+
             var response = await _classService.CreateAsync(model);
             return await response.ChangeActionAsync();
         }

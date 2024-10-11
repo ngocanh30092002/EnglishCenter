@@ -27,7 +27,9 @@ namespace EnglishCenter.DataAccess.UnitOfWork
         IQuesRcSingleRepository QuesRcSingles { get; }
         ISubRcSingleRepository SubRcSingles { get; }
         IAnswerRcSingleRepository AnswerRcSingles { get; }
-
+        IQuesRcDoubleRepository QuesRcDoubles { get; }
+        ISubRcDoubleRepository SubRcDoubles { get; }
+        IAnswerRcDoubleRepository AnswerRcDoubles { get; }
         public Task<int> CompleteAsync();
         public Task BeginTransAsync();
         public Task CommitTransAsync();
