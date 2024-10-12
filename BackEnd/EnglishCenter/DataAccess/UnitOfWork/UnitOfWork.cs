@@ -37,7 +37,10 @@ namespace EnglishCenter.DataAccess.UnitOfWork
             IAnswerRcSingleRepository answerRcSingleRepo,
             IQuesRcDoubleRepository quesRcDoubleRepo,
             ISubRcDoubleRepository subRcDoubleRepo,
-            IAnswerRcDoubleRepository answerRcDoubleRepo
+            IAnswerRcDoubleRepository answerRcDoubleRepo,
+            IQuesRcTripleRepository quesRcTripleRepo,
+            ISubRcTripleRepository subRcTripleRepo,
+            IAnswerRcTripleRepository answerRcTripleRepo
             ) 
         {
             _context = context;
@@ -67,6 +70,9 @@ namespace EnglishCenter.DataAccess.UnitOfWork
             QuesRcDoubles = quesRcDoubleRepo;
             SubRcDoubles = subRcDoubleRepo;
             AnswerRcDoubles = answerRcDoubleRepo;
+            QuesRcTriples = quesRcTripleRepo;
+            AnswerRcTriples = answerRcTripleRepo;
+            SubRcTriples = subRcTripleRepo;
         }
 
         public IEventRepository Events { get; private set; }
@@ -95,6 +101,9 @@ namespace EnglishCenter.DataAccess.UnitOfWork
         public IQuesRcDoubleRepository QuesRcDoubles { get; private set; }
         public IAnswerRcDoubleRepository AnswerRcDoubles { get; private set; }
         public ISubRcDoubleRepository SubRcDoubles { get; private set; }
+        public IQuesRcTripleRepository QuesRcTriples { get; private set; }
+        public IAnswerRcTripleRepository AnswerRcTriples { get; private set; }
+        public ISubRcTripleRepository SubRcTriples { get; private set; }
 
         public async Task BeginTransAsync()
         {

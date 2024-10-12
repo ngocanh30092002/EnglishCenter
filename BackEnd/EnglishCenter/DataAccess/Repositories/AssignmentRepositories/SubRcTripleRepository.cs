@@ -5,14 +5,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
 {
-    public class SubRcSingleRepository : GenericRepository<SubRcSingle>, ISubRcSingleRepository
+    public class SubRcTripleRepository : GenericRepository<SubRcTriple>, ISubRcTripleRepository
     {
-        public SubRcSingleRepository(EnglishCenterContext context) : base(context)
+        public SubRcTripleRepository(EnglishCenterContext context) : base(context)
         {
-
         }
-
-        public Task<bool> ChangeAnswerAAsync(SubRcSingle model, string newAnswer)
+        public Task<bool> ChangeAnswerAAsync(SubRcTriple model, string newAnswer)
         {
             if (model == null) return Task.FromResult(false);
 
@@ -21,22 +19,22 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
             return Task.FromResult(true);
         }
 
-        public async Task<bool> ChangeAnswerAsync(SubRcSingle model, long answerId)
+        public async Task<bool> ChangeAnswerAsync(SubRcTriple model, long answerId)
         {
             if (model == null) return false;
 
-            var answerModel = await context.AnswerRcSingles
-                        .Include(a => a.SubRcSingle)
+            var answerModel = await context.AnswerRcTriples
+                        .Include(a => a.SubRcTriple)
                         .FirstOrDefaultAsync(a => a.AnswerId == answerId);
 
             if (answerModel == null) return false;
-            if (answerModel.SubRcSingle != null) return false;
+            if (answerModel.SubRcTriple != null) return false;
 
             model.AnswerId = answerId;
             return true;
         }
 
-        public Task<bool> ChangeAnswerBAsync(SubRcSingle model, string newAnswer)
+        public Task<bool> ChangeAnswerBAsync(SubRcTriple model, string newAnswer)
         {
             if (model == null) return Task.FromResult(false);
 
@@ -45,7 +43,7 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
             return Task.FromResult(true);
         }
 
-        public Task<bool> ChangeAnswerCAsync(SubRcSingle model, string newAnswer)
+        public Task<bool> ChangeAnswerCAsync(SubRcTriple model, string newAnswer)
         {
             if (model == null) return Task.FromResult(false);
 
@@ -54,7 +52,7 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
             return Task.FromResult(true);
         }
 
-        public Task<bool> ChangeAnswerDAsync(SubRcSingle model, string newAnswer)
+        public Task<bool> ChangeAnswerDAsync(SubRcTriple model, string newAnswer)
         {
             if (model == null) return Task.FromResult(false);
 
@@ -63,11 +61,11 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
             return Task.FromResult(true);
         }
 
-        public async Task<bool> ChangeNoNumAsync(SubRcSingle model, int noNum)
+        public async Task<bool> ChangeNoNumAsync(SubRcTriple model, int noNum)
         {
             if (noNum <= 0) return false;
 
-            var subModels = context.SubRcSingles
+            var subModels = context.SubRcTriples
                                 .Where(s => s.PreQuesId == model.PreQuesId)
                                 .OrderBy(s => s.NoNum);
 
@@ -89,17 +87,17 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
             return true;
         }
 
-        public async Task<bool> ChangePreQuesAsync(SubRcSingle model, long preId)
+        public async Task<bool> ChangePreQuesAsync(SubRcTriple model, long preId)
         {
-            var preQuesModel = await context.QuesRcSingles
-                                            .Include(q => q.SubRcSingles)
+            var preQuesModel = await context.QuesRcTriples
+                                            .Include(q => q.SubRcTriples)
                                             .FirstOrDefaultAsync(q => q.QuesId == preId);
 
             if (preQuesModel == null) return false;
-            if (preQuesModel.SubRcSingles.Count >= preQuesModel.Quantity) return false;
+            if (preQuesModel.SubRcTriples.Count >= preQuesModel.Quantity) return false;
 
 
-            var previousSubModels = await context.SubRcSingles
+            var previousSubModels = await context.SubRcTriples
                                                 .Where(s => s.SubId != model.SubId && s.PreQuesId == model.PreQuesId)
                                                 .OrderBy(s => s.NoNum)
                                                 .ToListAsync();
@@ -110,11 +108,10 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
                 item.NoNum = i++;
             }
 
-            var maxCurrentSubModel = await context.SubRcSingles
+            var maxCurrentSubModel = await context.SubRcTriples
                                                 .Where(s => s.PreQuesId == preId)
-                                                .Select(s => (int?)s.NoNum)
+                                                .Select(s =>(int?) s.NoNum)
                                                 .MaxAsync();
-
 
             model.PreQuesId = preId;
             model.NoNum = maxCurrentSubModel.HasValue ? maxCurrentSubModel.Value + 1 : 1;
@@ -122,7 +119,7 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
             return true;
         }
 
-        public Task<bool> ChangeQuestionAsync(SubRcSingle model, string newQues)
+        public Task<bool> ChangeQuestionAsync(SubRcTriple model, string newQues)
         {
             if (model == null) return Task.FromResult(false);
 

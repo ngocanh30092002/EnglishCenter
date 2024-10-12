@@ -5,43 +5,42 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
 {
-    public class QuesRcDoubleRepository : GenericRepository<QuesRcDouble>, IQuesRcDoubleRepository
+    public class QuesRcTripleRepository : GenericRepository<QuesRcTriple>, IQuesRcTripleRepository
     {
-        public QuesRcDoubleRepository(EnglishCenterContext context) : base(context)
+        public QuesRcTripleRepository(EnglishCenterContext context) : base(context)
         {
-
         }
 
-        public override QuesRcDouble GetById(long id)
+        public override QuesRcTriple GetById(long id)
         {
-            var model = context.QuesRcDoubles
-                            .Include(s => s.SubRcDoubles)
+            var model = context.QuesRcTriples
+                            .Include(s => s.SubRcTriples)
                             .ThenInclude(s => s.Answer)
                             .FirstOrDefault(q => q.QuesId == id);
 
             return model;
         }
 
-        public override IEnumerable<QuesRcDouble> GetAll()
+        public override IEnumerable<QuesRcTriple> GetAll()
         {
-            var models = context.QuesRcDoubles
-                                .Include(s => s.SubRcDoubles)
+            var models = context.QuesRcTriples
+                                .Include(s => s.SubRcTriples)
                                 .ThenInclude(s => s.Answer)
                                 .ToList();
 
             return models;
         }
 
-        public Task<bool> ChangeImage1Async(QuesRcDouble model, string imageUrl)
+        public Task<bool> ChangeImage1Async(QuesRcTriple model, string imageUrl)
         {
-            if(model == null) return Task.FromResult(false);
+            if (model == null) return Task.FromResult(false);
 
             model.Image1 = imageUrl;
 
             return Task.FromResult(true);
         }
 
-        public Task<bool> ChangeImage2Async(QuesRcDouble model, string imageUrl)
+        public Task<bool> ChangeImage2Async(QuesRcTriple model, string imageUrl)
         {
             if (model == null) return Task.FromResult(false);
 
@@ -50,25 +49,33 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
             return Task.FromResult(true);
         }
 
-        public Task<bool> ChangeQuantityAsync(QuesRcDouble model, int quantity)
+        public Task<bool> ChangeImage3Async(QuesRcTriple model, string imageUrl)
+        {
+            if (model == null) return Task.FromResult(false);
+
+            model.Image3 = imageUrl;
+
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> ChangeQuantityAsync(QuesRcTriple model, int quantity)
         {
             if (model == null) return Task.FromResult(false);
             if (quantity <= 0) return Task.FromResult(false);
-            if (model.SubRcDoubles.Count > quantity) return Task.FromResult(false);
+            if (model.SubRcTriples.Count > quantity) return Task.FromResult(false);
             
             model.Quantity = quantity;
 
             return Task.FromResult(true);
         }
 
-        public Task<bool> ChangeTimeAsync(QuesRcDouble model, TimeOnly time)
+        public Task<bool> ChangeTimeAsync(QuesRcTriple model, TimeOnly time)
         {
             if (model == null) return Task.FromResult(false);
 
             model.Time = time;
 
             return Task.FromResult(true);
-
         }
     }
 }

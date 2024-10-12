@@ -30,6 +30,9 @@ namespace EnglishCenter.DataAccess.UnitOfWork
         IQuesRcDoubleRepository QuesRcDoubles { get; }
         ISubRcDoubleRepository SubRcDoubles { get; }
         IAnswerRcDoubleRepository AnswerRcDoubles { get; }
+        IQuesRcTripleRepository QuesRcTriples { get; }
+        ISubRcTripleRepository SubRcTriples { get; }
+        IAnswerRcTripleRepository AnswerRcTriples { get; }
         public Task<int> CompleteAsync();
         public Task BeginTransAsync();
         public Task CommitTransAsync();

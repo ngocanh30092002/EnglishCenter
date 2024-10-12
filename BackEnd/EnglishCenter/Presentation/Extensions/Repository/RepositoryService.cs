@@ -43,6 +43,9 @@ namespace EnglishCenter.Presentation.Extensions.Repository
             services.AddScoped<IQuesRcDoubleRepository, QuesRcDoubleRepository>();
             services.AddScoped<ISubRcDoubleRepository, SubRcDoubleRepository>();
             services.AddScoped<IAnswerRcDoubleRepository, AnswerRcDoubleRepository>();
+            services.AddScoped<IQuesRcTripleRepository, QuesRcTripleRepository>();
+            services.AddScoped<ISubRcTripleRepository,  SubRcTripleRepository>();
+            services.AddScoped<IAnswerRcTripleRepository, AnswerRcTripleRepository>();
             services.AddScoped<MailHelper>();
             
             return services;
@@ -82,6 +85,9 @@ namespace EnglishCenter.Presentation.Extensions.Repository
             services.AddScoped<IQuesRcDoubleService, QuesRcDoubleService>();
             services.AddScoped<ISubRcDoubleService, SubRcDoubleService>();
             services.AddScoped<IAnswerRcDoubleService, AnswerRcDoubleService>();
+            services.AddScoped<IQuesRcTripleService, QuesRcTripleService>();
+            services.AddScoped<ISubRcTripleService, SubRcTripleService>();
+            services.AddScoped<IAnswerRcTripleService, AnswerRcTripleService>();    
             return services;
         }
     }

@@ -112,11 +112,12 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
 
             var maxCurrentSubModel = await context.SubRcDoubles
                                                 .Where(s => s.PreQuesId == preId)
-                                                .MaxAsync(s => s.NoNum);
+                                                .Select(s => (int?) s.NoNum)
+                                                .MaxAsync();
 
 
             model.PreQuesId = preId;
-            model.NoNum = maxCurrentSubModel + 1;
+            model.NoNum = maxCurrentSubModel.HasValue ? maxCurrentSubModel.Value + 1 : 1;
 
             return true;
         }

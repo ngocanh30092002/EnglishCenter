@@ -50,9 +50,9 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
         public Task<bool> ChangeQuantityAsync(QuesLcConversation model, int quantity)
         {
             if (model == null) return Task.FromResult(false);
-
             if (quantity <= 0) return Task.FromResult(false);
-            
+            if (model.SubLcConversations.Count > quantity) return Task.FromResult(false);
+
             model.Quantity = quantity;
             return Task.FromResult(true);
         }

@@ -43,8 +43,8 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
         public Task<bool> ChangeQuantityAsync(QuesRcSingle model, int quantity)
         {
             if (model == null) return Task.FromResult(false);
-
             if (quantity <= 0) return Task.FromResult(false);
+            if (model.SubRcSingles.Count > quantity) return Task.FromResult(false);
 
             model.Quantity = quantity;
 

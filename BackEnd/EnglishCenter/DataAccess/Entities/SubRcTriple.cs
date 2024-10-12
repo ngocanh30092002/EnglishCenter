@@ -28,6 +28,8 @@ public partial class SubRcTriple
     [StringLength(300)]
     public string AnswerD { get; set; } = null!;
 
+    public int NoNum { set; get; } = 1;
+
     public long? AnswerId { set; get; }
 
     [ForeignKey("AnswerId")]

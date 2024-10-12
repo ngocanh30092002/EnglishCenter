@@ -16,15 +16,17 @@ public partial class QuesRcTriple
 
     [Column("Image_1")]
     [StringLength(300)]
-    public string? Image1 { get; set; }
+    public string Image1 { get; set; } = null!;
 
     [Column("Image_2")]
     [StringLength(300)]
-    public string? Image2 { get; set; }
+    public string Image2 { get; set; } = null!;
 
     [Column("Image_3")]
     [StringLength(300)]
-    public string? Image3 { get; set; }
+    public string Image3 { get; set; } = null!;
+
+    public TimeOnly? Time { set; get; }
 
     [InverseProperty("QuesTriple")]
     public virtual ICollection<AssignQue> AssignQues { get; set; } = new List<AssignQue>();
