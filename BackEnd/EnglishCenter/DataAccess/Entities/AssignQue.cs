@@ -14,6 +14,8 @@ public partial class AssignQue
 
     [Required]
     public int Type { get; set; }
+    
+    public int NoNum { set; get; } = 1;
 
     [Column("ImageQues_Id")]
     public long? ImageQuesId { get; set; } = null;
@@ -64,9 +66,9 @@ public partial class AssignQue
     [InverseProperty("AssignQues")]
     public virtual QuesRcSentence? QuesSentence { get; set; }
 
-    public long? AssignmentId { set; get; }
+    public long AssignmentId { set; get; }
 
     [ForeignKey("AssignmentId")]
     [InverseProperty("AssignQues")]
-    public virtual Assignment? Assignment { set; get; }
+    public virtual Assignment Assignment { set; get; }
 }

@@ -4,6 +4,7 @@
     {
         public long? AssignQuesId { set; get; }
         public string? Type { set; get; }
+        public int? NoNum { set; get; }
         public object? QuesInfo { set; get; }
     }
 }

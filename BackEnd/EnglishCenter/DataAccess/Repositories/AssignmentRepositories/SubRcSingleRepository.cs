@@ -65,11 +65,14 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
 
         public async Task<bool> ChangeNoNumAsync(SubRcSingle model, int noNum)
         {
+            if (model == null) return false;
             if (noNum <= 0) return false;
 
             var subModels = context.SubRcSingles
                                 .Where(s => s.PreQuesId == model.PreQuesId)
                                 .OrderBy(s => s.NoNum);
+
+            if (!subModels.Any()) return false;
 
             var maxNoNum = await subModels.MaxAsync(s => s.NoNum);
             if (noNum > maxNoNum) return false;
@@ -91,6 +94,7 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
 
         public async Task<bool> ChangePreQuesAsync(SubRcSingle model, long preId)
         {
+            if (model == null) return false;
             var preQuesModel = await context.QuesRcSingles
                                             .Include(q => q.SubRcSingles)
                                             .FirstOrDefaultAsync(q => q.QuesId == preId);

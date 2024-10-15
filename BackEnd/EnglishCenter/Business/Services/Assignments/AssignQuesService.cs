@@ -19,7 +19,7 @@ namespace EnglishCenter.Business.Services.Assignments
             _unit = unit;
             _mapper = mapper;
         }
-
+        
         public async Task<Response> ChangeAssignmentIdAsync(long id, long assignmentId)
         {
             var assignQuesModel = _unit.AssignQues.GetById(id);
@@ -106,10 +106,46 @@ namespace EnglishCenter.Business.Services.Assignments
 
         }
 
+        public async Task<Response> ChangeNoNumAsync(long id, int noNum)
+        {
+            var assignModel = _unit.AssignQues.GetById(id);
+            if(assignModel == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any assignment questions",
+                    Success = false
+                };
+            }
+
+            var isChangeSuccess = await _unit.AssignQues.ChangeNoNumAsync(assignModel, noNum);
+            if (!isChangeSuccess)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't change no num",
+                    Success = false
+                };
+            }
+
+            await _unit.CompleteAsync();
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = "",
+                Success = true
+            };
+        }
+
         public async Task<Response> CreateAsync(AssignQueDto model)
         {
-            var isExistAssignment = _unit.Assignments.IsExist(a => a.AssignmentId == model.AssignmentId);
-            if (!isExistAssignment)
+            var assignmentModel = _unit.Assignments
+                                        .Include(a => a.AssignQues)
+                                        .FirstOrDefault(a => a.AssignmentId == model.AssignmentId);
+
+            if (assignmentModel == null)
             {
                 return new Response()
                 {
@@ -141,10 +177,16 @@ namespace EnglishCenter.Business.Services.Assignments
             }
 
             var assignModel = _mapper.Map<AssignQue>(model);
+            var currentMaxNum = assignmentModel.AssignQues.Count > 0 ? assignmentModel.AssignQues.Max(c => c.NoNum) : 0;
+
+            assignModel.NoNum = currentMaxNum + 1;
 
             _unit.AssignQues.Add(assignModel);
-            await _unit.CompleteAsync();
 
+            var expectedTime = await _unit.AssignQues.GetTimeQuesAsync(assignModel);
+            assignmentModel.ExpectedTime = assignmentModel.ExpectedTime.Add(expectedTime.ToTimeSpan());
+
+            await _unit.CompleteAsync();
             return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
@@ -155,7 +197,10 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public async Task<Response> DeleteAsync(long id)
         {
-            var assignQuesModel = _unit.AssignQues.GetById(id);
+            var assignQuesModel = _unit.AssignQues
+                                        .Include(a => a.Assignment)
+                                        .FirstOrDefault(a => a.AssignQuesId == id);
+
             if(assignQuesModel == null)
             {
                 return new Response()
@@ -165,6 +210,9 @@ namespace EnglishCenter.Business.Services.Assignments
                     Success = false
                 };
             }
+
+            var expectedTime = await _unit.AssignQues.GetTimeQuesAsync(assignQuesModel);
+            assignQuesModel.Assignment.ExpectedTime = TimeOnly.FromTimeSpan(assignQuesModel.Assignment.ExpectedTime - expectedTime);
 
             _unit.AssignQues.Remove(assignQuesModel);
             await _unit.CompleteAsync();
@@ -197,7 +245,7 @@ namespace EnglishCenter.Business.Services.Assignments
             return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Message = _mapper.Map<List<AssignQueResDto>>(models),
+                Message = _mapper.Map<List<AssignQueResDto>>(models.OrderBy(m => m.NoNum)),
                 Success = true
             };
         }
@@ -216,6 +264,11 @@ namespace EnglishCenter.Business.Services.Assignments
             }
 
             var assignQues = await _unit.AssignQues.GetByAssignmentAsync(assignmentId);
+
+            if (assignQues != null)
+            {
+                assignQues.OrderBy(a => a.NoNum);
+            }
 
             return new Response()
             {

@@ -177,10 +177,7 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
 
             foreach (var assign in assignments)
             {
-                if (assign.Time.HasValue)
-                {
-                    totalTime = totalTime.Add(assign.Time.Value.ToTimeSpan());
-                }
+                totalTime = totalTime.Add(assign.Time.ToTimeSpan());
             }
 
             return totalTime.Hours + ":" + totalTime.Minutes;
@@ -209,7 +206,7 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
                     };
                 }
 
-                assignment.Time = time;
+                //assignment.Time = time;
             }
 
             if (assignment.CourseContentId != model.ContentId)

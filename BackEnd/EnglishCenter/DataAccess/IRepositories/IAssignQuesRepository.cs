@@ -11,6 +11,8 @@ namespace EnglishCenter.DataAccess.IRepositories
         Task<bool> IsExistQuesIdAsync(QuesTypeEnum type, long quesId);
         Task<bool> ChangeQuesAsync(AssignQue model, QuesTypeEnum type, long quesId);
         Task<bool> ChangeAssignmentIdAsync(AssignQue model, long assignmentId);
+        Task<bool> ChangeNoNumAsync(AssignQue model, int noNum);
+        Task<TimeOnly> GetTimeQuesAsync(AssignQue model);
         Task<bool> UpdateAsync(long id, AssignQueDto model);
     }
 }

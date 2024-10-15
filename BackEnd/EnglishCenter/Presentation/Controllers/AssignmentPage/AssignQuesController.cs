@@ -78,5 +78,13 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
             var response = await _assignQuesService.ChangeQuesAsync(id, type, quesId);
             return await response.ChangeActionAsync();
         }
+
+        [HttpPatch("{id}/change-no-num")]
+        [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
+        public async Task<IActionResult> ChangeNoNumAsync([FromRoute] long id, [FromQuery] int noNum)
+        {
+            var response = await _assignQuesService.ChangeNoNumAsync(id, noNum);
+            return await response.ChangeActionAsync();
+        }
     }
 }

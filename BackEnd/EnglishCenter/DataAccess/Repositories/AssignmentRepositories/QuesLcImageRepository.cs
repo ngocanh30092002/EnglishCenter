@@ -45,7 +45,7 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
             return Task.FromResult(true);
         }
 
-        public Task<bool> ChangeTimeAsync(QuesLcImage queModel, TimeOnly? time)
+        public Task<bool> ChangeTimeAsync(QuesLcImage queModel, TimeOnly time)
         {
             if (queModel == null) return Task.FromResult(false);
 

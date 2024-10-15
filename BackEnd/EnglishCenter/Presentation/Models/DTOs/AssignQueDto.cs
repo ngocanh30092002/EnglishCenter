@@ -12,5 +12,7 @@ namespace EnglishCenter.Presentation.Models.DTOs
 
         [Required]
         public int Type { set; get; }
+
+        public int? NoNum { set; get; }
     }
 }

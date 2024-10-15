@@ -25,6 +25,8 @@ namespace EnglishCenter.DataAccess.Entities
 
         public long? AnswerId { set; get; }
 
+        public TimeOnly Time { set; get; } = TimeOnly.MinValue;
+
         [ForeignKey("AnswerId")]
         [InverseProperty("QuesRcSentence")]
         public virtual AnswerRcSentence? Answer { set; get; }

@@ -7,6 +7,7 @@
         public string AnswerB { set; get; } = null!;
         public string AnswerC { set; get; } = null!;
         public string AnswerD { set; get; } = null!;
+        public string Time { set; get; } = null!;
         public long? AnswerId { set; get; }
         public AnswerRcSentenceDto? Answer { set; get;}
     }

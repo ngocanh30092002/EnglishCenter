@@ -15,7 +15,7 @@ public partial class QuesRcSingle
     [StringLength(300)]
     public string Image { get; set; } = null!;
 
-    public TimeOnly? Time { set; get; }
+    public TimeOnly Time { set; get; } = TimeOnly.MinValue;
 
     [InverseProperty("QuesSingle")]
     public virtual ICollection<AssignQue> AssignQues { get; set; } = new List<AssignQue>();

@@ -15,7 +15,9 @@ public partial class Assignment
     [Column(TypeName = "nvarchar(200)")]
     public string? Title { set; get; }
 
-    public TimeOnly? Time { set; get; }
+    public TimeOnly Time { set; get; } = TimeOnly.MinValue;
+
+    public TimeOnly ExpectedTime { set; get; } = TimeOnly.MinValue;
 
     public long CourseContentId { set; get; }
 

@@ -14,8 +14,8 @@ public partial class QuesLcImage
 
     [StringLength(300)]
     public string Audio { get; set; } = null!;
-
-    public TimeOnly? Time { set; get; }
+    
+    public TimeOnly Time { set; get; } = TimeOnly.MinValue;
 
     public long? AnswerId { set; get; }
 

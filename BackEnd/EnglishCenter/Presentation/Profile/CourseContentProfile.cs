@@ -26,7 +26,7 @@ namespace EnglishCenter.Presentation
                     AssignmentId = e.AssignmentId,
                     ContentId = e.CourseContentId,
                     NoNum = e.NoNum,
-                    Time = e.Time.Value.ToString("HH:mm:ss"),
+                    Time = e.Time.ToString("HH:mm:ss"),
                     Title = e.Title
                 })));
         }

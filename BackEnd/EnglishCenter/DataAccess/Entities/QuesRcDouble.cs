@@ -22,7 +22,7 @@ public partial class QuesRcDouble
     [StringLength(300)]
     public string Image2 { get; set; } = null!;
 
-    public TimeOnly? Time { set; get; }
+    public TimeOnly Time { set; get; } = TimeOnly.MinValue;
 
     [InverseProperty("QuesDouble")]
     public virtual ICollection<AssignQue> AssignQues { get; set; } = new List<AssignQue>();

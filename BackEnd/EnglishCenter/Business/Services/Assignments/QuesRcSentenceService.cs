@@ -228,6 +228,40 @@ namespace EnglishCenter.Business.Services.Assignments
             };
         }
 
+        public async Task<Response> ChangeTimeAsync(long quesId, TimeOnly timeOnly)
+        {
+            var queModel = _unit.QuesRcSentences.GetById(quesId);
+
+            if (queModel == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any questions",
+                    Success = false
+                };
+            }
+
+            var isChangeSuccess = await _unit.QuesRcSentences.ChangeTimeAsync(queModel, timeOnly);
+            if (!isChangeSuccess)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't change time",
+                    Success = false
+                };
+            }
+
+            await _unit.CompleteAsync();
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = "",
+                Success = true
+            };
+        }
+
         public async Task<Response> CreateAsync(QuesRcSentenceDto queModel)
         {
             var queEntity = _mapper.Map<QuesRcSentence>(queModel);
@@ -269,7 +303,26 @@ namespace EnglishCenter.Business.Services.Assignments
                 queEntity.Answer = answerModel;
             }
 
+            if (string.IsNullOrEmpty(queModel.Time))
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Time is required"
+                };
+            }
+            if (!TimeOnly.TryParse(queModel.Time, out TimeOnly timeOnly))
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Time is not in correct format"
+                };
+            }
+
+            queEntity.Time = timeOnly;
             _unit.QuesRcSentences.Add(queEntity);
+
             await _unit.CompleteAsync();
 
             return new Response()
@@ -351,6 +404,24 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
+            if (string.IsNullOrEmpty(queModel.Time))
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Time is required"
+                };
+            }
+            if (!TimeOnly.TryParse(queModel.Time, out TimeOnly timeOnly))
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Time is not in correct format"
+                };
+            }
+
+
             await _unit.BeginTransAsync();
 
             try
@@ -375,6 +446,9 @@ namespace EnglishCenter.Business.Services.Assignments
                     response = await ChangeAnswerAsync(quesId,(long) queModel.AnswerId);
                     if (!response.Success) return response;
                 }
+
+                response = await ChangeTimeAsync(quesId, timeOnly);
+                if (!response.Success) return response;
 
                 await _unit.CommitTransAsync();
 

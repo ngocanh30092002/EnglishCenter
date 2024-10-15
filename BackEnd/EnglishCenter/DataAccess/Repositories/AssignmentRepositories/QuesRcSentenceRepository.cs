@@ -14,6 +14,14 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
 
         }
 
+        public Task<bool> ChangeTimeAsync(QuesRcSentence model , TimeOnly time)
+        {
+            if (model == null) return Task.FromResult(false);
+
+            model.Time = time;
+
+            return Task.FromResult(true);
+        }
         public Task<bool> ChangeAnswerAAsync(QuesRcSentence model, string newAnswer)
         {
             if (model == null) return Task.FromResult(false);

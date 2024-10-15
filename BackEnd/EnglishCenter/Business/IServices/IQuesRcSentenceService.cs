@@ -15,6 +15,7 @@ namespace EnglishCenter.Business.IServices
         public Task<Response> ChangeAnswerDAsync(long quesId, string newAnswer);
         public Task<Response> ChangeQuestionAsync(long quesId, string newQuestion);
         public Task<Response> ChangeAnswerAsync(long quesId, long answerId);
+        public Task<Response> ChangeTimeAsync(long quesId,TimeOnly timeOnly);
         public Task<Response> CreateAsync(QuesRcSentenceDto queModel);
         public Task<Response> UpdateAsync(long quesId, QuesRcSentenceDto queModel);
         public Task<Response> DeleteAsync(long quesId);

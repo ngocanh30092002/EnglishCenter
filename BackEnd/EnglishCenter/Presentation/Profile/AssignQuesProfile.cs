@@ -22,28 +22,32 @@ namespace EnglishCenter.Presentation
 
             CreateMap<AssignQue, AssignQueResDto>()
                .ForMember(des => des.AssignQuesId, opt => opt.MapFrom(src => src.AssignQuesId))
+               .ForMember(des => des.NoNum, opt => opt.MapFrom(src => src.NoNum))
                .ForMember(des => des.Type, opt => opt.MapFrom(src => ((QuesTypeEnum)src.Type).ToString()))
-               .ForMember(des => des.QuesInfo, opt => opt.MapFrom((src, des) =>
+               .ForMember(des => des.QuesInfo, opt => opt.MapFrom((src, des, index, context) =>
                {
                    switch(src.Type)
                    {
                        case (int)QuesTypeEnum.Image:
-                           return src.QuesImage;
+                           return context.Mapper.Map<QuesLcImageResDto>(src.QuesImage);
 
                        case (int)QuesTypeEnum.Audio:
-                           return src.QuesAudio;
+                           return context.Mapper.Map<QuesLcAudioResDto>(src.QuesAudio);
 
                        case (int)QuesTypeEnum.Conversation:
-                           return src.QuesConversation;
+                           return context.Mapper.Map<QuesLcConResDto>(src.QuesConversation);
+
+                       case (int)QuesTypeEnum.Sentence:
+                           return context.Mapper.Map<QuesRcSentenceResDto>(src.QuesSentence);
 
                        case (int)QuesTypeEnum.Single:
-                           return src.QuesSingle;
+                           return context.Mapper.Map<QuesRcSingleResDto>(src.QuesSingle);
 
                        case (int)QuesTypeEnum.Double:
-                           return src.QuesDouble;
+                           return context.Mapper.Map<QuesRcDoubleResDto>(src.QuesDouble);
 
                        case (int)QuesTypeEnum.Triple:
-                           return src.QuesTriple;
+                           return context.Mapper.Map<QuesRcTripleResDto>(src.QuesTriple);
                    }
 
                    return (object?) null;

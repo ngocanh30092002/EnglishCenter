@@ -26,7 +26,7 @@ public partial class QuesRcTriple
     [StringLength(300)]
     public string Image3 { get; set; } = null!;
 
-    public TimeOnly? Time { set; get; }
+    public TimeOnly Time { set; get; } = TimeOnly.MinValue;
 
     [InverseProperty("QuesTriple")]
     public virtual ICollection<AssignQue> AssignQues { get; set; } = new List<AssignQue>();

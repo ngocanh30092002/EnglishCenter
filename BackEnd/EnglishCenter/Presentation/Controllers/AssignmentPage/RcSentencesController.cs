@@ -1,5 +1,6 @@
 ﻿using EnglishCenter.Business.IServices;
 using EnglishCenter.Presentation.Global;
+using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -98,6 +99,24 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
         public async Task<IActionResult> ChangeQuesAnswerAsync([FromRoute] long quesId, [FromQuery] long answerId)
         {
             var response = await _quesService.ChangeAnswerAsync(quesId, answerId);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpPatch("{quesId}/change-time")]
+        [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
+        public async Task<IActionResult> ChangeQuesTimeAsync([FromRoute] long quesId, [FromBody] string time)
+        {
+            if (!TimeOnly.TryParse(time, out TimeOnly timeOnly))
+            {
+                var res = new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Time is not in correct format"
+                };
+
+                return await res.ChangeActionAsync();
+            }
+            var response = await _quesService.ChangeTimeAsync(quesId, timeOnly);
             return await response.ChangeActionAsync();
         }
 

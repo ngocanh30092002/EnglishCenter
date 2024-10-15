@@ -25,7 +25,8 @@ public partial class QuesLcAudio
 
     public long? AnswerId { set; get; }
 
-    public TimeOnly? Time { set; get; }
+    public TimeOnly Time { set; get; } = TimeOnly.MinValue;
+
     [ForeignKey("AnswerId")]
     [InverseProperty("QuesLcAudio")]
     public virtual AnswerLcAudio? Answer { set; get; }

@@ -17,7 +17,7 @@ public partial class QuesLcConversation
     [StringLength(300)]
     public string Audio { get; set; } = null!;
 
-    public TimeOnly? Time { set; get; }
+    public TimeOnly Time { set; get; } = TimeOnly.MinValue;
 
     [InverseProperty("QuesConversation")]
     public virtual ICollection<AssignQue> AssignQues { get; set; } = new List<AssignQue>();

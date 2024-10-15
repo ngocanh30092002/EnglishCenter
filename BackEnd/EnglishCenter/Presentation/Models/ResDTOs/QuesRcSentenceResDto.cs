@@ -10,6 +10,7 @@ namespace EnglishCenter.Presentation.Models.ResDTOs
         public string? AnswerB { set; get; }
         public string? AnswerC { set; get; }
         public string? AnswerD { set; get; }
+        public TimeOnly? Time { set; get; }
         public AnswerRcSentenceDto? AnswerInfo { set; get; }
     }
 }
