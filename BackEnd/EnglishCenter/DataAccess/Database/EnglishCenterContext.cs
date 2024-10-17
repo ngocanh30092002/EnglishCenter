@@ -17,6 +17,12 @@ public class EnglishCenterContext : IdentityDbContext<User>
 
     public virtual DbSet<Homework> Homework { set; get; }
 
+    public virtual DbSet<HwSubmission> HwSubmissions { set; get; }
+
+    public virtual DbSet<HomeQue> HomeQues { set; get; }
+
+    public virtual DbSet<HwSubRecord> HwSubRecords { set; get; }
+
     public virtual DbSet<AssignQue> AssignQues { get; set; }
 
     public virtual DbSet<Assignment> Assignments { get; set; }
@@ -188,6 +194,30 @@ public class EnglishCenterContext : IdentityDbContext<User>
         modelBuilder.Entity<Homework>(entity =>
         {
             entity.HasOne(d => d.Class).WithMany(c => c.HomeworkTasks).HasConstraintName("FK_Homework_Class");
+
+            entity.HasMany(d => d.Submissions).WithOne(c => c.Homework).HasConstraintName("FK_HwSubmission_Homework");
+        });
+
+        modelBuilder.Entity<HwSubRecord>(entity =>
+        {
+            entity.HasOne(d => d.HwSubmission).WithMany(c => c.SubRecords).HasConstraintName("FK_HwSubRecord_HwSubmission");
+
+            entity.HasOne(p => p.HomeQue)
+              .WithMany(e => e.SubRecords)
+              .HasConstraintName("FK_Hw_Sub_Record_HomeQue")
+              .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        modelBuilder.Entity<HomeQue>(entity =>
+        {
+            entity.HasOne(q => q.QuesImage).WithMany(q => q.HomeQues).HasConstraintName("FK_Home_Ques_Ques_LC_Image");
+            entity.HasOne(q => q.QuesAudio).WithMany(q => q.HomeQues).HasConstraintName("FK_Home_Ques_Ques_LC_Audio");
+            entity.HasOne(q => q.QuesConversation).WithMany(q => q.HomeQues).HasConstraintName("FK_Home_Ques_Ques_LC_Conversation");
+            entity.HasOne(q => q.QuesSentence).WithMany(q => q.HomeQues).HasConstraintName("FK_Home_Ques_Ques_RC_Sentence");
+            entity.HasOne(q => q.QuesSingle).WithMany(q => q.HomeQues).HasConstraintName("FK_Home_Ques_Ques_RC_Single");
+            entity.HasOne(q => q.QuesDouble).WithMany(q => q.HomeQues).HasConstraintName("FK_Home_Ques_Ques_RC_Double");
+            entity.HasOne(q => q.QuesTriple).WithMany(q => q.HomeQues).HasConstraintName("FK_Home_Ques_Ques_RC_Triple");
+            entity.HasOne(q => q.Homework).WithMany(q => q.HomeQues).HasConstraintName("FK_Home_Ques_Homework");
         });
 
         modelBuilder.Entity<Class>(entity =>

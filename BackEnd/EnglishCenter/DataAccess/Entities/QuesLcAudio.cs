@@ -33,4 +33,8 @@ public class QuesLcAudio
 
     [InverseProperty("QuesAudio")]
     public virtual ICollection<AssignQue> AssignQues { get; set; } = new List<AssignQue>();
+
+    [InverseProperty("QuesAudio")]
+    public virtual ICollection<HomeQue> HomeQues { set; get; } = new List<HomeQue>();
+
 }

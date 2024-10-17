@@ -21,6 +21,9 @@ public class QuesLcConversation
 
     [InverseProperty("QuesConversation")]
     public virtual ICollection<AssignQue> AssignQues { get; set; } = new List<AssignQue>();
+    
+    [InverseProperty("QuesConversation")]
+    public virtual ICollection<HomeQue> HomeQues { set; get; } = new List<HomeQue>();
 
     [InverseProperty("PreQues")]
     public virtual ICollection<SubLcConversation> SubLcConversations { get; set; } = new List<SubLcConversation>();

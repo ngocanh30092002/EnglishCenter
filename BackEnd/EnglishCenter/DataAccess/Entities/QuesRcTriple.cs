@@ -30,6 +30,9 @@ public class QuesRcTriple
 
     [InverseProperty("QuesTriple")]
     public virtual ICollection<AssignQue> AssignQues { get; set; } = new List<AssignQue>();
+    
+    [InverseProperty("QuesTriple")]
+    public virtual ICollection<HomeQue> HomeQues { set; get; } = new List<HomeQue>();
 
     [InverseProperty("PreQues")]
     public virtual ICollection<SubRcTriple> SubRcTriples { get; set; } = new List<SubRcTriple>();

@@ -14,7 +14,8 @@ namespace EnglishCenter.Presentation
                 .ForMember(des => des.AssignmentId, opt => opt.MapFrom(src => src.AssignmentId))
                 .ForMember(des => des.Status, opt => opt.MapFrom(src => src.Status))
                 .ForMember(des => des.StartTime, opt => opt.MapFrom(src => DateTime.Now))
-                .ForMember(des => des.EndTime, opt => opt.MapFrom(src => (DateTime?)null));
+                .ForMember(des => des.EndTime, opt => opt.MapFrom(src => (DateTime?)null))
+                .ReverseMap();
 
 
             CreateMap<AnswerRecordDto, AnswerRecord>()

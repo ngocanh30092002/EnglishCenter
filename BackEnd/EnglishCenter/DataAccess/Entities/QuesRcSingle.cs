@@ -19,6 +19,9 @@ public class QuesRcSingle
 
     [InverseProperty("QuesSingle")]
     public virtual ICollection<AssignQue> AssignQues { get; set; } = new List<AssignQue>();
+    
+    [InverseProperty("QuesSingle")]
+    public virtual ICollection<HomeQue> HomeQues { set; get; } = new List<HomeQue>();
 
     [InverseProperty("PreQues")]
     public virtual ICollection<SubRcSingle> SubRcSingles { get; set; } = new List<SubRcSingle>();

@@ -367,7 +367,7 @@ namespace EnglishCenter.Business.Services.Assignments
             return Task.FromResult(new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Message = processes,
+                Message = _mapper.Map<List<LearningProcessDto>>(processes),
                 Success = true
             });
         }
@@ -380,7 +380,7 @@ namespace EnglishCenter.Business.Services.Assignments
             return Task.FromResult(new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Message = process,
+                Message = _mapper.Map<LearningProcessDto>(process),
                 Success = true
             });
         }

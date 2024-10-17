@@ -4,6 +4,7 @@ using EnglishCenter.DataAccess.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EnglishCenter.Migrations
 {
     [DbContext(typeof(EnglishCenterContext))]
-    partial class EnglishCenterContextModelSnapshot : ModelSnapshot
+    [Migration("20241017031227_addTblHwSubRecords")]
+    partial class addTblHwSubRecords
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -642,72 +645,6 @@ namespace EnglishCenter.Migrations
                     b.ToTable("Groups");
                 });
 
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.HomeQue", b =>
-                {
-                    b.Property<long>("HomeQuesId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("HomeQuesId"));
-
-                    b.Property<long?>("AudioQuesId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("AudioQues_Id");
-
-                    b.Property<long?>("ConversationQuesId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("ConversationQues_Id");
-
-                    b.Property<long?>("DoubleQuesId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("DoubleQues_Id");
-
-                    b.Property<long>("HomeworkId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long?>("ImageQuesId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("ImageQues_Id");
-
-                    b.Property<int>("NoNum")
-                        .HasColumnType("int");
-
-                    b.Property<long?>("SentenceQuesId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("SentenceQuesId");
-
-                    b.Property<long?>("SingleQuesId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("SingleQues_Id");
-
-                    b.Property<long?>("TripleQuesId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("TripleQues_Id");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
-
-                    b.HasKey("HomeQuesId");
-
-                    b.HasIndex("AudioQuesId");
-
-                    b.HasIndex("ConversationQuesId");
-
-                    b.HasIndex("DoubleQuesId");
-
-                    b.HasIndex("HomeworkId");
-
-                    b.HasIndex("ImageQuesId");
-
-                    b.HasIndex("SentenceQuesId");
-
-                    b.HasIndex("SingleQuesId");
-
-                    b.HasIndex("TripleQuesId");
-
-                    b.ToTable("Home_Ques");
-                });
-
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.Homework", b =>
                 {
                     b.Property<long>("HomeworkId")
@@ -762,8 +699,6 @@ namespace EnglishCenter.Migrations
                         .HasColumnType("bigint");
 
                     b.HasKey("RecordId");
-
-                    b.HasIndex("HwQuesId");
 
                     b.HasIndex("SubmissionId");
 
@@ -1871,67 +1806,6 @@ namespace EnglishCenter.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.HomeQue", b =>
-                {
-                    b.HasOne("EnglishCenter.DataAccess.Entities.QuesLcAudio", "QuesAudio")
-                        .WithMany("HomeQues")
-                        .HasForeignKey("AudioQuesId")
-                        .HasConstraintName("FK_Home_Ques_Ques_LC_Audio");
-
-                    b.HasOne("EnglishCenter.DataAccess.Entities.QuesLcConversation", "QuesConversation")
-                        .WithMany("HomeQues")
-                        .HasForeignKey("ConversationQuesId")
-                        .HasConstraintName("FK_Home_Ques_Ques_LC_Conversation");
-
-                    b.HasOne("EnglishCenter.DataAccess.Entities.QuesRcDouble", "QuesDouble")
-                        .WithMany("HomeQues")
-                        .HasForeignKey("DoubleQuesId")
-                        .HasConstraintName("FK_Home_Ques_Ques_RC_Double");
-
-                    b.HasOne("EnglishCenter.DataAccess.Entities.Homework", "Homework")
-                        .WithMany("HomeQues")
-                        .HasForeignKey("HomeworkId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_Home_Ques_Homework");
-
-                    b.HasOne("EnglishCenter.DataAccess.Entities.QuesLcImage", "QuesImage")
-                        .WithMany("HomeQues")
-                        .HasForeignKey("ImageQuesId")
-                        .HasConstraintName("FK_Home_Ques_Ques_LC_Image");
-
-                    b.HasOne("EnglishCenter.DataAccess.Entities.QuesRcSentence", "QuesSentence")
-                        .WithMany("HomeQues")
-                        .HasForeignKey("SentenceQuesId")
-                        .HasConstraintName("FK_Home_Ques_Ques_RC_Sentence");
-
-                    b.HasOne("EnglishCenter.DataAccess.Entities.QuesRcSingle", "QuesSingle")
-                        .WithMany("HomeQues")
-                        .HasForeignKey("SingleQuesId")
-                        .HasConstraintName("FK_Home_Ques_Ques_RC_Single");
-
-                    b.HasOne("EnglishCenter.DataAccess.Entities.QuesRcTriple", "QuesTriple")
-                        .WithMany("HomeQues")
-                        .HasForeignKey("TripleQuesId")
-                        .HasConstraintName("FK_Home_Ques_Ques_RC_Triple");
-
-                    b.Navigation("Homework");
-
-                    b.Navigation("QuesAudio");
-
-                    b.Navigation("QuesConversation");
-
-                    b.Navigation("QuesDouble");
-
-                    b.Navigation("QuesImage");
-
-                    b.Navigation("QuesSentence");
-
-                    b.Navigation("QuesSingle");
-
-                    b.Navigation("QuesTriple");
-                });
-
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.Homework", b =>
                 {
                     b.HasOne("EnglishCenter.DataAccess.Entities.Class", "Class")
@@ -1946,21 +1820,12 @@ namespace EnglishCenter.Migrations
 
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.HwSubRecord", b =>
                 {
-                    b.HasOne("EnglishCenter.DataAccess.Entities.HomeQue", "HomeQue")
-                        .WithMany("SubRecords")
-                        .HasForeignKey("HwQuesId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_Hw_Sub_Record_HomeQue");
-
                     b.HasOne("EnglishCenter.DataAccess.Entities.HwSubmission", "HwSubmission")
                         .WithMany("SubRecords")
                         .HasForeignKey("SubmissionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_HwSubRecord_HwSubmission");
-
-                    b.Navigation("HomeQue");
 
                     b.Navigation("HwSubmission");
                 });
@@ -2305,15 +2170,8 @@ namespace EnglishCenter.Migrations
                     b.Navigation("LearningProcesses");
                 });
 
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.HomeQue", b =>
-                {
-                    b.Navigation("SubRecords");
-                });
-
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.Homework", b =>
                 {
-                    b.Navigation("HomeQues");
-
                     b.Navigation("Submissions");
                 });
 
@@ -2335,15 +2193,11 @@ namespace EnglishCenter.Migrations
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.QuesLcAudio", b =>
                 {
                     b.Navigation("AssignQues");
-
-                    b.Navigation("HomeQues");
                 });
 
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.QuesLcConversation", b =>
                 {
                     b.Navigation("AssignQues");
-
-                    b.Navigation("HomeQues");
 
                     b.Navigation("SubLcConversations");
                 });
@@ -2351,15 +2205,11 @@ namespace EnglishCenter.Migrations
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.QuesLcImage", b =>
                 {
                     b.Navigation("AssignQues");
-
-                    b.Navigation("HomeQues");
                 });
 
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.QuesRcDouble", b =>
                 {
                     b.Navigation("AssignQues");
-
-                    b.Navigation("HomeQues");
 
                     b.Navigation("SubRcDoubles");
                 });
@@ -2367,15 +2217,11 @@ namespace EnglishCenter.Migrations
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.QuesRcSentence", b =>
                 {
                     b.Navigation("AssignQues");
-
-                    b.Navigation("HomeQues");
                 });
 
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.QuesRcSingle", b =>
                 {
                     b.Navigation("AssignQues");
-
-                    b.Navigation("HomeQues");
 
                     b.Navigation("SubRcSingles");
                 });
@@ -2383,8 +2229,6 @@ namespace EnglishCenter.Migrations
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.QuesRcTriple", b =>
                 {
                     b.Navigation("AssignQues");
-
-                    b.Navigation("HomeQues");
 
                     b.Navigation("SubRcTriples");
                 });

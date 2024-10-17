@@ -33,6 +33,8 @@ namespace EnglishCenter.DataAccess.Entities
 
         [InverseProperty("QuesSentence")]
         public virtual ICollection<AssignQue> AssignQues { set; get; } = new List<AssignQue>();
-
+        
+        [InverseProperty("QuesSentence")]
+        public virtual ICollection<HomeQue> HomeQues { set; get; } = new List<HomeQue>();
     }
 }
