@@ -29,6 +29,8 @@ public partial class Course
     [StringLength(300)]
     public string? ImageThumbnail { set; get; }
 
+    public bool IsSequential { set; get; } = true;
+
     [InverseProperty("Course")]
     public virtual ICollection<Class> Classes { get; set; } = new List<Class>();
 

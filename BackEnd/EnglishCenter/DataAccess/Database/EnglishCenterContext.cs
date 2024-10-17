@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using EnglishCenter.DataAccess.Entities;
+﻿using EnglishCenter.DataAccess.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -85,6 +83,10 @@ public partial class EnglishCenterContext : IdentityDbContext<User>
 
     public virtual DbSet<ScheduleEvent> ScheduleEvents { set; get; }
 
+    public virtual DbSet<LearningProcess> LearningProcesses { set; get; }
+
+    public virtual DbSet<AnswerRecord> AnswerRecords { set; get; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("Name=ConnectionStrings:EnglishCenter");
 
@@ -123,6 +125,24 @@ public partial class EnglishCenterContext : IdentityDbContext<User>
             entity.HasOne(d => d.QuesTriple).WithMany(p => p.AssignQues).HasConstraintName("FK_Assign_Ques_Ques_RC_Triple");
 
             entity.HasOne(d => d.Assignment).WithMany(p => p.AssignQues).HasConstraintName("FK_Assign_Ques_Assignment");
+        });
+
+        modelBuilder.Entity<LearningProcess>(entity =>
+        {
+            entity.HasOne(p => p.Enrollment).WithMany(e => e.LearningProcesses).HasConstraintName("FK_LearningProcess_Enrollment");
+
+            entity.HasOne(p => p.Assignment).WithMany(e => e.LearningProcesses).HasConstraintName("FK_LearningProcess_Assignment");
+
+        });
+
+        modelBuilder.Entity<AnswerRecord>(entity =>
+        {
+            entity.HasOne(p => p.LearningProcess).WithMany(e => e.AnswerRecords).HasConstraintName("FK_AnswerRecord_LearningProcess");
+
+            entity.HasOne(p => p.AssignQue)
+                .WithMany(e => e.AnswerRecords)
+                .HasConstraintName("FK_AnswerRecord_AssignQue")
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<QuesLcImage>(entity =>

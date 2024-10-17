@@ -42,4 +42,7 @@ public partial class Enrollment
     [ForeignKey("ScoreHisId")]
     [InverseProperty("Enrollment")]
     public virtual ScoreHistory? ScoreHis { get; set; }
+
+    [InverseProperty("Enrollment")]
+    public virtual ICollection<LearningProcess> LearningProcesses { set; get; } = new List<LearningProcess>();
 }

@@ -3,6 +3,7 @@ using EnglishCenter.Business.Services;
 using EnglishCenter.Business.Services.Assignments;
 using EnglishCenter.Business.Services.Authorization;
 using EnglishCenter.Business.Services.Courses;
+using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.IRepositories;
 using EnglishCenter.DataAccess.Repositories.AssignmentRepositories;
 using EnglishCenter.DataAccess.Repositories.AuthenticationRepositories;
@@ -46,6 +47,8 @@ namespace EnglishCenter.Presentation.Extensions.Repository
             services.AddScoped<IQuesRcTripleRepository, QuesRcTripleRepository>();
             services.AddScoped<ISubRcTripleRepository,  SubRcTripleRepository>();
             services.AddScoped<IAnswerRcTripleRepository, AnswerRcTripleRepository>();
+            services.AddScoped<ILearningProcessRepository, LearningProcessRepository>();
+            services.AddScoped<IAnswerRecordsRepository, AnswerRecordRepository>();
             services.AddScoped<MailHelper>();
             
             return services;
@@ -87,7 +90,10 @@ namespace EnglishCenter.Presentation.Extensions.Repository
             services.AddScoped<IAnswerRcDoubleService, AnswerRcDoubleService>();
             services.AddScoped<IQuesRcTripleService, QuesRcTripleService>();
             services.AddScoped<ISubRcTripleService, SubRcTripleService>();
-            services.AddScoped<IAnswerRcTripleService, AnswerRcTripleService>();    
+            services.AddScoped<IAnswerRcTripleService, AnswerRcTripleService>();
+            services.AddScoped<ILearningProcessService, LearningProcessService>();
+            services.AddScoped<IAnswerRecordService, AnswerRecordService>();
+
             return services;
         }
     }

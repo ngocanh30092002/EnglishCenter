@@ -8,6 +8,7 @@ namespace EnglishCenter.Business.IServices
         public Task<Response> GetAsync(long id);
         public Task<Response> GetAllAsync();
         public Task<Response> GetByAssignmentAsync(long assignmentId);
+        public Task<Response> GetAssignQuesByNoNumAsync(long assignmentId, int noNum);
         public Task<Response> ChangeAssignmentIdAsync(long id, long assignmentId);
         public Task<Response> ChangeNoNumAsync(long id, int noNum);
         public Task<Response> ChangeQuesAsync(long id, int type, long quesId);

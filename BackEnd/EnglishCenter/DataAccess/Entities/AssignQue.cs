@@ -71,4 +71,7 @@ public partial class AssignQue
     [ForeignKey("AssignmentId")]
     [InverseProperty("AssignQues")]
     public virtual Assignment Assignment { set; get; }
+
+    [InverseProperty("AssignQue")]
+    public virtual ICollection<AnswerRecord> AnswerRecords { set; get; } = new List<AnswerRecord>();
 }

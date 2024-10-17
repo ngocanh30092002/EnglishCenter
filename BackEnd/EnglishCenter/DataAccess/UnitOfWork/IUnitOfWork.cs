@@ -33,6 +33,9 @@ namespace EnglishCenter.DataAccess.UnitOfWork
         IQuesRcTripleRepository QuesRcTriples { get; }
         ISubRcTripleRepository SubRcTriples { get; }
         IAnswerRcTripleRepository AnswerRcTriples { get; }
+        ILearningProcessRepository LearningProcesses { get; }
+        IAnswerRecordsRepository AnswerRecords { get; }
+        
         public Task<int> CompleteAsync();
         public Task BeginTransAsync();
         public Task CommitTransAsync();

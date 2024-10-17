@@ -21,9 +21,13 @@ public partial class Assignment
 
     public long CourseContentId { set; get; }
 
+    [Range(0, 100)]
+    [Required]
+    public int AchievedPercentage { set; get; } = 0;
+
     [ForeignKey("CourseContentId")]
     [InverseProperty("Assignments")]
-    public virtual CourseContent CourseContent { set; get; }
+    public virtual CourseContent CourseContent { set; get; } = null!;
 
     [InverseProperty("Assignment")]
     public virtual ICollection<AssignQue> AssignQues { set; get; } = new List<AssignQue>();
@@ -31,4 +35,6 @@ public partial class Assignment
     [InverseProperty("Assignment")]
     public virtual ICollection<Homework> HomeworkList { get; set; } = new List<Homework>();
 
+    [InverseProperty("Assignment")]
+    public virtual ICollection<LearningProcess> LearningProcesses { set; get; } = new List<LearningProcess>();
 }

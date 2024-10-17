@@ -39,6 +39,13 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
             return await response.ChangeActionAsync();
         }
 
+        [HttpGet("assignments/{assignId}/{noNum}")]
+        public async Task<IActionResult> GetAssignQuesByNoNumAsync([FromRoute] long assignId , [FromRoute] int noNum)
+        {
+            var response = await _assignQuesService.GetAssignQuesByNoNumAsync(assignId, noNum);
+            return await response.ChangeActionAsync();
+        }
+
         [HttpPost]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> CreateAsync([FromForm] AssignQueDto model)

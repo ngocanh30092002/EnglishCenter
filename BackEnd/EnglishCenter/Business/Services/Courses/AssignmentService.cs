@@ -4,6 +4,7 @@ using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.UnitOfWork;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
+using EnglishCenter.Presentation.Models.ResDTOs;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace EnglishCenter.Business.Services.Courses
@@ -247,30 +248,43 @@ namespace EnglishCenter.Business.Services.Courses
             };
         }
 
-        public Task<Response> GetAllAsync()
+        public async Task<Response> GetAllAsync()
         {
             var assignments = _unit.Assignments.GetAll()
                                             .OrderBy(a => a.CourseContentId)
                                             .ThenBy(a => a.NoNum);
 
-            return Task.FromResult(new Response()
+            foreach(var assign in assignments)
+            {
+                foreach(var item in assign.AssignQues)
+                {
+                    await _unit.AssignQues.LoadQuestionAsync(item);
+                }
+            }
+
+            return new Response()
             {
                 Success = true,
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Message = _mapper.Map<List<AssignmentDto>>(assignments)
-            });
+                Message = _mapper.Map<List<AssignmentResDto>>(assignments)
+            };
         }
 
-        public Task<Response> GetAsync(long assignmentId)
+        public async Task<Response> GetAsync(long assignmentId)
         {
             var assignment = _unit.Assignments.GetById(assignmentId);
 
-            return Task.FromResult(new Response()
+            foreach(var item in assignment.AssignQues)
+            {
+                await _unit.AssignQues.LoadQuestionAsync(item);
+            }
+
+            return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Message = _mapper.Map<AssignmentDto>(assignment),
+                Message = _mapper.Map<AssignmentResDto>(assignment),
                 Success = true
-            });
+            };
         }
 
         public async Task<Response> GetByCourseContentAsync(long courseContentId)

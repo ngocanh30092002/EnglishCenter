@@ -222,6 +222,54 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
             return isExist;
         }
 
+        public async Task<bool> IsCorrectAnswerAsync(AssignQue model, string selectedAnswer, long? subId)
+        {
+            if (model == null) return false;
+
+            var isDone = await LoadQuestionAsync(model);
+            if (!isDone) return false;
+
+            try
+            {
+                switch (model.Type)
+                {
+                    case (int)QuesTypeEnum.Image:
+                        return model.QuesImage!.Answer!.CorrectAnswer == selectedAnswer.ToUpper();
+
+                    case (int)QuesTypeEnum.Audio:
+                        return model.QuesAudio!.Answer!.CorrectAnswer == selectedAnswer.ToUpper();
+
+                    case (int)QuesTypeEnum.Conversation:
+                        if (!subId.HasValue) return false;
+                        var subQueCon = model.QuesConversation!.SubLcConversations.FirstOrDefault(s => s.SubId == subId.Value);
+                        return subQueCon!.Answer!.CorrectAnswer == selectedAnswer.ToUpper();
+
+                    case (int)QuesTypeEnum.Sentence:
+                        return model.QuesSentence!.Answer!.CorrectAnswer == selectedAnswer.ToUpper();
+
+                    case (int)QuesTypeEnum.Single:
+                        if (!subId.HasValue) return false;
+                        var subQueSingle = model.QuesSingle!.SubRcSingles.FirstOrDefault(s => s.SubId == subId.Value);
+                        return subQueSingle!.Answer!.CorrectAnswer == selectedAnswer.ToUpper();
+
+                    case (int)QuesTypeEnum.Double:
+                        if (!subId.HasValue) return false;
+                        var subQueDouble = model.QuesDouble!.SubRcDoubles.FirstOrDefault(s => s.SubId == subId.Value);
+                        return subQueDouble!.Answer!.CorrectAnswer == selectedAnswer.ToUpper();
+                    
+                    case (int)QuesTypeEnum.Triple:
+                        if (!subId.HasValue) return false;
+                        var subQueTriple = model.QuesTriple!.SubRcTriples.FirstOrDefault(s => s.SubId == subId.Value);
+                        return subQueTriple!.Answer!.CorrectAnswer == selectedAnswer.ToUpper();
+                }
+
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
         public async Task<bool> LoadQuestionAsync(AssignQue model)
         {
             if (model == null) return false;
@@ -288,6 +336,62 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
             return true;
         }
 
+        public async Task<bool> LoadQuestionWithoutAnswerAsync(AssignQue model)
+        {
+            if (model == null) return false;
+
+            switch ((QuesTypeEnum)model.Type)
+            {
+                case QuesTypeEnum.Image:
+                    await context.Entry(model)
+                                .Reference(m => m.QuesImage)
+                                .LoadAsync();
+                    break;
+                case QuesTypeEnum.Audio:
+                    await context.Entry(model)
+                                .Reference(m => m.QuesAudio)
+                                .LoadAsync();
+                    break;
+                case QuesTypeEnum.Conversation:
+                    await context.Entry(model)
+                                .Reference(m => m.QuesConversation)
+                                .Query()
+                                .Include(a => a.SubLcConversations)
+                                .LoadAsync();
+                    break;
+                case QuesTypeEnum.Sentence:
+                    await context.Entry(model)
+                                .Reference(m => m.QuesSentence)
+                                .LoadAsync();
+                    break;
+                case QuesTypeEnum.Single:
+                    await context.Entry(model)
+                                .Reference(m => m.QuesSingle)
+                                .Query()
+                                .Include(a => a.SubRcSingles)
+                                .LoadAsync();
+                    break;
+                case QuesTypeEnum.Double:
+                    await context.Entry(model)
+                                .Reference(m => m.QuesDouble)
+                                .Query()
+                                .Include(a => a.SubRcDoubles)
+                                .LoadAsync();
+                    break;
+                case QuesTypeEnum.Triple:
+                    await context.Entry(model)
+                                .Reference(m => m.QuesTriple)
+                                .Query()
+                                .Include(a => a.SubRcTriples)
+                                .LoadAsync();
+                    break;
+                default:
+                    throw new ArgumentException("Invalid Question Type");
+            }
+
+            return true;
+        }
+
         public async Task<bool> UpdateAsync(long id, AssignQueDto model)
         {
             var assignModel = await context.AssignQues.FindAsync(id);
@@ -318,6 +422,13 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
             }
 
             return true;
+        }
+
+        public async Task<int> GetNumberByAssignmentAsync(long assignmentId)
+        {
+            var assignQues = await context.AssignQues.Where(a => a.AssignmentId == assignmentId).ToListAsync();
+
+            return assignQues == null ? 0 : assignQues.Count;
         }
     }
 }

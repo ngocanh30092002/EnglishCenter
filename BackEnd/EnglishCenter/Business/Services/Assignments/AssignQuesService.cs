@@ -311,5 +311,39 @@ namespace EnglishCenter.Business.Services.Assignments
                 Success = true
             };
         }
+
+        public async Task<Response> GetAssignQuesByNoNumAsync(long assignmentId, int noNum)
+        {
+            var assignQue = _unit.AssignQues
+                                        .Find(a => a.AssignmentId == assignmentId && a.NoNum == noNum)
+                                        .FirstOrDefault();
+
+            if (assignQue == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Message = null,
+                    Success = true
+                };
+            }
+
+            var isDone = await _unit.AssignQues.LoadQuestionWithoutAnswerAsync(assignQue);
+            if (!isDone)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Success = false
+                };
+            }
+
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = _mapper.Map<AssignQueResDto>(assignQue),
+                Success = true
+            };
+        }
     }
 }
