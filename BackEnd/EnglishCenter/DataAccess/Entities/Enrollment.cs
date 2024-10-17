@@ -8,7 +8,7 @@ namespace EnglishCenter.DataAccess.Entities;
 
 [Table("Enrollment")]
 [Index("ScoreHisId", Name = "IX_Enrollment", IsUnique = true)]
-public partial class Enrollment
+public class Enrollment
 {
     [Key]
     public long EnrollId { get; set; }

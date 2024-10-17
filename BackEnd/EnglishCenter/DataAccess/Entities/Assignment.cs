@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace EnglishCenter.DataAccess.Entities;
 
 [Table("Assignment")]
-public partial class Assignment
+public class Assignment
 {
     [Key]
     public long AssignmentId { get; set; }
@@ -31,9 +31,6 @@ public partial class Assignment
 
     [InverseProperty("Assignment")]
     public virtual ICollection<AssignQue> AssignQues { set; get; } = new List<AssignQue>();
-
-    [InverseProperty("Assignment")]
-    public virtual ICollection<Homework> HomeworkList { get; set; } = new List<Homework>();
 
     [InverseProperty("Assignment")]
     public virtual ICollection<LearningProcess> LearningProcesses { set; get; } = new List<LearningProcess>();

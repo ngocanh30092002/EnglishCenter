@@ -7,18 +7,18 @@ namespace EnglishCenter.DataAccess.Entities
     {
         [Key]
         public long HomeworkId { set; get; }
-        public long? AttendanceId { set; get; }
-        public long? AssignmentId { set; get; }
-        public DateTime? Deadline { set; get; }
-        public long? AnswerSheetId { set; get; }
 
-        [ForeignKey("AttendanceId")]
-        [InverseProperty("HomeworkList")]
-        public virtual Attendance? Attendance { set; get; }
+        [StringLength(10)]
+        public string ClassId { set; get; } = null!;
 
-        [ForeignKey("AssignmentId")]
-        [InverseProperty("HomeworkList")]
-        public virtual Assignment? Assignment { set; get; }
+        [ForeignKey("ClassId")]
+        [InverseProperty("HomeworkTasks")]
+        public virtual Class Class { set; get; } = null!;
+        
+        public DateTime StartTime { set; get; } = DateTime.Now;
+        
+        public DateTime EndTime { set; get; }
 
+        public int LateSubmitDays { set; get; } = 0;
     }
 }

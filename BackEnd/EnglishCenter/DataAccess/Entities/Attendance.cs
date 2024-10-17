@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EnglishCenter.DataAccess.Entities;
 
-public partial class Attendance
+public class Attendance
 {
     [Key]
     public long AttendanceId { set; get; }
@@ -14,7 +14,4 @@ public partial class Attendance
     public bool? IsPermitted { set; get; }
     public bool? IsLate { set; get; }
     public bool? IsLeaved { set; get; }
-
-    [InverseProperty("Attendance")]
-    public virtual ICollection<Homework> HomeworkList { set; get; } = new List<Homework>();
 }

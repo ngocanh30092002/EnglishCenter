@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.DataAccess.Database;
 
-public partial class EnglishCenterContext : IdentityDbContext<User>
+public class EnglishCenterContext : IdentityDbContext<User>
 {
     public EnglishCenterContext()
     {
@@ -15,7 +15,7 @@ public partial class EnglishCenterContext : IdentityDbContext<User>
     {
     }
 
-    public virtual DbSet<Homework> Homework { get; set; }
+    public virtual DbSet<Homework> Homework { set; get; }
 
     public virtual DbSet<AssignQue> AssignQues { get; set; }
 
@@ -187,13 +187,7 @@ public partial class EnglishCenterContext : IdentityDbContext<User>
 
         modelBuilder.Entity<Homework>(entity =>
         {
-            entity.HasOne(a => a.Attendance)
-                  .WithMany(a => a.HomeworkList)
-                  .HasConstraintName("FK_Homework_Attendance");
-
-            entity.HasOne(a => a.Assignment)
-                  .WithMany(a => a.HomeworkList)
-                  .HasConstraintName("FK_Homework_Assignment");
+            entity.HasOne(d => d.Class).WithMany(c => c.HomeworkTasks).HasConstraintName("FK_Homework_Class");
         });
 
         modelBuilder.Entity<Class>(entity =>
@@ -303,9 +297,5 @@ public partial class EnglishCenterContext : IdentityDbContext<User>
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Sub_RC_Triple_Ques_RC_Triple");
         });
-
-        OnModelCreatingPartial(modelBuilder);
     }
-
-    partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }

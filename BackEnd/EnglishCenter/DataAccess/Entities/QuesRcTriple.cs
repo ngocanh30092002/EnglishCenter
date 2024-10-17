@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace EnglishCenter.DataAccess.Entities;
 
 [Table("Ques_RC_Triple")]
-public partial class QuesRcTriple
+public class QuesRcTriple
 {
     [Key]
     public long QuesId { get; set; }

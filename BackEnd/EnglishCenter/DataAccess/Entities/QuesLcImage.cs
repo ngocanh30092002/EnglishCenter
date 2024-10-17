@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace EnglishCenter.DataAccess.Entities;
 
 [Table("Ques_LC_Image")]
-public partial class QuesLcImage
+public class QuesLcImage
 {
     [Key]
     public long QuesId { get; set; }

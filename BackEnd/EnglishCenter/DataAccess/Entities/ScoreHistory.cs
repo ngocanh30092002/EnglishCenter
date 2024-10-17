@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace EnglishCenter.DataAccess.Entities;
 
 [Table("ScoreHistory")]
-public partial class ScoreHistory
+public class ScoreHistory
 {
     [Key]
     public long ScoreHisId { get; set; }

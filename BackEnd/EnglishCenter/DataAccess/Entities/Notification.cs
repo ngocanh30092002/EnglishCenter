@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EnglishCenter.DataAccess.Entities;
 
-public partial class Notification
+public class Notification
 {
     [Key]
     public long NotiId { get; set; }

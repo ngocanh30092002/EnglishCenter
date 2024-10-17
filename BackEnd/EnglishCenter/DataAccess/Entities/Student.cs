@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.DataAccess.Entities;
 
-public partial class Student
+public class Student
 {
     [Key]
     [StringLength(100)]

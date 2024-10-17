@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace EnglishCenter.DataAccess.Entities;
 
 [Table("EnrollStatus")]
-public partial class EnrollStatus
+public class EnrollStatus
 {
     [Key]
     public int StatusId { get; set; }

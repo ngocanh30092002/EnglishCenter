@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace EnglishCenter.DataAccess.Entities;
 
 [Table("Sub_RC_Double")]
-public partial class SubRcDouble
+public class SubRcDouble
 {
     [Key]
     public long SubId { get; set; }

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EnglishCenter.DataAccess.Entities;
 
-public partial class Course
+public class Course
 {
     [Key]
     [StringLength(10)]

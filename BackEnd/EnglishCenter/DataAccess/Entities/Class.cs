@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EnglishCenter.DataAccess.Entities;
 
-public partial class Class
+public class Class
 {
     [Key]
     [StringLength(10)]
@@ -44,5 +44,6 @@ public partial class Class
     [InverseProperty("Class")]
     public virtual ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
 
-
+    [InverseProperty("Class")]
+    public virtual ICollection<Homework> HomeworkTasks { set; get; } = new List<Homework>();
 }

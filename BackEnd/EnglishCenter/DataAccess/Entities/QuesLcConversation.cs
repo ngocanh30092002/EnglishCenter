@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace EnglishCenter.DataAccess.Entities;
 
 [Table("Ques_LC_Conversation")]
-public partial class QuesLcConversation
+public class QuesLcConversation
 {
     [Key]
     public long QuesId { get; set; }
