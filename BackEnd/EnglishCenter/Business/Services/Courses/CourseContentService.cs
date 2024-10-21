@@ -4,6 +4,7 @@ using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.UnitOfWork;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
+using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.Business.Services.Courses
 {
@@ -94,8 +95,10 @@ namespace EnglishCenter.Business.Services.Courses
 
         public async Task<Response> CreateAsync(CourseContentDto courseContentDto)
         {
-            var isExistCourse = _unit.Courses.IsExist(c => c.CourseId == courseContentDto.CourseId);
-            if(!isExistCourse)
+            var courseModel = await _unit.Courses
+                                        .Include(c => c.CourseContents)
+                                        .FirstOrDefaultAsync(c => c.CourseId == courseContentDto.CourseId);
+            if(courseModel == null)
             {
                 return new Response()
                 {
@@ -105,18 +108,11 @@ namespace EnglishCenter.Business.Services.Courses
                 };
             }
 
-            var isExistNoNum = _unit.CourseContents.IsExist(c => c.CourseId == courseContentDto.CourseId && c.NoNum == courseContentDto.NoNum);
-            if (isExistNoNum)
-            {
-                return new Response()
-                {
-                    Success = false,
-                    StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "The current order already exists"
-                };
-            }
+            var currentNum = courseModel.CourseContents.Select(c => (int?)c.NoNum).Max();
 
             var courseContentModel = _mapper.Map<CourseContent>(courseContentDto);
+            courseContentModel.NoNum = currentNum.HasValue ? currentNum.Value + 1 : 1;
+
             _unit.CourseContents.Add(courseContentModel);
             await _unit.CompleteAsync();
 
@@ -141,6 +137,23 @@ namespace EnglishCenter.Business.Services.Courses
                     Message = "Can't find any course contents"
                 };
             }
+
+            var maxNoNum = _unit.CourseContents
+                                .Find(c => c.CourseId == courseContentModel.CourseId)
+                                .Select(c => (int?)c.NoNum)
+                                .Max();
+
+            var isChangeSuccess = await _unit.CourseContents.ChangeNoNumAsync(courseContentModel, maxNoNum ?? 1);
+            if (!isChangeSuccess)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't delete course content",
+                    Success = false
+                };
+            }
+                        
 
             _unit.CourseContents.Remove(courseContentModel);
             await _unit.CompleteAsync();

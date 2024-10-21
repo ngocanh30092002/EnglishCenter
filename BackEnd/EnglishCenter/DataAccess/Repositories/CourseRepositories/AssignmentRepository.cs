@@ -59,6 +59,7 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
                             .FirstOrDefault();
             }
         }
+
         public async Task<bool> ChangeCourseContentAsync(Assignment assignmentModel, long contentId)
         {
             if (assignmentModel == null) return false;
@@ -258,7 +259,7 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
                     };
                 }
 
-                //assignment.Time = time;
+                assignment.Time = time;
             }
 
             if (assignment.CourseContentId != model.ContentId)
@@ -291,6 +292,21 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
                 };
             }
 
+            if(assignment.AchievedPercentage != model.Achieved_Percentage)
+            {
+                var isSuccess = await ChangePercentageAsync(assignment, model.Achieved_Percentage);
+
+                if (!isSuccess)
+                {
+                    return new Response()
+                    {
+                        StatusCode = System.Net.HttpStatusCode.BadRequest,
+                        Message = "Can't percentage NoNum",
+                        Success = false
+                    };
+                };
+            }
+
             assignment.Title = model.Title;
 
             return new Response()
@@ -299,6 +315,16 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
                 StatusCode = System.Net.HttpStatusCode.OK,
                 Message = ""
             };
+        }
+
+        public Task<bool> ChangePercentageAsync(Assignment assignmentModel, int percentage)
+        {
+            if (assignmentModel == null) return Task.FromResult(false);
+            if (percentage < 0 && percentage > 100) return Task.FromResult(false);
+
+            assignmentModel.AchievedPercentage = percentage;
+
+            return Task.FromResult(true);
         }
     }
 }

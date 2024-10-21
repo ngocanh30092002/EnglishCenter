@@ -14,9 +14,17 @@ namespace EnglishCenter.DataAccess.Entities
 
         public DateTime Date { set; get; } = DateTime.Now;
 
-        public int Status { set; get; }
+        public int SubmitStatus { set; get; }
 
         public string? FeedBack { set; get; }
+
+        public bool IsPass { set; get; }
+
+        public long EnrollId { set; get; }
+
+        [ForeignKey("EnrollId")]
+        [InverseProperty("Submissions")]
+        public virtual Enrollment Enrollment { set; get; } = null!;
 
         [ForeignKey("HomeworkId")]
         [InverseProperty("Submissions")]

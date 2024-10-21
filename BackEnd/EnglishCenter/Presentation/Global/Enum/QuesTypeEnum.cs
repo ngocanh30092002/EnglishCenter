@@ -2,12 +2,12 @@
 {
     public enum QuesTypeEnum
     {
-        Image = 0,
-        Audio = 1,
-        Conversation = 2,
-        Sentence = 3,
-        Single = 4,
-        Double = 5,
-        Triple = 6
+        Image = 1,
+        Audio = 2,
+        Conversation = 3,
+        Sentence = 4,
+        Single = 5,
+        Double = 6,
+        Triple = 7
     }
 }

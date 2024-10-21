@@ -22,6 +22,10 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
             var nextAssignment = await context.Assignments.FindAsync(assignmentId);
             if (nextAssignment == null) return false;
 
+            var quesIdOfModel = await GetQuesIdAsync(model);
+            var isSameQues = await IsSameAssignQuesAsync((QuesTypeEnum)model.Type, assignmentId, quesIdOfModel);
+            if (isSameQues) return false;
+
             var otherAssignQues = await context.AssignQues
                                                 .Where(s => s.AssignQuesId != model.AssignQuesId && s.AssignmentId == model.AssignmentId)
                                                 .OrderBy(s => s.NoNum)
@@ -86,6 +90,9 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
 
             var isExist = await IsExistQuesIdAsync(type, quesId);
             if (!isExist) return false;
+
+            var isSameQues = await IsSameAssignQuesAsync(type, model.AssignQuesId, quesId);
+            if (isSameQues) return false;
 
             var currentAssignment = await context.Assignments.FindAsync(model.AssignmentId);
             if (currentAssignment == null) return false;
@@ -270,6 +277,62 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
                 return false;
             }
         }
+
+        public async Task<bool> IsSameAssignQuesAsync(QuesTypeEnum type, long assignmentId, long quesId)
+        {
+            bool isExist = false;
+
+            switch (type)
+            {
+                case QuesTypeEnum.Image:
+                    isExist = await context.AssignQues
+                                        .AnyAsync(q => q.Type == (int)type &&
+                                                       q.ImageQuesId == quesId &&
+                                                       q.AssignmentId == assignmentId);
+                    break;
+                case QuesTypeEnum.Audio:
+                    isExist = await context.AssignQues
+                                        .AnyAsync(q => q.Type == (int)type &&
+                                                       q.AudioQuesId == quesId &&
+                                                       q.AssignmentId == assignmentId);
+                    break;
+                case QuesTypeEnum.Conversation:
+                    isExist = await context.AssignQues
+                                        .AnyAsync(q => q.Type == (int)type &&
+                                                       q.ConversationQuesId == quesId &&
+                                                       q.AssignmentId == assignmentId);
+                    break;
+                case QuesTypeEnum.Sentence:
+                    isExist = await context.AssignQues
+                                        .AnyAsync(q => q.Type == (int)type &&
+                                                       q.SentenceQuesId == quesId &&
+                                                       q.AssignmentId == assignmentId);
+                    break;
+                case QuesTypeEnum.Single:
+                    isExist = await context.AssignQues
+                                        .AnyAsync(q => q.Type == (int)type &&
+                                                       q.SingleQuesId == quesId &&
+                                                       q.AssignmentId == assignmentId);
+                    break;
+                case QuesTypeEnum.Double:
+                    isExist = await context.AssignQues
+                                        .AnyAsync(q => q.Type == (int)type &&
+                                                       q.DoubleQuesId == quesId &&
+                                                       q.AssignmentId == assignmentId);
+                    break;
+                case QuesTypeEnum.Triple:
+                    isExist = await context.AssignQues
+                                        .AnyAsync(q => q.Type == (int)type &&
+                                                       q.TripleQuesId == quesId &&
+                                                       q.AssignmentId == assignmentId);
+                    break;
+                default:
+                    throw new ArgumentException("Invalid Question Type");
+            }
+
+            return isExist;
+        }
+
         public async Task<bool> LoadQuestionAsync(AssignQue model)
         {
             if (model == null) return false;
@@ -426,9 +489,66 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
 
         public async Task<int> GetNumberByAssignmentAsync(long assignmentId)
         {
+            int totalQues = 0;
             var assignQues = await context.AssignQues.Where(a => a.AssignmentId == assignmentId).ToListAsync();
 
-            return assignQues == null ? 0 : assignQues.Count;
+            foreach(var assign in assignQues)
+            {
+                switch((QuesTypeEnum)assign.Type)
+                {
+                    case QuesTypeEnum.Conversation:
+                        totalQues += context.SubLcConversations.Where(s => s.PreQuesId == assign.ConversationQuesId).Count();
+                        break;
+                    case QuesTypeEnum.Single:
+                        totalQues += context.SubRcSingles.Where(s => s.PreQuesId == assign.SingleQuesId).Count();
+                        break;
+                    case QuesTypeEnum.Double:
+                        totalQues += context.SubRcDoubles.Where(s => s.PreQuesId == assign.DoubleQuesId).Count();
+                        break;
+                    case QuesTypeEnum.Triple:
+                        totalQues += context.SubRcTriples.Where(s => s.PreQuesId == assign.TripleQuesId).Count();
+                        break;
+                    default:
+                        totalQues += 1;
+                        break;
+                }
+            }
+
+            return totalQues;
+        }
+
+        public Task<long> GetQuesIdAsync(AssignQue model)
+        {
+            long quesId;
+
+            switch ((QuesTypeEnum)model.Type)
+            {
+                case QuesTypeEnum.Image:
+                    quesId = model.ImageQuesId!.Value;
+                    break;
+                case QuesTypeEnum.Audio:
+                    quesId = model.AudioQuesId!.Value;
+                    break;
+                case QuesTypeEnum.Conversation:
+                    quesId = model.ConversationQuesId!.Value;
+                    break;
+                case QuesTypeEnum.Sentence:
+                    quesId = model.SentenceQuesId!.Value;
+                    break;
+                case QuesTypeEnum.Single:
+                    quesId = model.SingleQuesId!.Value;
+                    break;
+                case QuesTypeEnum.Double:
+                    quesId = model.DoubleQuesId!.Value;
+                    break;
+                case QuesTypeEnum.Triple:
+                    quesId = model.TripleQuesId!.Value;
+                    break;
+                default:
+                    throw new ArgumentException("Invalid Question Type");
+            }
+
+            return Task.FromResult(quesId);
         }
     }
 }

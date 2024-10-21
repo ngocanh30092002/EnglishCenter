@@ -42,7 +42,11 @@ namespace EnglishCenter.DataAccess.UnitOfWork
             ISubRcTripleRepository subRcTripleRepo,
             IAnswerRcTripleRepository answerRcTripleRepo,
             ILearningProcessRepository learningProcessRepo,
-            IAnswerRecordsRepository answerRecordRepo
+            IAnswerRecordsRepository answerRecordRepo,
+            IHomeworkRepository homeworkRepo,
+            IHomeQuesRepository homeQuesRepo,
+            IHwSubmissionRepository hwSubmissionRepo,
+            IHwSubRecordRepository hwSubRecordRepo
             ) 
         {
             _context = context;
@@ -77,6 +81,10 @@ namespace EnglishCenter.DataAccess.UnitOfWork
             SubRcTriples = subRcTripleRepo;
             LearningProcesses = learningProcessRepo;
             AnswerRecords = answerRecordRepo;
+            Homework = homeworkRepo;
+            HomeQues = homeQuesRepo;
+            HwSubmissions = hwSubmissionRepo;
+            HwSubRecords = hwSubRecordRepo;
         }
 
         public IEventRepository Events { get; private set; }
@@ -110,6 +118,10 @@ namespace EnglishCenter.DataAccess.UnitOfWork
         public ISubRcTripleRepository SubRcTriples { get; private set; }
         public ILearningProcessRepository LearningProcesses { get; private set; }
         public IAnswerRecordsRepository AnswerRecords { get; private set; }
+        public IHomeworkRepository Homework { get; private set; }
+        public IHomeQuesRepository HomeQues { get; private set; }
+        public IHwSubmissionRepository HwSubmissions { get; private set; }
+        public IHwSubRecordRepository HwSubRecords { get; private set; }
 
         public async Task BeginTransAsync()
         {

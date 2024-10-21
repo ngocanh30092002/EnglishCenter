@@ -21,7 +21,7 @@ namespace EnglishCenter.Presentation.Extensions.Repository
 
             foreach (var repo in repos)
             {
-                var interfaces = repo.GetInterfaces();
+                var interfaces = repo.GetInterfaces().Where(i => i.Name == $"I{repo.Name}");
 
                 foreach (var @interface in interfaces )
                 {

@@ -122,9 +122,9 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
                 }
             }
 
-            if (courseContent.NoNum != model.NoNum)
+            if (model.NoNum.HasValue && courseContent.NoNum != model.NoNum)
             {
-                var isSuccess = await ChangeNoNumAsync(courseContent, model.NoNum);
+                var isSuccess = await ChangeNoNumAsync(courseContent, model.NoNum.Value);
 
                 if (!isSuccess)
                 {

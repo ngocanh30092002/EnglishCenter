@@ -388,11 +388,11 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
-            var preQuesModel = await _unit.QuesRcDoubles
-                                    .Include(q => q.SubRcDoubles)
-                                    .FirstOrDefaultAsync(q => q.QuesId == queModel.PreQuesId);
+            var currentMaxNum = _unit.SubRcDoubles
+                                       .Find(s => s.PreQuesId == queModel.PreQuesId)
+                                       .Select(s => (int?)s.NoNum)
+                                       .Max();
 
-            var currentMaxNum = preQuesModel?.SubRcDoubles.Count > 0 ? preQuesModel?.SubRcDoubles.Max(s => s.NoNum) : 1;
             var isChangeNoNumSuccess = await _unit.SubRcDoubles.ChangeNoNumAsync(queModel, currentMaxNum ?? 1);
             if (!isChangeNoNumSuccess)
             {

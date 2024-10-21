@@ -9,11 +9,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
 {
-    public class AnswerRecordRepository : GenericRepository<AnswerRecord>, IAnswerRecordsRepository
+    public class AnswerRecordsRepository : GenericRepository<AnswerRecord>, IAnswerRecordsRepository
     {
         private readonly IAssignQuesRepository _assignRepo;
 
-        public AnswerRecordRepository(EnglishCenterContext context, IAssignQuesRepository assignRepo) : base(context)
+        public AnswerRecordsRepository(EnglishCenterContext context, IAssignQuesRepository assignRepo) : base(context)
         {
             _assignRepo = assignRepo;
         }
@@ -36,15 +36,6 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
             record.IsCorrect = await _assignRepo.IsCorrectAnswerAsync(assignQueModel, record.SelectedAnswer, record.SubQueId);
 
             return true;
-        }
-
-        public Task<bool> ChangeCorrectAsync(AnswerRecord record, bool isCorrect)
-        {
-            if (record == null) return Task.FromResult(false);
-
-            record.IsCorrect = isCorrect;
-
-            return Task.FromResult(true);
         }
 
         public async Task<bool> ChangeProcessAsync(AnswerRecord record, long processId)

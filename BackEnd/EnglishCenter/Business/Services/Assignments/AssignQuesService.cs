@@ -6,6 +6,7 @@ using EnglishCenter.Presentation.Global.Enum;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
 using EnglishCenter.Presentation.Models.ResDTOs;
+using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.Business.Services.Assignments
 {
@@ -13,11 +14,13 @@ namespace EnglishCenter.Business.Services.Assignments
     {
         private readonly IUnitOfWork _unit;
         private readonly IMapper _mapper;
+        private readonly IAnswerRecordService _answerRecordService;
 
-        public AssignQuesService(IUnitOfWork unit, IMapper mapper)
+        public AssignQuesService(IUnitOfWork unit, IMapper mapper, IAnswerRecordService answerRecordService)
         {
             _unit = unit;
             _mapper = mapper;
+            _answerRecordService = answerRecordService;
         }
         
         public async Task<Response> ChangeAssignmentIdAsync(long id, long assignmentId)
@@ -165,6 +168,17 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
+            var isSameQues = await _unit.AssignQues.IsSameAssignQuesAsync((QuesTypeEnum)model.Type, model.AssignmentId, model.QuesId);
+            if(isSameQues)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "It is not possible to add the same assignment question",
+                    Success = false
+                };
+            }
+
             var isExistQuesType = await _unit.AssignQues.IsExistQuesIdAsync((QuesTypeEnum)model.Type, model.QuesId);
             if (!isExistQuesType) 
             {
@@ -199,6 +213,7 @@ namespace EnglishCenter.Business.Services.Assignments
         {
             var assignQuesModel = _unit.AssignQues
                                         .Include(a => a.Assignment)
+                                        .Include(a => a.AnswerRecords)
                                         .FirstOrDefault(a => a.AssignQuesId == id);
 
             if(assignQuesModel == null)
@@ -206,22 +221,52 @@ namespace EnglishCenter.Business.Services.Assignments
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Can't find any Assignment Question",
+                    Message = "Can't find any assignment question",
                     Success = false
                 };
             }
 
-            var expectedTime = await _unit.AssignQues.GetTimeQuesAsync(assignQuesModel);
-            assignQuesModel.Assignment.ExpectedTime = TimeOnly.FromTimeSpan(assignQuesModel.Assignment.ExpectedTime - expectedTime);
+            await _unit.BeginTransAsync();
 
-            _unit.AssignQues.Remove(assignQuesModel);
-            await _unit.CompleteAsync();
-            return new Response()
+            try
             {
-                StatusCode = System.Net.HttpStatusCode.OK,
-                Message = "",
-                Success = true
-            };
+                var expectedTime = await _unit.AssignQues.GetTimeQuesAsync(assignQuesModel);
+                assignQuesModel.Assignment.ExpectedTime = TimeOnly.FromTimeSpan(assignQuesModel.Assignment.ExpectedTime - expectedTime);
+
+                var answerRecordIds = assignQuesModel.AnswerRecords.Select(a => a.AnswerRecordId).ToList();
+                foreach (var answerId in answerRecordIds)
+                {
+                    await _answerRecordService.DeleteAsync(answerId);
+                }
+
+                int i = 1;
+                var otherAssignQues = _unit.AssignQues.Find(a => a.AssignmentId == assignQuesModel.AssignmentId && a.NoNum != assignQuesModel.NoNum);
+                foreach (var assignQue in otherAssignQues)
+                {
+                    assignQue.NoNum = i++;
+                }
+
+                _unit.AssignQues.Remove(assignQuesModel);
+
+                await _unit.CompleteAsync();
+                await _unit.CommitTransAsync();
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Message = "",
+                    Success = true
+                };
+            }
+            catch(Exception ex)
+            {
+                await _unit.RollBackTransAsync();
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = ex.Message,
+                    Success = false
+                };
+            }
         }
 
         public async Task<Response> GetAllAsync()

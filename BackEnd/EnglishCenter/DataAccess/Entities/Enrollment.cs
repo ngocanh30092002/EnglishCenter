@@ -45,4 +45,7 @@ public class Enrollment
 
     [InverseProperty("Enrollment")]
     public virtual ICollection<LearningProcess> LearningProcesses { set; get; } = new List<LearningProcess>();
+
+    [InverseProperty("Enrollment")]
+    public virtual ICollection<HwSubmission> Submissions { set; get; } = new List<HwSubmission>();
 }

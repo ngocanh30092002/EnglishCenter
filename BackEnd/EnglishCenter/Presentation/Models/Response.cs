@@ -20,6 +20,15 @@ namespace EnglishCenter.Presentation.Models
             switch (StatusCode)
             {
                 case HttpStatusCode.OK:
+                    if(string.IsNullOrEmpty(Token) || string.IsNullOrEmpty(RefreshToken))
+                    {
+                        return Ok(new
+                        {
+                            Message,
+                            Success
+                        });
+                    }
+
                     return Ok(new
                     {
                         Message,

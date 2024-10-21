@@ -25,6 +25,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.1.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="8.0.7" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.7" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.7">
       <PrivateAssets>all</PrivateAssets>
@@ -37,9 +38,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Business\Services\Homework\" />
     <Folder Include="DataAccess\Migrations\" />
-    <Folder Include="DataAccess\Repositories\HomeworkRepositories\" />
     <Folder Include="wwwroot\classes\images\" />
     <Folder Include="wwwroot\notifications\images\" />
     <Folder Include="wwwroot\questions\" />

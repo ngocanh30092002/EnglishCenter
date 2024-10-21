@@ -94,7 +94,10 @@ public class EnglishCenterContext : IdentityDbContext<User>
     public virtual DbSet<AnswerRecord> AnswerRecords { set; get; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlServer("Name=ConnectionStrings:EnglishCenter");
+    {
+        optionsBuilder.UseLazyLoadingProxies()
+                    .UseSqlServer("Name=ConnectionStrings:EnglishCenter");
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -196,6 +199,14 @@ public class EnglishCenterContext : IdentityDbContext<User>
             entity.HasOne(d => d.Class).WithMany(c => c.HomeworkTasks).HasConstraintName("FK_Homework_Class");
 
             entity.HasMany(d => d.Submissions).WithOne(c => c.Homework).HasConstraintName("FK_HwSubmission_Homework");
+        });
+
+        modelBuilder.Entity<HwSubmission>(entity =>
+        {
+            entity.HasOne(s => s.Enrollment)
+                .WithMany(e => e.Submissions)
+                .HasConstraintName("FK_HW_Submission_Enrollment")
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<HwSubRecord>(entity =>

@@ -25,6 +25,8 @@ public class Assignment
     [Required]
     public int AchievedPercentage { set; get; } = 0;
 
+    public int Type { set; get; } = 1;
+
     [ForeignKey("CourseContentId")]
     [InverseProperty("Assignments")]
     public virtual CourseContent CourseContent { set; get; } = null!;

@@ -21,14 +21,7 @@ namespace EnglishCenter.Presentation
                 .ForMember(des => des.NoNum, opt => opt.MapFrom(src => src.NoNum))
                 .ForMember(des => des.Content, opt => opt.MapFrom(src => src.Content))
                 .ForMember(des => des.CourseId, opt => opt.MapFrom(src => src.CourseId))
-                .ForMember(des => des.Assignments, opt => opt.MapFrom(src => src.Assignments.Select(e => new AssignmentDto()
-                {
-                    AssignmentId = e.AssignmentId,
-                    ContentId = e.CourseContentId,
-                    NoNum = e.NoNum,
-                    Time = e.Time.ToString("HH:mm:ss"),
-                    Title = e.Title
-                })));
+                .ForMember(des => des.Assignments, opt => opt.MapFrom(src => src.Assignments));
         }
     }
 }

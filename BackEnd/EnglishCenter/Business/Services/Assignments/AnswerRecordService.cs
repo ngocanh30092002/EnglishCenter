@@ -66,39 +66,6 @@ namespace EnglishCenter.Business.Services.Assignments
             };
         }
 
-        public async Task<Response> ChangeCorrectAsync(long id, bool isCorrect)
-        {
-            var answerModel = _unit.AnswerRecords.GetById(id);
-            if (answerModel == null)
-            {
-                return new Response()
-                {
-                    StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Can't find any answer records",
-                    Success = false
-                };
-            }
-
-            var isChangeSuccess = await _unit.AnswerRecords.ChangeCorrectAsync(answerModel, isCorrect);
-            if (!isChangeSuccess)
-            {
-                return new Response()
-                {
-                    StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Change correct answer failed",
-                    Success = false
-                };
-            }
-
-            await _unit.CompleteAsync();
-            return new Response()
-            {
-                StatusCode = System.Net.HttpStatusCode.OK,
-                Message = "",
-                Success = true
-            };
-        }
-
         public async Task<Response> ChangeProcessAsync(long id, long processId)
         {
             var answerModel = _unit.AnswerRecords.GetById(id);
@@ -380,12 +347,6 @@ namespace EnglishCenter.Business.Services.Assignments
                 if (answerModel.SelectedAnswer != model.SelectedAnswer)
                 {
                     var changeResponse = await ChangeSelectedAnswerAsync(id, model.SelectedAnswer);
-                    if (!changeResponse.Success) return changeResponse;
-                }
-
-                if (answerModel.IsCorrect != model.IsCorrect)
-                {
-                    var changeResponse = await ChangeCorrectAsync(id, model.IsCorrect);
                     if (!changeResponse.Success) return changeResponse;
                 }
 

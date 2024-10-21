@@ -65,15 +65,6 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
             return await response.ChangeActionAsync();
         }
 
-        [HttpPatch("{id}/change-correct")]
-        [Authorize(Roles = AppRole.ADMIN)]
-        public async Task<IActionResult> ChangeCorrectAsync([FromRoute] long id, [FromQuery] bool isCorrect)
-        {
-            var response = await _answerService.ChangeCorrectAsync(id, isCorrect);
-            return await response.ChangeActionAsync();
-        }
-
-
         [HttpPatch("{id}/change-selected-answer")]
         [Authorize(Roles = AppRole.ADMIN)]
         public async Task<IActionResult> ChangeSelectedAnswerAsync([FromRoute] long id, [FromQuery] string selectedAnswer)

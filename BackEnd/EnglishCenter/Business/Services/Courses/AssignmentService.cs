@@ -5,6 +5,7 @@ using EnglishCenter.DataAccess.UnitOfWork;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
 using EnglishCenter.Presentation.Models.ResDTOs;
+using Microsoft.EntityFrameworkCore;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace EnglishCenter.Business.Services.Courses
@@ -87,6 +88,48 @@ namespace EnglishCenter.Business.Services.Courses
             }
 
             var isSuccess = await _unit.Assignments.ChangeNoNumberAsync(assignModel, number);
+            if (!isSuccess)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Success = false,
+                };
+            }
+
+            await _unit.CompleteAsync();
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = "",
+                Success = true
+            };
+        }
+
+        public async Task<Response> ChangePercentageAsync(long assignmentId, int percentage)
+        {
+            var assignModel = _unit.Assignments.GetById(assignmentId);
+            if (assignModel == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Success = false,
+                    Message = "Can't find any assignments"
+                };
+            }
+
+            if (percentage < 0 || percentage > 100)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Success = false,
+                    Message = "Percentage must be between 0 - 100"
+                };
+            }
+
+            var isSuccess = await _unit.Assignments.ChangePercentageAsync(assignModel, percentage);
             if (!isSuccess)
             {
                 return new Response()
@@ -190,8 +233,21 @@ namespace EnglishCenter.Business.Services.Courses
                 };
             }
 
-            var isExistCourseContent = _unit.CourseContents.IsExist(c => c.ContentId == model.ContentId);
-            if (!isExistCourseContent)
+            if(timeOnly == TimeOnly.MinValue)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "You need to set a time for your homework.",
+                    Success = false
+                };
+            }
+
+            var courseContentModel = await _unit.CourseContents
+                                                .Include(c => c.Assignments)
+                                                .FirstOrDefaultAsync(c => c.ContentId == model.ContentId);
+
+            if (courseContentModel == null)
             {
                 return new Response()
                 {
@@ -200,18 +256,17 @@ namespace EnglishCenter.Business.Services.Courses
                 };
             }
 
-            var isExistedNoNum = _unit.Assignments.IsExist(a => a.CourseContentId == model.ContentId && a.NoNum == model.NoNum);
-            if (isExistedNoNum)
-            {
-                return new Response()
-                {
-                    StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "The current order already exists"
-                };
-            }
+            var currentNum = courseContentModel.Assignments
+                                            .Select(s => (int?)s.NoNum)
+                                            .Max();
+            var assignModel =  new Assignment();
 
-            var assignModel = _mapper.Map<Assignment>(model);
+            assignModel.NoNum = currentNum.HasValue ? currentNum.Value + 1 : 1;
+            assignModel.Title = model.Title;
             assignModel.Time = timeOnly;
+            assignModel.CourseContentId = model.ContentId;
+            assignModel.ExpectedTime = TimeOnly.MinValue;
+            assignModel.AchievedPercentage = model.Achieved_Percentage;
 
             _unit.Assignments.Add(assignModel);
             await _unit.CompleteAsync();
@@ -234,6 +289,22 @@ namespace EnglishCenter.Business.Services.Courses
                     Success = false,
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
                     Message = "Can't find any assignments"
+                };
+            }
+
+            var maxNumber = _unit.Assignments
+                                .Find(c => c.CourseContentId == assignModel.CourseContentId)
+                                .Select(c => (int?)c.NoNum)
+                                .Max();
+
+            var isChangeSuccess = await _unit.Assignments.ChangeNoNumberAsync(assignModel, maxNumber ?? 1);
+            if (!isChangeSuccess)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't delete assignment",
+                    Success = false
                 };
             }
 
@@ -294,7 +365,7 @@ namespace EnglishCenter.Business.Services.Courses
             return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Message = _mapper.Map<List<AssignmentDto>>(assignments),
+                Message = _mapper.Map<List<AssignmentResDto>>(assignments),
                 Success = true
             };
         }

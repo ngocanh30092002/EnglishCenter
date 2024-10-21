@@ -26,14 +26,14 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetAsync(long id)
+        public async Task<IActionResult> GetAsync([FromRoute] long id)
         {
             var response = await _assignQuesService.GetAsync(id);
             return await response.ChangeActionAsync();
         }
 
         [HttpGet("assignments/{assignId}")]
-        public async Task<IActionResult> GetByAssignmentAsync(long assignId)
+        public async Task<IActionResult> GetByAssignmentAsync([FromRoute] long assignId)
         {
             var response = await _assignQuesService.GetByAssignmentAsync(assignId);
             return await response.ChangeActionAsync();

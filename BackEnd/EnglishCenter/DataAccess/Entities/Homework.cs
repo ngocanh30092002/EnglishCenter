@@ -17,6 +17,17 @@ namespace EnglishCenter.DataAccess.Entities
         [StringLength(10)]
         public string ClassId { set; get; } = null!;
 
+        public TimeOnly Time { set; get; } = TimeOnly.MinValue;
+
+        public TimeOnly ExpectedTime { set; get; } = TimeOnly.MinValue;
+
+        [Range(0, 100)]
+        [Required]
+        public int AchievedPercentage { set; get; } = 0;
+
+        [Column(TypeName = "nvarchar(200)")]
+        public string Title { set; get; } = null!;
+
         [ForeignKey("ClassId")]
         [InverseProperty("HomeworkTasks")]
         public virtual Class Class { set; get; } = null!;

@@ -389,18 +389,18 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
-            var preQuesModel = await _unit.QuesLcCons
-                                    .Include(q => q.SubLcConversations)
-                                    .FirstOrDefaultAsync(q => q.QuesId == queModel.PreQuesId);
+            var currentMaxNum = _unit.SubLcCons
+                                       .Find(s => s.PreQuesId == queModel.PreQuesId)
+                                       .Select(s => (int?)s.NoNum)
+                                       .Max();
 
-            var currentMaxNum = preQuesModel?.SubLcConversations.Count > 0 ? preQuesModel?.SubLcConversations.Max(s => s.NoNum) : 1;
             var isChangeNoNumSuccess = await _unit.SubLcCons.ChangeNoNumAsync(queModel, currentMaxNum ?? 1);
             if (!isChangeNoNumSuccess)
             {
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Can't delete questions",
+                    Message = "Can't delete question",
                     Success = false
                 };
             }

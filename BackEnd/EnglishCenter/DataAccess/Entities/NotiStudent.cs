@@ -11,13 +11,13 @@ namespace EnglishCenter.DataAccess.Entities
 
         [ForeignKey("NotiId")]
         [InverseProperty("NotiStudents")]
-        public Notification? Notification { get; set; }
+        public virtual Notification? Notification { get; set; }
 
         public string UserId { get; set; }
 
         [ForeignKey("UserId")]
         [InverseProperty("NotiStudents")]
-        public Student? Student { get; set; }
+        public virtual Student? Student { get; set; }
 
         public bool IsRead { get; set; }
     }

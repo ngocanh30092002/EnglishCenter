@@ -16,5 +16,6 @@ namespace EnglishCenter.DataAccess.IRepositories
         public Task<bool> ChangeCourseContentAsync(Assignment assignmentModel, long contentId);
         public Task<bool> ChangeTitleAsync(Assignment assignmentModel, string title);
         public Task<bool> ChangeTimeAsync(Assignment assignmentModel, TimeOnly time);
+        public Task<bool> ChangePercentageAsync(Assignment assignmentModel, int percentage);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using EnglishCenter.Presentation.Models.ResDTOs;
 
 namespace EnglishCenter.Presentation.Models.DTOs
 {
@@ -6,8 +7,7 @@ namespace EnglishCenter.Presentation.Models.DTOs
     {
         public long? ContentId { set; get; }
 
-        [Required]
-        public int NoNum { set; get; }
+        public int? NoNum { set; get; }
 
         [Required]
         [StringLength(200)]
@@ -20,6 +20,6 @@ namespace EnglishCenter.Presentation.Models.DTOs
         [StringLength(10)]
         public string CourseId { set; get; }
 
-        public ICollection<AssignmentDto>? Assignments { get; set; }
+        public ICollection<AssignmentResDto>? Assignments { get; set; }
     }
 }

@@ -17,5 +17,6 @@ namespace EnglishCenter.Business.IServices
         public Task<Response> ChangeCourseContentAsync(long assignmentId, long contentId);
         public Task<Response> ChangeTitleAsync(long assignmentId,  string title);
         public Task<Response> ChangeTimeAsync(long assignmentId,  string time);
+        public Task<Response> ChangePercentageAsync(long assignmentId, int percentage);
     }
 }
