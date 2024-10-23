@@ -2,6 +2,7 @@
 using EnglishCenter.DataAccess.Database;
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.IRepositories;
+using EnglishCenter.Presentation.Global.Enum;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
 using Microsoft.EntityFrameworkCore;
@@ -137,6 +138,30 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
                 }
             }
 
+            if (model.Type!.Value != courseContent.Type)
+            {
+                if(!Enum.IsDefined(typeof(CourseContentTypeEnum), model.Type.Value))
+                {
+                    return new Response()
+                    {
+                        StatusCode = System.Net.HttpStatusCode.BadRequest,
+                        Message = "Invalid type",
+                        Success = false
+                    };
+                }
+
+                var isSuccess = await ChangeTypeAsync(courseContent, (CourseContentTypeEnum) model.Type.Value);
+                if (!isSuccess)
+                {
+                    return new Response()
+                    {
+                        StatusCode = System.Net.HttpStatusCode.BadRequest,
+                        Success = false,
+                        Message = "Can't change type"
+                    };
+                }
+            }
+
             courseContent.Title = model.Title;
             courseContent.Content = model.Content;
 
@@ -198,5 +223,20 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
             return true;
         }
 
+        public async Task<bool> ChangeTypeAsync(CourseContent contentModel, CourseContentTypeEnum type)
+        {
+            if (contentModel == null) return false;
+
+
+            var assignments = await context.Assignments
+                                            .Where(a => a.CourseContentId == contentModel.ContentId)
+                                            .ToListAsync();
+
+            if (assignments.Count() > 1) return false;
+
+            contentModel.Type = (int)type;
+
+            return true;
+        }
     }
 }

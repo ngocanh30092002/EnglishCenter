@@ -233,7 +233,6 @@ namespace EnglishCenter.Business.Services.Courses
             };
         }
     
-        
         public async Task<Response> GetByTeacherAsync(string userId)
         {
             var teacherModel = _unit.Teachers.GetById(userId);
@@ -383,7 +382,16 @@ namespace EnglishCenter.Business.Services.Courses
                 };
             }
 
-            classModel.Status = (int)ClassEnum.Opening;
+            var isChangeSuccess = await _unit.Classes.ChangeStatusAsync(classModel, ClassEnum.Opening);
+            if (!isChangeSuccess)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Change class status failed",
+                    Success = false
+                };
+            }
 
             await _unit.CompleteAsync();
             return new Response()
@@ -427,9 +435,18 @@ namespace EnglishCenter.Business.Services.Courses
                 };
             }
 
-            classModel.Status = (int) ClassEnum.End;
-            await _unit.CompleteAsync();
+            var isChangeSuccess = await _unit.Classes.ChangeStatusAsync(classModel, ClassEnum.End);
+            if(!isChangeSuccess)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Change class status failed",
+                    Success = false
+                };
+            }
 
+            await _unit.CompleteAsync();
             return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,

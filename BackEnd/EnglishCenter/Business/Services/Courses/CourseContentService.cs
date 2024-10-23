@@ -2,6 +2,7 @@
 using EnglishCenter.Business.IServices;
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.UnitOfWork;
+using EnglishCenter.Presentation.Global.Enum;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
 using Microsoft.EntityFrameworkCore;
@@ -93,6 +94,50 @@ namespace EnglishCenter.Business.Services.Courses
             };
         }
 
+        public async Task<Response> ChangeTypeAsync(long contentId, int type)
+        {
+            var courseContentModel = _unit.CourseContents.GetById(contentId);
+            if(courseContentModel == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any course contents",
+                    Success = false
+                };
+            }
+
+            if(!Enum.IsDefined(typeof(CourseContentTypeEnum), type))
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Invalid Type",
+                    Success = false
+                };
+            }
+
+            var isChangeSuccess = await _unit.CourseContents.ChangeTypeAsync(courseContentModel, (CourseContentTypeEnum)type);
+            if (!isChangeSuccess)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Change type failed",
+                    Success = false
+                };
+            }
+
+            await _unit.CompleteAsync();
+
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = "",
+                Success = true
+            };
+        }
+
         public async Task<Response> CreateAsync(CourseContentDto courseContentDto)
         {
             var courseModel = await _unit.Courses
@@ -105,6 +150,16 @@ namespace EnglishCenter.Business.Services.Courses
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
                     Success = false,
                     Message = "Can't find any courses"
+                };
+            }
+
+            if (!Enum.IsDefined(typeof(CourseContentTypeEnum), courseContentDto.Type!.Value))
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Invalid Type",
+                    Success = false
                 };
             }
 

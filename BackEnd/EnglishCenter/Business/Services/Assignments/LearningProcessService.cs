@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using AutoMapper;
+﻿using AutoMapper;
 using EnglishCenter.Business.IServices;
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.UnitOfWork;
@@ -202,10 +201,22 @@ namespace EnglishCenter.Business.Services.Assignments
                     var processes = _unit.LearningProcesses.Find(p => p.EnrollId == model.EnrollId && p.AssignmentId == model.AssignmentId)
                                                            .ToList();
                     
+
+
                     if(processes != null && processes.Count > 0)
                     {
                         var achieveProcesses = processes.Where(p => p.Status == (int) ProcessStatusEnum.Completed || p.Status == (int) ProcessStatusEnum.Achieved)
                                                         .ToList();
+
+                        if(achieveProcesses.Count > 0 && assignmentModel.CourseContent.Type != 1)
+                        {
+                            return new Response()
+                            {
+                                StatusCode = System.Net.HttpStatusCode.BadRequest,
+                                Message = "Can't do it again anymore",
+                                Success = false
+                            };
+                        }
 
                         foreach(var process in achieveProcesses)
                         {
@@ -225,6 +236,16 @@ namespace EnglishCenter.Business.Services.Assignments
                     {
                         var achieveProcesses = processes.Where(p => p.Status == (int)ProcessStatusEnum.Completed || p.Status == (int)ProcessStatusEnum.Achieved)
                                                         .ToList();
+
+                        if(achieveProcesses.Count > 0 && assignmentModel.CourseContent.Type != 1)
+                        {
+                            return new Response()
+                            {
+                                StatusCode = System.Net.HttpStatusCode.BadRequest,
+                                Message = "Can't do it again anymore",
+                                Success = false
+                            };
+                        }
 
                         foreach (var process in achieveProcesses)
                         {
@@ -248,10 +269,22 @@ namespace EnglishCenter.Business.Services.Assignments
                             };
                         }
 
-                        var isQualified = _unit.LearningProcesses
+                        var isQualified = false;
+
+                        if(previousAssignment.CourseContent.Type != 1) 
+                        {
+                            isQualified = _unit.LearningProcesses
+                                               .IsExist(p => p.EnrollId == model.EnrollId &&
+                                                             p.AssignmentId == previousAssignment.AssignmentId &&
+                                                             p.Status != (int)ProcessStatusEnum.Ongoing);
+                        }
+                        else
+                        {
+                            isQualified = _unit.LearningProcesses
                                                .IsExist(p => p.EnrollId == model.EnrollId &&
                                                              p.AssignmentId == previousAssignment.AssignmentId &&
                                                              (p.Status == (int)ProcessStatusEnum.Achieved || p.Status == (int)ProcessStatusEnum.Completed));
+                        }
 
                         if (!isQualified)
                         {
@@ -268,13 +301,18 @@ namespace EnglishCenter.Business.Services.Assignments
             }
             else
             {
-                var isExist = _unit.LearningProcesses.IsExist(c => c.EnrollId == model.EnrollId && c.AssignmentId == model.AssignmentId);
-                if (isExist)
+                var isExist = _unit.LearningProcesses
+                                   .IsExist(p => p.EnrollId == model.EnrollId &&
+                                                 p.AssignmentId == model.AssignmentId &&
+                                                 p.Status != (int)ProcessStatusEnum.Ongoing);
+
+                if(assignmentModel.CourseContent.Type != 1 && isExist)
                 {
+
                     return new Response()
                     {
                         StatusCode = System.Net.HttpStatusCode.BadRequest,
-                        Message = "Create process failed",
+                        Message = "Can't do it again anymore",
                         Success = false
                     };
                 }
@@ -422,6 +460,12 @@ namespace EnglishCenter.Business.Services.Assignments
                 processModel.Status = isQualified ? (int)ProcessStatusEnum.Completed : (int)ProcessStatusEnum.NotAchieved;
                 processModel.EndTime = DateTime.Now;
 
+                var courseContent = _unit.CourseContents.GetById(processModel.Assignment.CourseContentId);
+                if(courseContent.Type != 1)
+                {
+                    var saveRes = await SaveScoreHisAsync(processModel, courseContent.Type, correctNum);
+                    if(!saveRes.Success) return saveRes;
+                }
 
                 await _unit.CompleteAsync();
                 await _unit.CommitTransAsync();
@@ -505,6 +549,64 @@ namespace EnglishCenter.Business.Services.Assignments
             }
 
             
+        }
+
+        private Task<Response> SaveScoreHisAsync(LearningProcess process, int type, int correctNum)
+        {
+            var enrollModel = _unit.Enrollment.GetById(process.EnrollId);
+            if(enrollModel == null)
+            {
+                return Task.FromResult(new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any enrollments",
+                    Success = false
+                });
+            }
+
+            if (!enrollModel.ScoreHisId.HasValue)
+            {
+                return Task.FromResult(new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any score history",
+                    Success = false
+                });
+            }
+
+            var scoreHisModel = _unit.ScoreHis.GetById(enrollModel.ScoreHisId.Value);
+            if (scoreHisModel == null)
+            {
+                return Task.FromResult(new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any score history",
+                    Success = false
+                });
+            }
+
+            switch (type)
+            {
+                case (int)CourseContentTypeEnum.Entrance:
+                    // Todo: calculate points
+                    scoreHisModel.EntrancePoint = 100;
+                    break;
+                case (int)CourseContentTypeEnum.Midterm:
+                    // Todo: calculate points
+                    scoreHisModel.MidtermPoint = 100;
+                    break;
+                case (int)CourseContentTypeEnum.Final:
+                    // Todo: calculate points
+                    scoreHisModel.FinalPoint = 100;
+                    break;
+            }
+
+            return Task.FromResult(new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = "",
+                Success = true
+            });
         }
     }
 }

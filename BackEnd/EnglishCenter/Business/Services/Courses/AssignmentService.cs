@@ -2,6 +2,7 @@
 using EnglishCenter.Business.IServices;
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.UnitOfWork;
+using EnglishCenter.Presentation.Global.Enum;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
 using EnglishCenter.Presentation.Models.ResDTOs;
@@ -233,7 +234,7 @@ namespace EnglishCenter.Business.Services.Courses
                 };
             }
 
-            if(timeOnly == TimeOnly.MinValue)
+            if (timeOnly == TimeOnly.MinValue)
             {
                 return new Response()
                 {
@@ -253,6 +254,15 @@ namespace EnglishCenter.Business.Services.Courses
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
                     Message = "Can't find any course contents"
+                };
+            }
+
+            if(courseContentModel.Type != 1 && courseContentModel.Assignments.Count > 0)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't add more assignments"
                 };
             }
 

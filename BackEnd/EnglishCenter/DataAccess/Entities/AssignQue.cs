@@ -66,6 +66,13 @@ public class AssignQue
     [InverseProperty("AssignQues")]
     public virtual QuesRcSentence? QuesSentence { get; set; }
 
+    [Column("SentenceMediaQuesId")]
+    public long? SentenceMediaQuesId { set; get; } = null;
+
+    [ForeignKey("SentenceMediaQuesId")]
+    [InverseProperty("AssignQues")]
+    public virtual QuesRcSentenceMedia? QuesSentenceMedia { get; set; }
+
     public long AssignmentId { set; get; }
 
     [ForeignKey("AssignmentId")]

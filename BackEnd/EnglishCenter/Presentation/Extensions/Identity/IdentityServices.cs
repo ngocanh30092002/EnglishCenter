@@ -48,18 +48,10 @@ namespace EnglishCenter.Presentation.Extensions.Identity
 
                 options.Events = new JwtBearerEvents
                 {
-                    // Lấy token từ header "Authorization"
                     OnMessageReceived = context =>
                     {
                         context.Token = context.Request.Cookies["access-token"];
                         return Task.CompletedTask;
-
-                        //var isHasAccessKey = context.Request.Query.ContainsKey("access_token");
-                        //if (isHasAccessKey)
-                        //{
-                        //    context.Token = context.Request.Query["access_token"];
-                        //}
-                        //return Task.CompletedTask;
                     }
                 };
 

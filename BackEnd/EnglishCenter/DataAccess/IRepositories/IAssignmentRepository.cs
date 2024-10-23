@@ -1,4 +1,5 @@
 ﻿using EnglishCenter.DataAccess.Entities;
+using EnglishCenter.Presentation.Global.Enum;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
 

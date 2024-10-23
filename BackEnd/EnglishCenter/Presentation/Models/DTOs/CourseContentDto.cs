@@ -20,6 +20,8 @@ namespace EnglishCenter.Presentation.Models.DTOs
         [StringLength(10)]
         public string CourseId { set; get; }
 
+        public int? Type { set; get; } = 1;
+
         public ICollection<AssignmentResDto>? Assignments { get; set; }
     }
 }

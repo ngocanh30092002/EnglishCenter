@@ -1,4 +1,5 @@
-﻿using EnglishCenter.Business.IServices;
+﻿using System.Security.Claims;
+using EnglishCenter.Business.IServices;
 using EnglishCenter.Presentation.Global;
 using EnglishCenter.Presentation.Models.DTOs;
 using Microsoft.AspNetCore.Authorization;
@@ -92,6 +93,18 @@ namespace EnglishCenter.Presentation.Controllers.HomeworkPage
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> ChangeFeedbackAsync([FromRoute] long id, [FromBody] string feedback)
         {
+            var isTeacher = User.IsInRole(AppRole.TEACHER);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
+
+            if(isTeacher)
+            {
+                var isValid = await _submitService.IsInChargeAsync(userId, id);
+                if (!isValid)
+                {
+                    return Forbid("You can't send feedback on record which you aren't in charge of.");
+                }
+            }
+
             var response = await _submitService.ChangeFeedbackAsync(id, feedback);
             return await response.ChangeActionAsync();
         }

@@ -7,6 +7,7 @@ namespace EnglishCenter.Business.IServices
     {
         public Task<Response> GetAllAsync();
         public Task<Response> GetAsync(long hwSubId);
+        public Task<bool> IsInChargeAsync(string userId, long subId);
         public Task<Response> CreateAsync(HwSubmissionDto model);
         public Task<Response> UpdateAsync(long hwSubId, HwSubmissionDto model);
         public Task<Response> HandleSubmitHomework(long hwSubId, HwSubmissionDto model);

@@ -1,11 +1,13 @@
 ﻿using EnglishCenter.Business.IServices;
-using EnglishCenter.DataAccess.IRepositories;
+using EnglishCenter.Presentation.Global;
 using EnglishCenter.Presentation.Models.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EnglishCenter.Presentation.Controllers.CoursePage
 {
     [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
     public class CourseContentController : ControllerBase
     {
@@ -41,6 +43,7 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
         }
 
         [HttpPost]
+        [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> CreateContentAsync([FromForm] CourseContentDto model)
         {
             var response = await _contentService.CreateAsync(model);
@@ -49,6 +52,7 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
         }
 
         [HttpPut("{contentId}")]
+        [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> UpdateContentAsync([FromRoute] long contentId, [FromForm] CourseContentDto model)
         {
             var response = await _contentService.UpdateAsync(contentId, model);
@@ -57,6 +61,7 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
         }
 
         [HttpPatch("{contentId}/{number}")]
+        [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> ChangeNoNumAsync([FromRoute] long contentId, int number)
         {
             var response = await _contentService.ChangeNoNumAsync(contentId, number);
@@ -65,6 +70,7 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
         }
 
         [HttpPatch("{contentId}/content")]
+        [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> ChangeContentAsync([FromRoute] long contentId, [FromBody] string content)
         {
             var response = await _contentService.ChangeContentAsync(contentId, content);
@@ -72,7 +78,17 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
             return await response.ChangeActionAsync();
         }
 
+        [HttpPatch("{contentId}/type")]
+        [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
+        public async Task<IActionResult> ChangeTypeAsync([FromRoute] long contentId, [FromQuery] int type)
+        {
+            var response = await _contentService.ChangeTypeAsync(contentId, type);
+
+            return await response.ChangeActionAsync();
+        }
+
         [HttpDelete("{contentId}")]
+        [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> RemoveContentAsync(long contentId)
         {
             var response = await _contentService.DeleteAsync(contentId);

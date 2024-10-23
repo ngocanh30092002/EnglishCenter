@@ -46,7 +46,10 @@ namespace EnglishCenter.DataAccess.UnitOfWork
             IHomeworkRepository homeworkRepo,
             IHomeQuesRepository homeQuesRepo,
             IHwSubmissionRepository hwSubmissionRepo,
-            IHwSubRecordRepository hwSubRecordRepo
+            IHwSubRecordRepository hwSubRecordRepo,
+            IQuesRcSenMediaRepository quesRcSenMediaRepo,
+            IAnswerRcSenMediaRepository answerRcSenMediaRepo,
+            IToeicConversionRepository toeicConRepo
             ) 
         {
             _context = context;
@@ -85,6 +88,9 @@ namespace EnglishCenter.DataAccess.UnitOfWork
             HomeQues = homeQuesRepo;
             HwSubmissions = hwSubmissionRepo;
             HwSubRecords = hwSubRecordRepo;
+            QuesRcSenMedia = quesRcSenMediaRepo;
+            AnswerRcMedia = answerRcSenMediaRepo;
+            ToeicConversion = toeicConRepo;
         }
 
         public IEventRepository Events { get; private set; }
@@ -122,6 +128,9 @@ namespace EnglishCenter.DataAccess.UnitOfWork
         public IHomeQuesRepository HomeQues { get; private set; }
         public IHwSubmissionRepository HwSubmissions { get; private set; }
         public IHwSubRecordRepository HwSubRecords { get; private set; }
+        public IQuesRcSenMediaRepository QuesRcSenMedia { get; private set; }
+        public IAnswerRcSenMediaRepository AnswerRcMedia { get; private set; }
+        public IToeicConversionRepository ToeicConversion { get; private set; }
 
         public async Task BeginTransAsync()
         {

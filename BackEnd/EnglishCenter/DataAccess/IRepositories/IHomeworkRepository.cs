@@ -4,6 +4,7 @@ namespace EnglishCenter.DataAccess.IRepositories
 {
     public interface IHomeworkRepository : IGenericRepository<Homework>
     {
+        public Task<bool> IsInChargeAsync(Homework homework, string userId);
         public Task<bool> ChangePercentageAsync(Homework homeModel, int percentage);
         public Task<bool> ChangeTitleAsync(Homework homeModel, string title);
         public Task<bool> ChangeTimeAsync(Homework homeModel, TimeOnly time);

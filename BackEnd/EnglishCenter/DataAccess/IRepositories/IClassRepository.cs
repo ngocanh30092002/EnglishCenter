@@ -1,4 +1,5 @@
 ﻿using EnglishCenter.DataAccess.Entities;
+using EnglishCenter.Presentation.Global.Enum;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
 
@@ -14,5 +15,6 @@ namespace EnglishCenter.DataAccess.IRepositories
         public Task<bool> ChangeMaxNumAsync(Class model, int maxNum);
         public Task<bool> ChangeImageAsync(Class model, IFormFile image);
         public Task<bool> ChangeDescriptionAsync(Class model, string newDes);
+        public Task<bool> ChangeStatusAsync(Class model, ClassEnum status);
     }
 }

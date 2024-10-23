@@ -70,7 +70,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
             return await response.ChangeActionAsync();
         }
 
-        [HttpPatch("{id}/change-assignment")]
+        [HttpPatch("{id}/assignment")]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> ChangeAssignmentIdAsync([FromRoute]long id, [FromQuery] long assignmentId)
         {
@@ -78,7 +78,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
             return await response.ChangeActionAsync();
         }
 
-        [HttpPatch("{id}/change-ques")]
+        [HttpPatch("{id}/ques")]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> ChangeQuesAsync([FromRoute] long id, [FromQuery]int type, [FromQuery] long quesId)
         {
@@ -86,7 +86,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
             return await response.ChangeActionAsync();
         }
 
-        [HttpPatch("{id}/change-no-num")]
+        [HttpPatch("{id}/no-num")]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> ChangeNoNumAsync([FromRoute] long id, [FromQuery] int noNum)
         {

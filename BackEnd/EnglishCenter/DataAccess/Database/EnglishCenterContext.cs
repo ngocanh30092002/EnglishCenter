@@ -59,6 +59,10 @@ public class EnglishCenterContext : IdentityDbContext<User>
 
     public virtual DbSet<QuesRcSentence> QuesRcSentences { set; get; }
 
+    public virtual DbSet<QuesRcSentenceMedia> QuesRcSentenceMedias { set; get; }
+
+    public virtual DbSet<AnswerRcSentenceMedia> AnswerRcMedia { set; get; }
+
     public virtual DbSet<QuesRcSingle> QuesRcSingles { get; set; }
 
     public virtual DbSet<QuesRcTriple> QuesRcTriples { get; set; }
@@ -93,6 +97,8 @@ public class EnglishCenterContext : IdentityDbContext<User>
 
     public virtual DbSet<AnswerRecord> AnswerRecords { set; get; }
 
+    public virtual DbSet<ToeicConversion> ToeicConversion { set; get; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder.UseLazyLoadingProxies()
@@ -114,6 +120,8 @@ public class EnglishCenterContext : IdentityDbContext<User>
 
         modelBuilder.Entity<CourseContent>(entity =>
         {
+            entity.Property(c => c.Type).HasDefaultValue(1);
+
             entity.HasOne(c => c.Course).WithMany(c => c.CourseContents).HasConstraintName("FK_CourseContent_Courses");
         });
 
@@ -128,6 +136,8 @@ public class EnglishCenterContext : IdentityDbContext<User>
             entity.HasOne(d => d.QuesDouble).WithMany(p => p.AssignQues).HasConstraintName("FK_Assign_Ques_Ques_RC_Double");
 
             entity.HasOne(d => d.QuesSentence).WithMany(p => p.AssignQues).HasConstraintName("FK_Assign_Ques_Ques_RC_Sentence");
+
+            entity.HasOne(d => d.QuesSentenceMedia).WithMany(p => p.AssignQues).HasConstraintName("FK_Assign_Ques_Ques_RC_Sentence_Media");
 
             entity.HasOne(d => d.QuesSingle).WithMany(p => p.AssignQues).HasConstraintName("FK_Assign_Ques_Ques_RC_Single");
 
@@ -225,6 +235,7 @@ public class EnglishCenterContext : IdentityDbContext<User>
             entity.HasOne(q => q.QuesAudio).WithMany(q => q.HomeQues).HasConstraintName("FK_Home_Ques_Ques_LC_Audio");
             entity.HasOne(q => q.QuesConversation).WithMany(q => q.HomeQues).HasConstraintName("FK_Home_Ques_Ques_LC_Conversation");
             entity.HasOne(q => q.QuesSentence).WithMany(q => q.HomeQues).HasConstraintName("FK_Home_Ques_Ques_RC_Sentence");
+            entity.HasOne(d => d.QuesSentenceMedia).WithMany(p => p.HomeQues).HasConstraintName("FK_Home_Ques_Ques_RC_Sentence_Media");
             entity.HasOne(q => q.QuesSingle).WithMany(q => q.HomeQues).HasConstraintName("FK_Home_Ques_Ques_RC_Single");
             entity.HasOne(q => q.QuesDouble).WithMany(q => q.HomeQues).HasConstraintName("FK_Home_Ques_Ques_RC_Double");
             entity.HasOne(q => q.QuesTriple).WithMany(q => q.HomeQues).HasConstraintName("FK_Home_Ques_Ques_RC_Triple");

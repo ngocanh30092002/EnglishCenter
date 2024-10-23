@@ -1,7 +1,10 @@
 ﻿using AutoMapper;
+using EnglishCenter.Business.IServices;
 using EnglishCenter.DataAccess.Database;
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.IRepositories;
+using EnglishCenter.Presentation.Global;
+using EnglishCenter.Presentation.Global.Enum;
 using EnglishCenter.Presentation.Helpers;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
@@ -12,10 +15,12 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
     public class ClassRepository : GenericRepository<Class> ,IClassRepository
     {
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IClaimService _claimService;
 
-        public ClassRepository(EnglishCenterContext context,  IWebHostEnvironment webHostEnvironment): base(context)
+        public ClassRepository(EnglishCenterContext context,  IWebHostEnvironment webHostEnvironment, IClaimService claimService): base(context)
         {
             _webHostEnvironment = webHostEnvironment;
+            _claimService = claimService;
         }
 
         public async Task<List<Class>?> GetClassesWithTeacherAsync(string teacherId)
@@ -115,6 +120,28 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
             return Task.FromResult(true);
         }
 
+        public async Task<bool> ChangeTeacherAsync(Class model, string teacherId)
+        {
+            if (model == null) return false;
+
+            var isExistTeacher = await context.Teachers.AnyAsync(t => t.UserId == teacherId);
+            if (!isExistTeacher) return false;
+
+            var claimDto = new ClaimDto() { ClaimName = GlobalClaimNames.CLASS, ClaimValue = model.ClassId };
+            var isSuccess = false;
+            if(model.Status != (int)ClassEnum.End)
+            {
+                isSuccess = await _claimService.DeleteClaimInUserAsync(model.TeacherId, claimDto);
+                if (!isSuccess) return false;
+            }
+
+            var isAddSuccess = await _claimService.AddClaimToUserAsync(teacherId, claimDto);
+            if (!isSuccess) return false;
+
+            model.TeacherId = teacherId;
+            return true;
+        }
+
         public async Task<Response> UpdateAsync(string classId, ClassDto model)
         {
             var classModel = await context.Classes.FindAsync(classId);
@@ -145,8 +172,8 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
 
             if (classModel.TeacherId != model.TeacherId)
             {
-                var isExistTeacher = await context.Teachers.AnyAsync(u => u.UserId == model.TeacherId);
-                if (!isExistTeacher)
+                var isChangeSuccess = await ChangeTeacherAsync(classModel, model.TeacherId);
+                if (!isChangeSuccess)
                 {
                     return new Response()
                     {
@@ -155,8 +182,6 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
                         Success = false
                     };
                 }
-
-                classModel.TeacherId = model.TeacherId;
             }
 
             if (model.Image != null)
@@ -198,6 +223,23 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
                 StatusCode = System.Net.HttpStatusCode.OK,
                 Message = ""
             };
+        }
+
+        public async Task<bool> ChangeStatusAsync(Class model, ClassEnum status)
+        {
+            if(status == ClassEnum.End)
+            {
+                var isSuccess = await _claimService.DeleteClaimInUserAsync(model.TeacherId ?? "", new ClaimDto()
+                {
+                    ClaimName = GlobalClaimNames.CLASS,
+                    ClaimValue = model.ClassId
+                });
+
+                if (!isSuccess) return isSuccess;
+            }
+
+            model.Status = (int)status;
+            return true;
         }
     }
 }

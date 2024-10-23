@@ -13,7 +13,7 @@ namespace EnglishCenter.DataAccess.Entities
 
         [ForeignKey("EnrollId")]
         [InverseProperty("LearningProcesses")]
-        public virtual Enrollment? Enrollment { set; get; }
+        public virtual Enrollment Enrollment { set; get; } = null!;
 
         public int Status { set; get; } = 1;
 

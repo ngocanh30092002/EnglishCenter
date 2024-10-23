@@ -13,7 +13,7 @@ public class Class
     public string CourseId { get; set; } = null!;
 
     [StringLength(100)]
-    public string? TeacherId { get; set; }
+    public string TeacherId { get; set; } = null!;
 
     public DateOnly? StartDate { get; set; }
 

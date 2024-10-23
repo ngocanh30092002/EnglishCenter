@@ -13,6 +13,7 @@ namespace EnglishCenter.Presentation
                .ForMember(des => des.Title, opt => opt.MapFrom(src => src.Title))
                .ForMember(des => des.NoNum, opt => opt.MapFrom(src => src.NoNum))
                .ForMember(des => des.Content, opt => opt.MapFrom(src => src.Content))
+               .ForMember(des => des.Type, opt => opt.MapFrom(src => src.Type))
                .ForMember(des => des.CourseId, opt => opt.MapFrom(src => src.CourseId));
 
             CreateMap<CourseContent, CourseContentDto>()

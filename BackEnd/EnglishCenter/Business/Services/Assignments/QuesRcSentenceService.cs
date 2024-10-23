@@ -19,6 +19,7 @@ namespace EnglishCenter.Business.Services.Assignments
             _unit = unit;
             _mapper = mapper;
         }
+
         public async Task<Response> ChangeAnswerAAsync(long quesId, string newAnswer)
         {
             var queModel = _unit.QuesRcSentences.GetById(quesId);
@@ -426,29 +427,44 @@ namespace EnglishCenter.Business.Services.Assignments
 
             try
             {
-                var response = await ChangeQuestionAsync(quesId, queModel.Question);
-                if (!response.Success) return response;
-
-                response = await ChangeAnswerAAsync(quesId, queModel.AnswerA);
-                if (!response.Success) return response;
-
-                response = await ChangeAnswerBAsync(quesId, queModel.AnswerB);
-                if (!response.Success) return response;
-
-                response = await ChangeAnswerCAsync(quesId, queModel.AnswerC);
-                if (!response.Success) return response;
-
-                response = await ChangeAnswerDAsync(quesId, queModel.AnswerD);
-                if (!response.Success) return response;
-
-                if (queModel.AnswerId.HasValue)
+                if(queEntity.Question != queModel.Question)
                 {
-                    response = await ChangeAnswerAsync(quesId,(long) queModel.AnswerId);
+                    var response = await ChangeQuestionAsync(quesId, queModel.Question);
                     if (!response.Success) return response;
                 }
 
-                response = await ChangeTimeAsync(quesId, timeOnly);
-                if (!response.Success) return response;
+                if(queEntity.AnswerA != queModel.AnswerA)
+                {
+                    var response = await ChangeAnswerAAsync(quesId, queModel.AnswerA);
+                    if (!response.Success) return response;
+                }
+
+                if(queEntity.AnswerB != queModel.AnswerB)
+                {
+                    var response = await ChangeAnswerBAsync(quesId, queModel.AnswerB);
+                    if (!response.Success) return response;
+                }
+
+                if(queEntity.AnswerC != queModel.AnswerC)
+                {
+                    var response = await ChangeAnswerCAsync(quesId, queModel.AnswerC);
+                    if (!response.Success) return response;
+                }
+
+                if(queEntity.AnswerD != queModel.AnswerD)
+                {
+                    var response = await ChangeAnswerDAsync(quesId, queModel.AnswerD);
+                    if (!response.Success) return response;
+                }
+
+                if (queModel.AnswerId.HasValue)
+                {
+                    var response = await ChangeAnswerAsync(quesId,(long) queModel.AnswerId);
+                    if (!response.Success) return response;
+                }
+
+                var changeRes = await ChangeTimeAsync(quesId, timeOnly);
+                if (!changeRes.Success) return changeRes; 
 
                 await _unit.CommitTransAsync();
 

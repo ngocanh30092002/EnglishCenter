@@ -18,6 +18,8 @@ namespace EnglishCenter.DataAccess.Entities
 
         public string CourseId { get; set; } = null!;
 
+        public int Type { set; get; } = 1;
+
         [ForeignKey("CourseId")]
         [InverseProperty("CourseContents")]
         public virtual Course Course { set; get; }

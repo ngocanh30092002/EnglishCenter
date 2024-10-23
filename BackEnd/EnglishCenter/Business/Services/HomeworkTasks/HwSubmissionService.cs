@@ -470,6 +470,15 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
             }
         }
 
+        public async Task<bool> IsInChargeAsync(string userId, long subId)
+        {
+            var submissionModel = await _unit.HwSubmissions.Include(s => s.Homework)
+                                                            .FirstOrDefaultAsync(s => s.SubmissionId == subId);
+            if (submissionModel == null) return false;
+
+            return await _unit.Homework.IsInChargeAsync(submissionModel.Homework, userId);
+        }
+
         public async Task<Response> UpdateAsync(long hwSubId, HwSubmissionDto model)
         {
             var submitModel = _unit.HwSubmissions.GetById(hwSubId);

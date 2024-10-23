@@ -2,6 +2,7 @@
 using EnglishCenter.Business.IServices;
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.UnitOfWork;
+using EnglishCenter.Presentation.Global;
 using EnglishCenter.Presentation.Global.Enum;
 using EnglishCenter.Presentation.Helpers;
 using EnglishCenter.Presentation.Models;
@@ -15,13 +16,15 @@ namespace EnglishCenter.Business.Services.Courses
     {
         private readonly IUnitOfWork _unit;
         private readonly IMapper _mapper;
+        private readonly IClaimService _claimService;
         private readonly IWebHostEnvironment _webHostEnvironment;
         private string _imageBase;
 
-        public ClassService(IMapper mapper, IUnitOfWork unit, IWebHostEnvironment webHostEnvironment)
+        public ClassService(IMapper mapper, IUnitOfWork unit, IWebHostEnvironment webHostEnvironment, IClaimService claimService)
         {
             _unit = unit;
             _mapper = mapper;
+            _claimService = claimService;
             _webHostEnvironment = webHostEnvironment;
             _imageBase = Path.Combine("classes", "images");
         }
@@ -334,8 +337,24 @@ namespace EnglishCenter.Business.Services.Courses
             }
 
             _unit.Classes.Add(classModel);
-            await _unit.CompleteAsync();
 
+            var isAddClaimSuccess = await _claimService.AddClaimToUserAsync(model.ClassId, new ClaimDto()
+            {
+                ClaimName = GlobalClaimNames.CLASS,
+                ClaimValue = model.ClassId
+            });
+
+            if(!isAddClaimSuccess)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't add claim to user",
+                    Success = false
+                };
+            }
+
+            await _unit.CompleteAsync();
             return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
@@ -357,7 +376,6 @@ namespace EnglishCenter.Business.Services.Courses
                 };
             }
 
-
             if (!string.IsNullOrEmpty(classModel.Image))
             {
                 var imagePath = Path.Combine(_webHostEnvironment.WebRootPath, _imageBase);
@@ -368,6 +386,23 @@ namespace EnglishCenter.Business.Services.Courses
             }
 
             _unit.Classes.Remove(classModel);
+
+            var isDeleteSuccess = await _claimService.DeleteClaimInUserAsync(classModel.TeacherId, new ClaimDto()
+            {
+                ClaimName = GlobalClaimNames.CLASS,
+                ClaimValue = classModel.ClassId
+            });
+
+            if(!isDeleteSuccess)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't delete claim of user",
+                    Success = false
+                };
+            }
+
             await _unit.CompleteAsync();
 
             return new Response()

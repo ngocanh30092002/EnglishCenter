@@ -48,7 +48,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
             return await response.ChangeActionAsync();
         }
 
-        [HttpPatch("{id}/change-process")]
+        [HttpPatch("{id}/process")]
         [Authorize(Roles = AppRole.ADMIN)]
         public async Task<IActionResult> ChangeProcessAsync([FromRoute] long id, [FromQuery] long processId)
         {
@@ -57,7 +57,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
         }
 
 
-        [HttpPatch("{id}/change-assign-ques")]
+        [HttpPatch("{id}/assign-ques")]
         [Authorize(Roles = AppRole.ADMIN)]
         public async Task<IActionResult> ChangeAssignQuesAsync([FromRoute] long id, [FromQuery] long assignQueId)
         {
@@ -65,7 +65,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
             return await response.ChangeActionAsync();
         }
 
-        [HttpPatch("{id}/change-selected-answer")]
+        [HttpPatch("{id}/selected-answer")]
         [Authorize(Roles = AppRole.ADMIN)]
         public async Task<IActionResult> ChangeSelectedAnswerAsync([FromRoute] long id, [FromQuery] string selectedAnswer)
         {
@@ -73,7 +73,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
             return await response.ChangeActionAsync();
         }
 
-        [HttpPatch("{id}/change-sub")]
+        [HttpPatch("{id}/sub")]
         [Authorize(Roles = AppRole.ADMIN)]
         public async Task<IActionResult> ChangeSubAsync([FromRoute] long id, [FromQuery] long? subId)
         {

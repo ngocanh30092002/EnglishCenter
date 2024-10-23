@@ -63,6 +63,13 @@ namespace EnglishCenter.DataAccess.Entities
         [InverseProperty("HomeQues")]
         public virtual QuesRcSentence? QuesSentence { get; set; }
 
+        [Column("SentenceMediaQuesId")]
+        public long? SentenceMediaQuesId { set; get; } = null;
+
+        [ForeignKey("SentenceMediaQuesId")]
+        [InverseProperty("HomeQues")]
+        public virtual QuesRcSentenceMedia? QuesSentenceMedia { get; set; }
+
         public long HomeworkId { set; get; }
 
         [ForeignKey("HomeworkId")]

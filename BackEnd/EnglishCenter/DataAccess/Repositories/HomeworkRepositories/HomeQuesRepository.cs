@@ -127,6 +127,9 @@ namespace EnglishCenter.DataAccess.Repositories.HomeworkRepositories
                 case QuesTypeEnum.Triple:
                     model.TripleQuesId = quesId;
                     break;
+                case QuesTypeEnum.Sentence_Media:
+                    model.SentenceMediaQuesId = quesId;
+                    break;
                 default:
                     throw new ArgumentException("Invalid Question Type");
             }
@@ -212,6 +215,9 @@ namespace EnglishCenter.DataAccess.Repositories.HomeworkRepositories
                 case QuesTypeEnum.Triple:
                     quesId = model.TripleQuesId!.Value;
                     break;
+                case QuesTypeEnum.Sentence_Media:
+                    quesId = model.SentenceMediaQuesId!.Value;
+                    break;
                 default:
                     throw new ArgumentException("Invalid Question Type");
             }
@@ -250,6 +256,9 @@ namespace EnglishCenter.DataAccess.Repositories.HomeworkRepositories
                     break;
                 case (int)QuesTypeEnum.Triple:
                     timeResult = model.QuesTriple == null ? timeResult : model.QuesTriple.Time;
+                    break;
+                case (int)QuesTypeEnum.Sentence_Media:
+                    timeResult = model.QuesSentenceMedia == null ? timeResult : model.QuesSentenceMedia.Time;
                     break;
                 default:
                     throw new ArgumentException("Invalid Question Type");
@@ -297,6 +306,9 @@ namespace EnglishCenter.DataAccess.Repositories.HomeworkRepositories
                         if (!subId.HasValue) return false;
                         var subQueTriple = model.QuesTriple!.SubRcTriples.FirstOrDefault(s => s.SubId == subId.Value);
                         return subQueTriple!.Answer!.CorrectAnswer == selectedAnswer.ToUpper();
+
+                    case (int)QuesTypeEnum.Sentence_Media:
+                        return model.QuesSentenceMedia!.Answer!.CorrectAnswer == selectedAnswer.ToUpper();
                 }
 
                 return false;
@@ -332,6 +344,9 @@ namespace EnglishCenter.DataAccess.Repositories.HomeworkRepositories
                     break;
                 case QuesTypeEnum.Triple:
                     isExist = await context.QuesRcTriples.AnyAsync(q => q.QuesId == quesId);
+                    break;
+                case QuesTypeEnum.Sentence_Media:
+                    isExist = await context.QuesRcSentenceMedias.AnyAsync(q => q.QuesId == quesId);
                     break;
                 default:
                     throw new ArgumentException("Invalid Question Type");
@@ -386,6 +401,13 @@ namespace EnglishCenter.DataAccess.Repositories.HomeworkRepositories
                     isExist = await context.HomeQues
                                         .AnyAsync(q => q.Type == (int)type &&
                                                        q.TripleQuesId == quesId &&
+                                                       q.HomeworkId == homeworkId);
+                    break;
+
+                case QuesTypeEnum.Sentence_Media:
+                    isExist = await context.HomeQues
+                                        .AnyAsync(q => q.Type == (int)type &&
+                                                       q.SentenceMediaQuesId == quesId &&
                                                        q.HomeworkId == homeworkId);
                     break;
                 default:
@@ -454,6 +476,13 @@ namespace EnglishCenter.DataAccess.Repositories.HomeworkRepositories
                                 .ThenInclude(a => a.Answer)
                                 .LoadAsync();
                     break;
+                case QuesTypeEnum.Sentence_Media:
+                    await context.Entry(model)
+                                .Reference(m => m.QuesSentenceMedia)
+                                .Query()
+                                .Include(a => a.Answer)
+                                .LoadAsync();
+                    break;
                 default:
                     throw new ArgumentException("Invalid Question Type");
             }
@@ -508,6 +537,11 @@ namespace EnglishCenter.DataAccess.Repositories.HomeworkRepositories
                                 .Reference(m => m.QuesTriple)
                                 .Query()
                                 .Include(a => a.SubRcTriples)
+                                .LoadAsync();
+                    break;
+                case QuesTypeEnum.Sentence_Media:
+                    await context.Entry(model)
+                                .Reference(m => m.QuesSentenceMedia)
                                 .LoadAsync();
                     break;
                 default:

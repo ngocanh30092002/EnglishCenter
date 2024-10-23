@@ -80,5 +80,12 @@ namespace EnglishCenter.DataAccess.Repositories.HomeworkRepositories
 
             return Task.FromResult(true);
         }
+
+        public Task<bool> IsInChargeAsync(Homework homework, string userId)
+        {
+            if (homework == null) return Task.FromResult(false);
+
+            return Task.FromResult(homework.Class.TeacherId == userId);
+        }
     }
 }

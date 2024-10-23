@@ -2,6 +2,7 @@
 using EnglishCenter.DataAccess.Database;
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.IRepositories;
+using EnglishCenter.Presentation.Global.Enum;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -64,8 +65,9 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
         {
             if (assignmentModel == null) return false;
 
-            var isExist = context.CourseContents.Any(c => c.ContentId == contentId);
-            if (!isExist) return false;
+            var courseContentModel = await context.CourseContents.Include(c => c.Assignments).FirstOrDefaultAsync(c=> c.ContentId == contentId);
+            if (courseContentModel == null) return false;
+            if (courseContentModel.Type != 1 && courseContentModel.Assignments.Count > 0) return false;
 
             var currentAssigns = await context.Assignments
                                                         .Where(c => c.CourseContentId == assignmentModel.CourseContentId && c.NoNum > assignmentModel.NoNum)
@@ -180,6 +182,16 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
             if (assignmentModel == null) return Task.FromResult(false);
 
             assignmentModel.Title = title;
+
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> ChangePercentageAsync(Assignment assignmentModel, int percentage)
+        {
+            if (assignmentModel == null) return Task.FromResult(false);
+            if (percentage < 0 && percentage > 100) return Task.FromResult(false);
+
+            assignmentModel.AchievedPercentage = percentage;
 
             return Task.FromResult(true);
         }
@@ -301,7 +313,7 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
                     return new Response()
                     {
                         StatusCode = System.Net.HttpStatusCode.BadRequest,
-                        Message = "Can't percentage NoNum",
+                        Message = "Can't change no number",
                         Success = false
                     };
                 };
@@ -317,14 +329,5 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
             };
         }
 
-        public Task<bool> ChangePercentageAsync(Assignment assignmentModel, int percentage)
-        {
-            if (assignmentModel == null) return Task.FromResult(false);
-            if (percentage < 0 && percentage > 100) return Task.FromResult(false);
-
-            assignmentModel.AchievedPercentage = percentage;
-
-            return Task.FromResult(true);
-        }
     }
 }

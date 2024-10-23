@@ -54,7 +54,7 @@ namespace EnglishCenter.Business.Services.Authorization
         public async Task<string> GenerateUserTokenAsync(User user, DateTime expireDate, Provider provider = 0)
         {
             var jwtTokenHandler = new JwtSecurityTokenHandler();
-            var claims = await _claimService.GetClaimsUserAsync(user);
+            var claims = new List<Claim>();
             var authenKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JWT:Secret"]!));
 
             var userRoles = await _userManager.GetRolesAsync(user);

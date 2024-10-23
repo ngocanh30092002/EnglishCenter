@@ -10,8 +10,10 @@ namespace EnglishCenter.Business.IServices
         public Task<List<Claim>> GetClaimsUserAsync(User user);
         public Task<List<Claim>> GetUserClaimsAsync(User user);
         public Task<bool> AddClaimToUserAsync(User user, ClaimDto model);
+        public Task<bool> AddClaimToUserAsync(string userId, ClaimDto model);
         public Task<bool> AddClaimInRoleAsync(string roleName, ClaimDto model);
         public Task<bool> DeleteClaimInRoleAsync(string roleName, ClaimDto model);
         public Task<bool> DeleteClaimInUserAsync(User user, ClaimDto model);
+        public Task<bool> DeleteClaimInUserAsync(string userId, ClaimDto model);
     }
 }

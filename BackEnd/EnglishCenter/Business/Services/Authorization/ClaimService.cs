@@ -26,6 +26,17 @@ namespace EnglishCenter.Business.Services.Authorization
             return result.Succeeded;
         }
 
+        public async Task<bool> AddClaimToUserAsync(string userId, ClaimDto model)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return false;
+
+            var userClaim = new Claim(model.ClaimName, model.ClaimValue);
+            var result = await _userManager.AddClaimAsync(user, userClaim);
+
+            return result.Succeeded;
+        }
+
         public async Task<List<Claim>> GetClaimsUserAsync(User user)
         {
             var roleClaims = new List<Claim>();
@@ -95,6 +106,17 @@ namespace EnglishCenter.Business.Services.Authorization
         {
             var claim = new Claim(model.ClaimName, model.ClaimValue);
             var result = await _userManager.RemoveClaimAsync(user, claim);
+
+            return result.Succeeded;
+        }
+
+        public async Task<bool> DeleteClaimInUserAsync(string userId, ClaimDto model)
+        {
+            var userModel = await _userManager.FindByIdAsync(userId);
+            if(userModel == null) return false;
+
+            var claim = new Claim(model.ClaimName, model.ClaimValue);
+            var result = await _userManager.RemoveClaimAsync(userModel, claim);
 
             return result.Succeeded;
         }

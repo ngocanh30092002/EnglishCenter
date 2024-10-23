@@ -6,6 +6,7 @@ using EnglishCenter.Presentation.Global.Enum;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
 using EnglishCenter.Presentation.Models.ResDTOs;
+using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.Business.Services.HomeworkTasks
 {
@@ -18,6 +19,14 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
         {
             _unit = unit;
             _mapper = mapper;
+        }
+
+        public async Task<bool> IsInChargeClass(string userId, long homeId)
+        {
+            var homeModel = await _unit.Homework.Include(h => h.Class)
+                                                .FirstOrDefaultAsync(h => h.HomeworkId == homeId);
+            
+            return await _unit.Homework.IsInChargeAsync(homeModel, userId);
         }
         public async Task<Response> ChangeClassAsync(long id, string classId)
         {

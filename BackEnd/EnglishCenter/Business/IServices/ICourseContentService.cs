@@ -12,6 +12,7 @@ namespace EnglishCenter.Business.IServices
         public Task<Response> UpdateAsync(long contentId, CourseContentDto courseContentDto);
         public Task<Response> ChangeNoNumAsync(long contentId, int number);
         public Task<Response> ChangeContentAsync(long contentId, string content);
+        public Task<Response> ChangeTypeAsync(long contentId, int type);
         public Task<Response> DeleteAsync(long contentId);
     }
 }

@@ -55,7 +55,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
             return await response.ChangeActionAsync();
         }
 
-        [HttpPatch("{id}/change-status")]
+        [HttpPatch("{id}/status")]
         [Authorize(Roles = AppRole.ADMIN)]
         public async Task<IActionResult> ChangeStatusAsync([FromRoute] long id, [FromQuery] int status)
         {
@@ -63,7 +63,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
             return await response.ChangeActionAsync();
         }
 
-        [HttpPatch("{id}/change-start-time")]
+        [HttpPatch("{id}/start-time")]
         [Authorize(Roles = AppRole.ADMIN)]
         public async Task<IActionResult> ChangeStartTimeAsync([FromRoute] long id, [FromBody] string dateTime)
         {
@@ -71,7 +71,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
             return await response.ChangeActionAsync();
         }
 
-        [HttpPatch("{id}/change-end-time")]
+        [HttpPatch("{id}/end-time")]
         [Authorize(Roles = AppRole.ADMIN)]
         public async Task<IActionResult> ChangeEndTimeAsync([FromRoute] long id, [FromBody] string dateTime)
         {

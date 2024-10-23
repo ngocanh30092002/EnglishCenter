@@ -27,10 +27,13 @@ namespace EnglishCenter.Presentation.Middleware
                     if(user != null)
                     {
                         var claims = await claimService.GetClaimsUserAsync(user);
-                    
                         var appIdentity = new ClaimsIdentity(claims);
 
-                        context.User.AddIdentity(appIdentity);
+                        var identity = context.User.Identities.FirstOrDefault();
+                        if(identity != null)
+                        {
+                            identity.AddClaims(claims);
+                        }
                     }
                 }
             }

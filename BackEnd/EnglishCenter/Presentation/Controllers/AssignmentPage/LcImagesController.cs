@@ -87,7 +87,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
             return await response.ChangeActionAsync();
         }
 
-        [HttpPatch("{quesId}/change-answer")]
+        [HttpPatch("{quesId}/answer")]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> ChangeAnswerAsync([FromRoute] long quesId, [FromQuery] long answerId)
         {
@@ -95,7 +95,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
             return await response.ChangeActionAsync();
         }
 
-        [HttpPatch("{quesId}/change-image")]
+        [HttpPatch("{quesId}/image")]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> ChangeImageAsync([FromRoute] long quesId, IFormFile imageFile)
         {
@@ -109,7 +109,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
             return await response.ChangeActionAsync();
         }
 
-        [HttpPatch("{quesId}/change-audio")]
+        [HttpPatch("{quesId}/audio")]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> ChangeAudioAsync([FromRoute] long quesId, IFormFile audioFile)
         {
@@ -163,7 +163,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
             return await response.ChangeActionAsync();
         }
 
-        [HttpPatch("answers/{answerId}/change-answerA")]
+        [HttpPatch("answers/{answerId}/answerA")]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> ChangeAnswerAAsync([FromRoute] long answerId, [FromBody] string newAnswer)
         {
@@ -171,7 +171,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
             return await response.ChangeActionAsync();
         }
 
-        [HttpPatch("answers/{answerId}/change-answerB")]
+        [HttpPatch("answers/{answerId}/answerB")]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> ChangeAnswerBAsync([FromRoute] long answerId, [FromBody] string newAnswer)
         {
@@ -179,7 +179,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
             return await response.ChangeActionAsync();
         }
 
-        [HttpPatch("answers/{answerId}/change-answerC")]
+        [HttpPatch("answers/{answerId}/answerC")]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> ChangeAnswerCAsync([FromRoute] long answerId, [FromBody] string newAnswer)
         {
@@ -187,7 +187,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
             return await response.ChangeActionAsync();
         }
 
-        [HttpPatch("answers/{answerId}/change-answerD")]
+        [HttpPatch("answers/{answerId}/answerD")]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> ChangeAnswerDAsync([FromRoute] long answerId, [FromBody] string newAnswer)
         {
@@ -195,7 +195,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
             return await response.ChangeActionAsync();
         }
 
-        [HttpPatch("answers/{answerId}/change-correctAnswer")]
+        [HttpPatch("answers/{answerId}/correctAnswer")]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> ChangeCorrectAnswerAsync([FromRoute] long answerId, [FromBody] string newAnswer)
         {

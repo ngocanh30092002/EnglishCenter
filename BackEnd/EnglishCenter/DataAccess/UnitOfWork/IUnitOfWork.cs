@@ -33,12 +33,15 @@ namespace EnglishCenter.DataAccess.UnitOfWork
         IQuesRcTripleRepository QuesRcTriples { get; }
         ISubRcTripleRepository SubRcTriples { get; }
         IAnswerRcTripleRepository AnswerRcTriples { get; }
+        IQuesRcSenMediaRepository QuesRcSenMedia { get; }
+        IAnswerRcSenMediaRepository AnswerRcMedia { get; }
         ILearningProcessRepository LearningProcesses { get; }
         IAnswerRecordsRepository AnswerRecords { get; }
         IHomeworkRepository Homework { get; }
         IHomeQuesRepository HomeQues { get; }
         IHwSubmissionRepository HwSubmissions { get; }
         IHwSubRecordRepository HwSubRecords { get; }
+        IToeicConversionRepository ToeicConversion { get; }
         
         public Task<int> CompleteAsync();
         public Task BeginTransAsync();
