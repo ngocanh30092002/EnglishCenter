@@ -80,5 +80,5 @@ public class AssignQue
     public virtual Assignment Assignment { set; get; } = null!;
 
     [InverseProperty("AssignQue")]
-    public virtual ICollection<AnswerRecord> AnswerRecords { set; get; } = new List<AnswerRecord>();
+    public virtual ICollection<AssignmentRecord> AssignmentRecords { set; get; } = new List<AssignmentRecord>();
 }

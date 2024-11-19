@@ -24,7 +24,8 @@ namespace EnglishCenter.Presentation
                 .ForMember(d => d.AnswerA, opt => opt.MapFrom(src => src.AnswerA))
                 .ForMember(d => d.AnswerB, opt => opt.MapFrom(src => src.AnswerB))
                 .ForMember(d => d.AnswerC, opt => opt.MapFrom(src => src.AnswerC))
-                .ForMember(d => d.AnswerD, opt => opt.MapFrom(src => src.AnswerD));
+                .ForMember(d => d.AnswerD, opt => opt.MapFrom(src => src.AnswerD))
+                .ForMember(d => d.Time, opt => opt.MapFrom(src => TimeOnly.MinValue));
 
             CreateMap<QuesRcSentence, QuesRcSentenceResDto>()
                 .ForMember(d => d.Id, opt => opt.MapFrom(src => src.QuesId))

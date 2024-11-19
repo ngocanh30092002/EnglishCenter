@@ -14,19 +14,19 @@ namespace EnglishCenter.Business.Services.Assignments
     {
         private readonly IUnitOfWork _unit;
         private readonly IMapper _mapper;
-        private readonly IAnswerRecordService _answerRecordService;
+        private readonly IAssignmentRecordService _assignmentRecordService;
 
-        public AssignQuesService(IUnitOfWork unit, IMapper mapper, IAnswerRecordService answerRecordService)
+        public AssignQuesService(IUnitOfWork unit, IMapper mapper, IAssignmentRecordService assignmentRecordService)
         {
             _unit = unit;
             _mapper = mapper;
-            _answerRecordService = answerRecordService;
+            _assignmentRecordService = assignmentRecordService;
         }
-        
+
         public async Task<Response> ChangeAssignmentIdAsync(long id, long assignmentId)
         {
             var assignQuesModel = _unit.AssignQues.GetById(id);
-            if(assignQuesModel == null)
+            if (assignQuesModel == null)
             {
                 return new Response()
                 {
@@ -69,7 +69,7 @@ namespace EnglishCenter.Business.Services.Assignments
         public async Task<Response> ChangeQuesAsync(long id, int type, long quesId)
         {
             var assignQuesModel = _unit.AssignQues.GetById(id);
-            if(assignQuesModel == null)
+            if (assignQuesModel == null)
             {
                 return new Response()
                 {
@@ -79,7 +79,7 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
-            if(!Enum.IsDefined(typeof(QuesTypeEnum), type))
+            if (!Enum.IsDefined(typeof(QuesTypeEnum), type))
             {
                 return new Response()
                 {
@@ -112,7 +112,7 @@ namespace EnglishCenter.Business.Services.Assignments
         public async Task<Response> ChangeNoNumAsync(long id, int noNum)
         {
             var assignModel = _unit.AssignQues.GetById(id);
-            if(assignModel == null)
+            if (assignModel == null)
             {
                 return new Response()
                 {
@@ -158,7 +158,7 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
-            if(!Enum.IsDefined(typeof(QuesTypeEnum), model.Type))
+            if (!Enum.IsDefined(typeof(QuesTypeEnum), model.Type))
             {
                 return new Response()
                 {
@@ -169,7 +169,7 @@ namespace EnglishCenter.Business.Services.Assignments
             }
 
             var isSameQues = await _unit.AssignQues.IsSameAssignQuesAsync((QuesTypeEnum)model.Type, model.AssignmentId, model.QuesId);
-            if(isSameQues)
+            if (isSameQues)
             {
                 return new Response()
                 {
@@ -180,7 +180,7 @@ namespace EnglishCenter.Business.Services.Assignments
             }
 
             var isExistQuesType = await _unit.AssignQues.IsExistQuesIdAsync((QuesTypeEnum)model.Type, model.QuesId);
-            if (!isExistQuesType) 
+            if (!isExistQuesType)
             {
                 return new Response()
                 {
@@ -213,10 +213,10 @@ namespace EnglishCenter.Business.Services.Assignments
         {
             var assignQuesModel = _unit.AssignQues
                                         .Include(a => a.Assignment)
-                                        .Include(a => a.AnswerRecords)
+                                        .Include(a => a.AssignmentRecords)
                                         .FirstOrDefault(a => a.AssignQuesId == id);
 
-            if(assignQuesModel == null)
+            if (assignQuesModel == null)
             {
                 return new Response()
                 {
@@ -233,14 +233,17 @@ namespace EnglishCenter.Business.Services.Assignments
                 var expectedTime = await _unit.AssignQues.GetTimeQuesAsync(assignQuesModel);
                 assignQuesModel.Assignment.ExpectedTime = TimeOnly.FromTimeSpan(assignQuesModel.Assignment.ExpectedTime - expectedTime);
 
-                var answerRecordIds = assignQuesModel.AnswerRecords.Select(a => a.AnswerRecordId).ToList();
-                foreach (var answerId in answerRecordIds)
+                var assignmentRecords = assignQuesModel.AssignmentRecords.Select(a => a.RecordId).ToList();
+                foreach (var assignment in assignmentRecords)
                 {
-                    await _answerRecordService.DeleteAsync(answerId);
+                    await _assignmentRecordService.DeleteAsync(assignment);
                 }
 
                 int i = 1;
-                var otherAssignQues = _unit.AssignQues.Find(a => a.AssignmentId == assignQuesModel.AssignmentId && a.NoNum != assignQuesModel.NoNum);
+                var otherAssignQues = _unit.AssignQues
+                                           .Find(a => a.AssignmentId == assignQuesModel.AssignmentId && a.NoNum != assignQuesModel.NoNum)
+                                           .OrderBy(a => a.NoNum);
+
                 foreach (var assignQue in otherAssignQues)
                 {
                     assignQue.NoNum = i++;
@@ -257,7 +260,7 @@ namespace EnglishCenter.Business.Services.Assignments
                     Success = true
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 await _unit.RollBackTransAsync();
                 return new Response()

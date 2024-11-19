@@ -11,6 +11,8 @@ namespace EnglishCenter.DataAccess.IRepositories
         public Task<bool> ChangeNoNumAsync(CourseContent contentModel, int number);
         public Task<bool> ChangeContentAsync(CourseContent contentModel, string content);
         public Task<bool> ChangeTypeAsync(CourseContent contentModel, CourseContentTypeEnum type);
+        public Task<CourseContent?> GetPreviousAsync(CourseContent content);
         public Task<List<CourseContent>?> GetByCourseAsync(string courseId);
+        public Task<string> GetTotalTimeByCourseAsync(string courseId);
     }
 }

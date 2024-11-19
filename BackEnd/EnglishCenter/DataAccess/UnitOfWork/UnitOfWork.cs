@@ -1,5 +1,4 @@
 ﻿using EnglishCenter.DataAccess.Database;
-using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.IRepositories;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -42,15 +41,26 @@ namespace EnglishCenter.DataAccess.UnitOfWork
             ISubRcTripleRepository subRcTripleRepo,
             IAnswerRcTripleRepository answerRcTripleRepo,
             ILearningProcessRepository learningProcessRepo,
-            IAnswerRecordsRepository answerRecordRepo,
+            IAssignmentRecordRepository assignmentRecordRepo,
             IHomeworkRepository homeworkRepo,
             IHomeQuesRepository homeQuesRepo,
             IHwSubmissionRepository hwSubmissionRepo,
             IHwSubRecordRepository hwSubRecordRepo,
             IQuesRcSenMediaRepository quesRcSenMediaRepo,
             IAnswerRcSenMediaRepository answerRcSenMediaRepo,
-            IToeicConversionRepository toeicConRepo
-            ) 
+            IToeicConversionRepository toeicConRepo,
+            IToeicRecordRepository toeicRecordRepo,
+            IExaminationRepository examRepo,
+            IToeicExamRepository toeicExamRepo,
+            IQuesToeicRepository quesToeicRepo,
+            ISubToeicRepository subToeicRepo,
+            IAnswerToeicRepository answerToeicRepo,
+            IToeicDirectionRepository toeicDirectionRepo,
+            IToeicPracticeRecordRepository toeicPracticeRecordRepo,
+            IToeicAttemptRepository toeicAttemptRepo,
+            IChatMessageRepository chatMessageRepo,
+            IChatFileRepository chatFileRepo
+            )
         {
             _context = context;
             Events = eventRepo;
@@ -83,7 +93,7 @@ namespace EnglishCenter.DataAccess.UnitOfWork
             AnswerRcTriples = answerRcTripleRepo;
             SubRcTriples = subRcTripleRepo;
             LearningProcesses = learningProcessRepo;
-            AnswerRecords = answerRecordRepo;
+            AssignmentRecords = assignmentRecordRepo;
             Homework = homeworkRepo;
             HomeQues = homeQuesRepo;
             HwSubmissions = hwSubmissionRepo;
@@ -91,6 +101,17 @@ namespace EnglishCenter.DataAccess.UnitOfWork
             QuesRcSenMedia = quesRcSenMediaRepo;
             AnswerRcMedia = answerRcSenMediaRepo;
             ToeicConversion = toeicConRepo;
+            ToeicRecords = toeicRecordRepo;
+            Examinations = examRepo;
+            ToeicExams = toeicExamRepo;
+            QuesToeic = quesToeicRepo;
+            SubToeic = subToeicRepo;
+            AnswerToeic = answerToeicRepo;
+            ToeicDirections = toeicDirectionRepo;
+            ToeicPracticeRecords = toeicPracticeRecordRepo;
+            ToeicAttempts = toeicAttemptRepo;
+            ChatFiles = chatFileRepo;
+            ChatMessages = chatMessageRepo;
         }
 
         public IEventRepository Events { get; private set; }
@@ -123,7 +144,7 @@ namespace EnglishCenter.DataAccess.UnitOfWork
         public IAnswerRcTripleRepository AnswerRcTriples { get; private set; }
         public ISubRcTripleRepository SubRcTriples { get; private set; }
         public ILearningProcessRepository LearningProcesses { get; private set; }
-        public IAnswerRecordsRepository AnswerRecords { get; private set; }
+        public IAssignmentRecordRepository AssignmentRecords { get; private set; }
         public IHomeworkRepository Homework { get; private set; }
         public IHomeQuesRepository HomeQues { get; private set; }
         public IHwSubmissionRepository HwSubmissions { get; private set; }
@@ -131,6 +152,17 @@ namespace EnglishCenter.DataAccess.UnitOfWork
         public IQuesRcSenMediaRepository QuesRcSenMedia { get; private set; }
         public IAnswerRcSenMediaRepository AnswerRcMedia { get; private set; }
         public IToeicConversionRepository ToeicConversion { get; private set; }
+        public IToeicRecordRepository ToeicRecords { get; private set; }
+        public IExaminationRepository Examinations { get; private set; }
+        public IToeicExamRepository ToeicExams { get; private set; }
+        public IQuesToeicRepository QuesToeic { get; private set; }
+        public ISubToeicRepository SubToeic { get; private set; }
+        public IAnswerToeicRepository AnswerToeic { get; private set; }
+        public IToeicDirectionRepository ToeicDirections { get; private set; }
+        public IToeicPracticeRecordRepository ToeicPracticeRecords { get; private set; }
+        public IToeicAttemptRepository ToeicAttempts { get; private set; }
+        public IChatFileRepository ChatFiles { get; private set; }
+        public IChatMessageRepository ChatMessages { get; private set; }
 
         public async Task BeginTransAsync()
         {
@@ -139,7 +171,7 @@ namespace EnglishCenter.DataAccess.UnitOfWork
 
         public async Task CommitTransAsync()
         {
-            if(_transaction != null)
+            if (_transaction != null)
             {
                 await _transaction.CommitAsync();
                 await _transaction.DisposeAsync();

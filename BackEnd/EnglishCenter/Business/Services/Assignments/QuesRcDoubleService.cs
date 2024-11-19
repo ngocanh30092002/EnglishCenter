@@ -35,7 +35,7 @@ namespace EnglishCenter.Business.Services.Assignments
         public async Task<Response> ChangeImage1Async(long quesId, IFormFile imageFile)
         {
             var queModel = _unit.QuesRcDoubles.GetById(quesId);
-            if(queModel == null)
+            if (queModel == null)
             {
                 return new Response()
                 {
@@ -48,7 +48,7 @@ namespace EnglishCenter.Business.Services.Assignments
             var previousPath = Path.Combine(_webHostEnvironment.WebRootPath, queModel.Image1);
             var folderPath = Path.Combine(_webHostEnvironment.WebRootPath, _imageBasePath1);
             var fileName = $"image_1_{DateTime.Now.Ticks}{Path.GetExtension(imageFile.FileName)}";
-            
+
             var isChangeSuccess = await _unit.QuesRcDoubles.ChangeImage1Async(queModel, Path.Combine(_imageBasePath1, fileName));
             if (!isChangeSuccess)
             {
@@ -140,7 +140,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public async Task<Response> ChangeQuantityAsync(long quesId, int quantity)
         {
-            var queModel = _unit.QuesRcDoubles.GetById(quesId);
+            var queModel = _unit.QuesRcDoubles.Include(q => q.SubRcDoubles).FirstOrDefault(q => q.QuesId == quesId);
             if (queModel == null)
             {
                 return new Response()
@@ -228,7 +228,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public async Task<Response> CreateAsync(QuesRcDoubleDto queModel)
         {
-            if(queModel.Image1 == null || queModel.Image2 == null)
+            if (queModel.Image1 == null || queModel.Image2 == null)
             {
                 return new Response()
                 {
@@ -239,7 +239,7 @@ namespace EnglishCenter.Business.Services.Assignments
             }
 
             var queEntity = new QuesRcDouble();
-            if(!TimeOnly.TryParse(queModel.Time, out TimeOnly timeOnly))
+            if (!TimeOnly.TryParse(queModel.Time, out TimeOnly timeOnly))
             {
                 return new Response()
                 {
@@ -250,7 +250,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
             var folderPath1 = Path.Combine(_webHostEnvironment.WebRootPath, _imageBasePath1);
             var fileImage1 = $"image_1_{DateTime.Now.Ticks}{Path.GetExtension(queModel.Image1.FileName)}";
-            
+
             var result = await UploadHelper.UploadFileAsync(queModel.Image1, folderPath1, fileImage1);
             if (!string.IsNullOrEmpty(result))
             {
@@ -264,7 +264,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
             var folderPath2 = Path.Combine(_webHostEnvironment.WebRootPath, _imageBasePath2);
             var fileImage2 = $"image_2_{DateTime.Now.Ticks}{Path.GetExtension(queModel.Image2.FileName)}";
-            
+
             result = await UploadHelper.UploadFileAsync(queModel.Image2, folderPath2, fileImage2);
             if (!string.IsNullOrEmpty(result))
             {
@@ -304,7 +304,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public async Task<Response> DeleteAsync(long quesId)
         {
-            var queModel = _unit.QuesRcDoubles.GetById(quesId);
+            var queModel = _unit.QuesRcDoubles.Include(q => q.SubRcDoubles).FirstOrDefault(q => q.QuesId == quesId);
             if (queModel == null)
             {
                 return new Response()

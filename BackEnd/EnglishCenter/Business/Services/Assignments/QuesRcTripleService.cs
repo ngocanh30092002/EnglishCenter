@@ -190,7 +190,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public async Task<Response> ChangeQuantityAsync(long quesId, int quantity)
         {
-            var queModel = _unit.QuesRcTriples.GetById(quesId);
+            var queModel = _unit.QuesRcTriples.Include(q => q.SubRcTriples).FirstOrDefault(q => q.QuesId == quesId);
             if (queModel == null)
             {
                 return new Response()
@@ -278,7 +278,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public async Task<Response> CreateAsync(QuesRcTripleDto queModel)
         {
-            if(queModel.Image1 == null || queModel.Image2 == null || queModel.Image3 == null)
+            if (queModel.Image1 == null || queModel.Image2 == null || queModel.Image3 == null)
             {
                 return new Response()
                 {
@@ -370,7 +370,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public async Task<Response> DeleteAsync(long quesId)
         {
-            var queModel = _unit.QuesRcTriples.GetById(quesId);
+            var queModel = _unit.QuesRcTriples.Include(q => q.SubRcTriples).FirstOrDefault(q => q.QuesId == quesId);
             if (queModel == null)
             {
                 return new Response()

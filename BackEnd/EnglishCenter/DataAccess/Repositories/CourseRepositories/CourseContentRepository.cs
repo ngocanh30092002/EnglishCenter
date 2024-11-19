@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using EnglishCenter.DataAccess.Database;
+﻿using EnglishCenter.DataAccess.Database;
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.IRepositories;
 using EnglishCenter.Presentation.Global.Enum;
@@ -9,11 +8,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
 {
-    public class CourseContentRepository : GenericRepository<CourseContent> ,ICourseContentRepository
+    public class CourseContentRepository : GenericRepository<CourseContent>, ICourseContentRepository
     {
-        public CourseContentRepository(EnglishCenterContext context, IMapper mapper): base(context)
+
+        public CourseContentRepository(EnglishCenterContext context) : base(context)
         {
-    
+
         }
 
         public async Task<List<CourseContent>?> GetByCourseAsync(string courseId)
@@ -25,6 +25,7 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
 
             var courseContents = await context.CourseContents
                                                 .Include(c => c.Assignments.OrderBy(a => a.NoNum))
+                                                .Include(c => c.Examination)
                                                 .OrderBy(c => c.NoNum)
                                                 .Where(c => c.CourseId == courseId).ToListAsync();
 
@@ -65,7 +66,7 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
                                                         .OrderBy(a => a.NoNum)
                                                         .ToList();
             }
-            else if(contentModel.NoNum > number)
+            else if (contentModel.NoNum > number)
             {
                 courseContents = courseContentList.Where(a => a.CourseId == contentModel.CourseId && a.NoNum < contentModel.NoNum)
                                                         .OrderByDescending(a => a.NoNum)
@@ -110,7 +111,7 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
 
             if (courseContent.CourseId != model.CourseId)
             {
-                var isSuccess =  await this.ChangeCourseAsync(courseContent, model.CourseId);
+                var isSuccess = await this.ChangeCourseAsync(courseContent, model.CourseId);
 
                 if (!isSuccess)
                 {
@@ -140,7 +141,7 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
 
             if (model.Type!.Value != courseContent.Type)
             {
-                if(!Enum.IsDefined(typeof(CourseContentTypeEnum), model.Type.Value))
+                if (!Enum.IsDefined(typeof(CourseContentTypeEnum), model.Type.Value))
                 {
                     return new Response()
                     {
@@ -150,7 +151,7 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
                     };
                 }
 
-                var isSuccess = await ChangeTypeAsync(courseContent, (CourseContentTypeEnum) model.Type.Value);
+                var isSuccess = await ChangeTypeAsync(courseContent, (CourseContentTypeEnum)model.Type.Value);
                 if (!isSuccess)
                 {
                     return new Response()
@@ -200,7 +201,7 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
                                                        .OrderBy(a => a.NoNum)
                                                        .ToListAsync();
 
-            if(newCourseContents == null || newCourseContents.Count == 0)
+            if (newCourseContents == null || newCourseContents.Count == 0)
             {
                 var num = context.CourseContents.Where(a => a.CourseId == contentModel.CourseId)
                                                 .Count();
@@ -237,6 +238,46 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
             contentModel.Type = (int)type;
 
             return true;
+        }
+
+        public async Task<CourseContent?> GetPreviousAsync(CourseContent content)
+        {
+            if (content == null) return null;
+
+            if (content.NoNum == 1) return null;
+
+            return await context.CourseContents
+                                .Include(c => c.Examination)
+                                .FirstOrDefaultAsync(c => c.CourseId == content.CourseId && c.NoNum == content.NoNum - 1);
+        }
+
+        public async Task<string> GetTotalTimeByCourseAsync(string courseId)
+        {
+            var assignments = await context.Assignments
+                                           .Include(c => c.CourseContent)
+                                           .Where(c => c.CourseContent.CourseId == courseId &&
+                                                       c.CourseContent.Type == (int)CourseContentTypeEnum.Normal)
+                                           .ToListAsync();
+
+            var totalTime = TimeSpan.Zero;
+
+            foreach (var assign in assignments)
+            {
+                totalTime = totalTime.Add(assign.Time.ToTimeSpan());
+            }
+
+            var exams = await context.Examinations
+                                     .Include(c => c.CourseContent)
+                                     .Where(c => c.CourseContent.CourseId == courseId &&
+                                                 c.CourseContent.Type != (int)CourseContentTypeEnum.Normal)
+                                     .ToListAsync();
+
+            foreach (var exam in exams)
+            {
+                totalTime = totalTime.Add(exam.Time.ToTimeSpan());
+            }
+
+            return totalTime.Hours + ":" + totalTime.Minutes;
         }
     }
 }

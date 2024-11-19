@@ -1,7 +1,7 @@
-﻿using EnglishCenter.DataAccess.Database;
+﻿using AutoMapper;
+using EnglishCenter.DataAccess.Database;
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.IRepositories;
-using EnglishCenter.DataAccess.UnitOfWork;
 using EnglishCenter.Presentation.Global.Enum;
 using EnglishCenter.Presentation.Models.DTOs;
 using Microsoft.EntityFrameworkCore;
@@ -10,9 +10,11 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
 {
     public class AssignQuesRepository : GenericRepository<AssignQue>, IAssignQuesRepository
     {
-        public AssignQuesRepository(EnglishCenterContext context) : base(context)
-        {
+        private IMapper _mapper;
 
+        public AssignQuesRepository(EnglishCenterContext context, IMapper mapper) : base(context)
+        {
+            _mapper = mapper;
         }
 
         public async Task<bool> ChangeAssignmentIdAsync(AssignQue model, long assignmentId)
@@ -38,7 +40,7 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
             }
 
             var maxNoNum = await context.AssignQues
-                                        .Where(s => s.AssignmentId == assignmentId  )
+                                        .Where(s => s.AssignmentId == assignmentId)
                                         .Select(s => (int?)s.NoNum)
                                         .MaxAsync();
 
@@ -158,7 +160,7 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
 
             switch (model.Type)
             {
-                case (int) QuesTypeEnum.Image:
+                case (int)QuesTypeEnum.Image:
                     timeResult = model.QuesImage == null ? timeResult : model.QuesImage.Time;
                     break;
                 case (int)QuesTypeEnum.Audio:
@@ -184,7 +186,37 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
             }
 
             return timeResult;
-        } 
+        }
+
+        public async Task<object> GetAnswerInfoAsync(long assignQuesId, long? subId)
+        {
+            var assignQueModel = await context.AssignQues.FindAsync(assignQuesId);
+            if (assignQueModel == null) return null;
+
+            await LoadQuestionAsync(assignQueModel);
+
+            switch (assignQueModel.Type)
+            {
+                case (int)QuesTypeEnum.Image:
+                    return _mapper.Map<AnswerLcImageDto>(assignQueModel.QuesImage.Answer);
+                case (int)QuesTypeEnum.Audio:
+                    return _mapper.Map<AnswerLcAudioDto>(assignQueModel.QuesAudio.Answer);
+                case (int)QuesTypeEnum.Conversation:
+                    return _mapper.Map<AnswerLcConDto>(assignQueModel.QuesConversation.SubLcConversations.FirstOrDefault(s => s.SubId == subId.Value).Answer);
+                case (int)QuesTypeEnum.Sentence:
+                    return _mapper.Map<AnswerRcSentenceDto>(assignQueModel.QuesSentence.Answer);
+                case (int)QuesTypeEnum.Single:
+                    return _mapper.Map<AnswerRcSingleDto>(assignQueModel.QuesSingle.SubRcSingles.FirstOrDefault(s => s.SubId == subId.Value).Answer);
+                case (int)QuesTypeEnum.Double:
+                    return _mapper.Map<AnswerRcDoubleDto>(assignQueModel.QuesDouble.SubRcDoubles.FirstOrDefault(s => s.SubId == subId.Value).Answer);
+                case (int)QuesTypeEnum.Triple:
+                    return _mapper.Map<AnswerRcTripleDto>(assignQueModel.QuesTriple.SubRcTriples.FirstOrDefault(s => s.SubId == subId.Value).Answer);
+                case (int)QuesTypeEnum.Sentence_Media:
+                    return _mapper.Map<AnswerRcSenMediaDto>(assignQueModel.QuesSentenceMedia.Answer);
+            }
+
+            return null;
+        }
 
         public async Task<List<AssignQue>?> GetByAssignmentAsync(long assignmentId)
         {
@@ -193,7 +225,7 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
 
             foreach (var model in models)
             {
-                var isLoadSuccess = await LoadQuestionAsync(model);
+                var isLoadSuccess = await LoadQuestionWithoutAnswerAsync(model);
                 if (!isLoadSuccess) return null;
             }
 
@@ -270,7 +302,7 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
                         if (!subId.HasValue) return false;
                         var subQueDouble = model.QuesDouble!.SubRcDoubles.FirstOrDefault(s => s.SubId == subId.Value);
                         return subQueDouble!.Answer!.CorrectAnswer == selectedAnswer.ToUpper();
-                    
+
                     case (int)QuesTypeEnum.Triple:
                         if (!subId.HasValue) return false;
                         var subQueTriple = model.QuesTriple!.SubRcTriples.FirstOrDefault(s => s.SubId == subId.Value);
@@ -509,7 +541,7 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
                 if (!changeResult) return false;
             }
 
-            if(model.NoNum.HasValue && assignModel.NoNum != model.NoNum) 
+            if (model.NoNum.HasValue && assignModel.NoNum != model.NoNum)
             {
                 var changeResult = await ChangeNoNumAsync(assignModel, model.NoNum.Value);
                 if (!changeResult) return false;
@@ -523,9 +555,9 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
             int totalQues = 0;
             var assignQues = await context.AssignQues.Where(a => a.AssignmentId == assignmentId).ToListAsync();
 
-            foreach(var assign in assignQues)
+            foreach (var assign in assignQues)
             {
-                switch((QuesTypeEnum)assign.Type)
+                switch ((QuesTypeEnum)assign.Type)
                 {
                     case QuesTypeEnum.Conversation:
                         totalQues += context.SubLcConversations.Where(s => s.PreQuesId == assign.ConversationQuesId).Count();

@@ -5,6 +5,7 @@ using EnglishCenter.DataAccess.UnitOfWork;
 using EnglishCenter.Presentation.Global.Enum;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
+using EnglishCenter.Presentation.Models.ResDTOs;
 using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.Business.Services.Assignments
@@ -13,19 +14,21 @@ namespace EnglishCenter.Business.Services.Assignments
     {
         private readonly IUnitOfWork _unit;
         private readonly IMapper _mapper;
-        private readonly IAnswerRecordService _answerService;
+        private readonly IAssignmentRecordService _assignmentRecordService;
+        private readonly IToeicRecordService _toeicRecordService;
 
-        public LearningProcessService(IUnitOfWork unit, IMapper mapper, IAnswerRecordService answerService)
+        public LearningProcessService(IUnitOfWork unit, IMapper mapper, IAssignmentRecordService assignmentRecordService, IToeicRecordService toeicRecordService)
         {
             _unit = unit;
             _mapper = mapper;
-            _answerService = answerService;
+            _assignmentRecordService = assignmentRecordService;
+            _toeicRecordService = toeicRecordService;
         }
 
         public async Task<Response> ChangeEndTimeAsync(long id, string dateTime)
         {
             var processModel = _unit.LearningProcesses.GetById(id);
-            if(processModel == null)
+            if (processModel == null)
             {
                 return new Response()
                 {
@@ -35,7 +38,7 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
-            if(!DateTime.TryParse(dateTime, out DateTime time))
+            if (!DateTime.TryParse(dateTime, out DateTime time))
             {
                 return new Response()
                 {
@@ -110,7 +113,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public async Task<Response> ChangeStatusAsync(long id, int status)
         {
-            if(!Enum.IsDefined(typeof(ProcessStatusEnum), status))
+            if (!Enum.IsDefined(typeof(ProcessStatusEnum), status))
             {
                 return new Response()
                 {
@@ -121,7 +124,7 @@ namespace EnglishCenter.Business.Services.Assignments
             }
 
             var processModel = _unit.LearningProcesses.GetById(id);
-            if(processModel == null)
+            if (processModel == null)
             {
                 return new Response()
                 {
@@ -157,7 +160,7 @@ namespace EnglishCenter.Business.Services.Assignments
                                 .Include(e => e.Class)
                                 .FirstOrDefaultAsync(e => e.EnrollId == model.EnrollId);
 
-            if(enrollModel == null)
+            if (enrollModel == null)
             {
                 return new Response()
                 {
@@ -167,7 +170,7 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
-            if(enrollModel.StatusId != (int) EnrollEnum.Ongoing)
+            if (enrollModel.StatusId != (int)EnrollEnum.Ongoing)
             {
                 return new Response()
                 {
@@ -177,16 +180,12 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
-            var assignmentModel = await _unit.Assignments
-                                    .Include(a => a.CourseContent)
-                                    .FirstOrDefaultAsync(a => a.AssignmentId == model.AssignmentId);
-
-            if(assignmentModel == null)
+            if (!(model.AssignmentId == null ^ model.ExamId == null))
             {
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Can't find any assignments",
+                    Message = "Invalid input",
                     Success = false
                 };
             }
@@ -196,125 +195,70 @@ namespace EnglishCenter.Business.Services.Assignments
 
             if (courseModel.IsSequential)
             {
-                if(assignmentModel.NoNum == 1 && assignmentModel.CourseContent.NoNum == 1)
+                if (model.AssignmentId.HasValue)
                 {
-                    var processes = _unit.LearningProcesses.Find(p => p.EnrollId == model.EnrollId && p.AssignmentId == model.AssignmentId)
-                                                           .ToList();
-                    
-
-
-                    if(processes != null && processes.Count > 0)
+                    var response = await CreateWithAssignmentAsync(model);
+                    if (!response.Success) return response;
+                }
+                else
+                {
+                    var response = await CreateWithExamAsync(model);
+                    if (!response.Success) return response;
+                }
+            }
+            else
+            {
+                if (model.AssignmentId.HasValue)
+                {
+                    var isExistAssignment = _unit.Assignments.IsExist(a => a.AssignmentId == model.AssignmentId);
+                    if (!isExistAssignment)
                     {
-                        var achieveProcesses = processes.Where(p => p.Status == (int) ProcessStatusEnum.Completed || p.Status == (int) ProcessStatusEnum.Achieved)
-                                                        .ToList();
-
-                        if(achieveProcesses.Count > 0 && assignmentModel.CourseContent.Type != 1)
+                        return new Response()
                         {
-                            return new Response()
-                            {
-                                StatusCode = System.Net.HttpStatusCode.BadRequest,
-                                Message = "Can't do it again anymore",
-                                Success = false
-                            };
-                        }
+                            StatusCode = System.Net.HttpStatusCode.BadRequest,
+                            Message = "Can't find any assignments",
+                            Success = false
+                        };
+                    }
 
-                        foreach(var process in achieveProcesses)
+                    var isExistProcess = _unit.LearningProcesses.IsExist(c => c.EnrollId == model.EnrollId &&
+                                                                              c.AssignmentId == model.AssignmentId &&
+                                                                              c.Status == (int)ProcessStatusEnum.Ongoing);
+
+                    if (isExistProcess)
+                    {
+                        return new Response()
                         {
-                            if(process.Status == (int)ProcessStatusEnum.Completed)
-                            {
-                                process.Status = (int)ProcessStatusEnum.Achieved;
-                            }
-                        }
+                            StatusCode = System.Net.HttpStatusCode.BadRequest,
+                            Message = "Can't create new process",
+                            Success = false
+                        };
                     }
                 }
                 else
                 {
-                    var processes = _unit.LearningProcesses.Find(p => p.EnrollId == model.EnrollId && p.AssignmentId == model.AssignmentId)
-                                                           .ToList();
-
-                    if(processes != null && processes.Count > 0)
+                    var isExistExam = _unit.Examinations.IsExist(e => e.ExamId == model.ExamId);
+                    if (!isExistExam)
                     {
-                        var achieveProcesses = processes.Where(p => p.Status == (int)ProcessStatusEnum.Completed || p.Status == (int)ProcessStatusEnum.Achieved)
-                                                        .ToList();
-
-                        if(achieveProcesses.Count > 0 && assignmentModel.CourseContent.Type != 1)
+                        return new Response()
                         {
-                            return new Response()
-                            {
-                                StatusCode = System.Net.HttpStatusCode.BadRequest,
-                                Message = "Can't do it again anymore",
-                                Success = false
-                            };
-                        }
-
-                        foreach (var process in achieveProcesses)
-                        {
-                            if (process.Status == (int)ProcessStatusEnum.Completed)
-                            {
-                                process.Status = (int)ProcessStatusEnum.Achieved;
-                            }
-                        }
+                            StatusCode = System.Net.HttpStatusCode.BadRequest,
+                            Message = "Can't find any examination",
+                            Success = false
+                        };
                     }
-                    else
+                    var isExistProcess = _unit.LearningProcesses.IsExist(c => c.EnrollId == model.EnrollId &&
+                                                                             c.ExamId == model.ExamId);
+
+                    if (isExistProcess)
                     {
-                        Assignment? previousAssignment = await _unit.Assignments.GetPreviousAssignmentAsync(assignmentModel.AssignmentId);
-
-                        if(previousAssignment == null)
+                        return new Response()
                         {
-                            return new Response()
-                            {
-                                StatusCode = System.Net.HttpStatusCode.BadRequest,
-                                Message = "Create process failed",
-                                Success = false
-                            };
-                        }
-
-                        var isQualified = false;
-
-                        if(previousAssignment.CourseContent.Type != 1) 
-                        {
-                            isQualified = _unit.LearningProcesses
-                                               .IsExist(p => p.EnrollId == model.EnrollId &&
-                                                             p.AssignmentId == previousAssignment.AssignmentId &&
-                                                             p.Status != (int)ProcessStatusEnum.Ongoing);
-                        }
-                        else
-                        {
-                            isQualified = _unit.LearningProcesses
-                                               .IsExist(p => p.EnrollId == model.EnrollId &&
-                                                             p.AssignmentId == previousAssignment.AssignmentId &&
-                                                             (p.Status == (int)ProcessStatusEnum.Achieved || p.Status == (int)ProcessStatusEnum.Completed));
-                        }
-
-                        if (!isQualified)
-                        {
-                            return new Response()
-                            {
-                                StatusCode = System.Net.HttpStatusCode.BadRequest,
-                                Message = "Please complete the previous assignment to continue with this exercise",
-                                Success = false
-                            };
-                        }
+                            StatusCode = System.Net.HttpStatusCode.BadRequest,
+                            Message = "Can't create new process",
+                            Success = false
+                        };
                     }
-                }
-                
-            }
-            else
-            {
-                var isExist = _unit.LearningProcesses
-                                   .IsExist(p => p.EnrollId == model.EnrollId &&
-                                                 p.AssignmentId == model.AssignmentId &&
-                                                 p.Status != (int)ProcessStatusEnum.Ongoing);
-
-                if(assignmentModel.CourseContent.Type != 1 && isExist)
-                {
-
-                    return new Response()
-                    {
-                        StatusCode = System.Net.HttpStatusCode.BadRequest,
-                        Message = "Can't do it again anymore",
-                        Success = false
-                    };
                 }
             }
 
@@ -326,7 +270,7 @@ namespace EnglishCenter.Business.Services.Assignments
             return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Message = entity,
+                Message = entity.ProcessId,
                 Success = true
             };
         }
@@ -335,6 +279,7 @@ namespace EnglishCenter.Business.Services.Assignments
         {
             var processModel = _unit.LearningProcesses
                                     .Include(a => a.Assignment)
+                                    .Include(a => a.Examination)
                                     .FirstOrDefault(p => p.ProcessId == id);
             if (processModel == null)
             {
@@ -346,7 +291,7 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
-            if(processModel.Status == (int) ProcessStatusEnum.NotAchieved || processModel.Status == (int)ProcessStatusEnum.Ongoing)
+            if (processModel.Status == (int)ProcessStatusEnum.NotAchieved || processModel.Status == (int)ProcessStatusEnum.Ongoing)
             {
                 _unit.LearningProcesses.Remove(processModel);
                 await _unit.CompleteAsync();
@@ -360,7 +305,8 @@ namespace EnglishCenter.Business.Services.Assignments
             }
             else
             {
-                var courseContentModel = _unit.CourseContents.GetById(processModel.Assignment.CourseContentId);
+                var courseContentId = processModel.AssignmentId == null ? processModel.Examination!.ContentId : processModel.Assignment!.CourseContentId;
+                var courseContentModel = _unit.CourseContents.GetById(courseContentId);
 
                 var nextAssignments = _unit.Assignments
                                         .Include(a => a.CourseContent)
@@ -384,6 +330,26 @@ namespace EnglishCenter.Business.Services.Assignments
                     };
                 }
 
+                var otherCourseContentIds = _unit.CourseContents
+                                              .Find(p => p.CourseId == courseContentModel.CourseId &&
+                                                         p.NoNum > courseContentModel.NoNum
+                                                         && p.Type != (int)CourseContentTypeEnum.Normal)
+                                              .Select(p => p.ContentId);
+
+                isExist = await _unit.LearningProcesses
+                                     .Include(p => p.Examination)
+                                     .AnyAsync(p => p.Examination != null && otherCourseContentIds.Any(c => c == p.Examination.ContentId));
+
+                if (isExist)
+                {
+                    return new Response()
+                    {
+                        StatusCode = System.Net.HttpStatusCode.BadRequest,
+                        Message = "Can't delete this processes",
+                        Success = false
+                    };
+                }
+
                 _unit.LearningProcesses.Remove(processModel);
                 await _unit.CompleteAsync();
 
@@ -394,7 +360,7 @@ namespace EnglishCenter.Business.Services.Assignments
                     Success = true
                 };
             }
-            
+
         }
 
         public Task<Response> GetAllAsync()
@@ -405,7 +371,7 @@ namespace EnglishCenter.Business.Services.Assignments
             return Task.FromResult(new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Message = _mapper.Map<List<LearningProcessDto>>(processes),
+                Message = _mapper.Map<List<LearningProcessResDto>>(processes),
                 Success = true
             });
         }
@@ -418,18 +384,129 @@ namespace EnglishCenter.Business.Services.Assignments
             return Task.FromResult(new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Message = _mapper.Map<LearningProcessDto>(process),
+                Message = _mapper.Map<LearningProcessResDto>(process),
                 Success = true
             });
         }
 
-        public async Task<Response> HandleSubmitProcessAsync(long id, LearningProcessDto model)
+        public Task<Response> IsSubmittedAsync(long id)
+        {
+            var processModel = _unit.LearningProcesses.GetById(id);
+
+            if (processModel == null)
+            {
+                return Task.FromResult(new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any processes",
+                    Success = false
+                });
+            }
+
+            return Task.FromResult(new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = processModel.Status != (int)ProcessStatusEnum.Ongoing,
+                Success = true
+            });
+        }
+
+        public async Task<Response> GetHisProcessesAsync(long enrollId, long? assignmentId, long? examId)
+        {
+            if (!(assignmentId == null ^ examId == null))
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Invalid parameter",
+                    Success = false
+                };
+            };
+
+            var enrollModel = _unit.Enrollment.GetById(enrollId);
+            if (enrollModel == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "",
+                    Success = false
+                };
+            }
+
+            var processResDtos = new List<LearningProcessResDto>();
+
+            if (assignmentId.HasValue)
+            {
+                var hisProcesses = _unit.LearningProcesses
+                                        .Find(p => p.EnrollId == enrollModel.EnrollId &&
+                                                   p.AssignmentId == assignmentId.Value &&
+                                                   p.Status != (int)ProcessStatusEnum.Ongoing)
+                                        .OrderByDescending(p => p.StartTime)
+                                        .ToList();
+
+                foreach (var hisProcess in hisProcesses)
+                {
+                    var correctNum = _unit.AssignmentRecords.Find(a => a.LearningProcessId == hisProcess.ProcessId && a.IsCorrect).Count();
+                    var numQues = await _unit.AssignQues.GetNumberByAssignmentAsync(assignmentId!.Value);
+
+                    var processResModel = _mapper.Map<LearningProcessResDto>(hisProcess);
+                    processResModel.Result = $"{correctNum}/{numQues}";
+
+                    processResDtos.Add(processResModel);
+                }
+            }
+            else
+            {
+                var hisProcesses = _unit.LearningProcesses
+                                        .Find(p => p.EnrollId == enrollModel.EnrollId &&
+                                                   p.ExamId == examId!.Value &&
+                                                   p.Status != (int)ProcessStatusEnum.Ongoing)
+                                        .OrderByDescending(p => p.StartTime)
+                                        .ToList();
+
+                foreach (var hisProcess in hisProcesses)
+                {
+                    var correctNum = _unit.ToeicRecords.Find(t => t.LearningProcessId == hisProcess.ProcessId && t.IsCorrect).Count();
+
+                    var processResModel = _mapper.Map<LearningProcessResDto>(hisProcess);
+                    processResModel.Result = $"{correctNum}/200";
+
+                    processResDtos.Add(processResModel);
+                }
+            }
+
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = processResDtos,
+                Success = true
+            };
+        }
+
+        public Task<Response> GetNumberAttemptedAsync(long enrollId, long assignmentId)
         {
             var processModel = _unit.LearningProcesses
-                                    .Include(p => p.Assignment)
-                                    .FirstOrDefault(p => p.ProcessId == id);
+                                    .Find(p => p.EnrollId == enrollId &&
+                                               p.AssignmentId == assignmentId &&
+                                               p.Status != (int)ProcessStatusEnum.Ongoing);
 
-            if(processModel == null)
+            return Task.FromResult(new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = processModel.Count(),
+                Success = true
+            });
+        }
+
+        public async Task<Response> GetScoreByProcessAsync(long id)
+        {
+            var processModel = await _unit.LearningProcesses
+                                          .Include(p => p.Assignment)
+                                          .Include(p => p.Examination)
+                                          .FirstOrDefaultAsync(p => p.ProcessId == id);
+
+            if (processModel == null)
             {
                 return new Response()
                 {
@@ -439,35 +516,218 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
+            if (processModel.Status == (int)ProcessStatusEnum.Ongoing)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "This process is in progress so the score cannot be retrieved.",
+                    Success = false
+                };
+            }
+
+            if (processModel.AssignmentId.HasValue)
+            {
+                var correctNum = _unit.AssignmentRecords.Find(a => a.LearningProcessId == processModel.ProcessId && a.IsCorrect).Count();
+                var totalNum = await _unit.AssignQues.GetNumberByAssignmentAsync(processModel.AssignmentId.Value);
+                var achievedPercentage = processModel.Assignment!.AchievedPercentage;
+                var currentPercentage = Math.Ceiling(correctNum * 100.0 * 100.0 / totalNum) / 100;
+
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Success = true,
+                    Message = new AssignmentScoreResDto()
+                    {
+                        Correct = correctNum,
+                        InCorrect = totalNum - correctNum,
+                        Total = totalNum,
+                        Achieve_Percentage = achievedPercentage,
+                        Current_Percentage = currentPercentage,
+                        IsPass = currentPercentage >= achievedPercentage
+                    }
+                };
+            }
+            else
+            {
+                var res = new ToeicScoreResDto()
+                {
+                    Part1 = await _unit.ToeicRecords.GetNumCorrectRecordsWithPartAsync(id, (int)PartEnum.Part1),
+                    Part2 = await _unit.ToeicRecords.GetNumCorrectRecordsWithPartAsync(id, (int)PartEnum.Part2),
+                    Part3 = await _unit.ToeicRecords.GetNumCorrectRecordsWithPartAsync(id, (int)PartEnum.Part3),
+                    Part4 = await _unit.ToeicRecords.GetNumCorrectRecordsWithPartAsync(id, (int)PartEnum.Part4),
+                    Part5 = await _unit.ToeicRecords.GetNumCorrectRecordsWithPartAsync(id, (int)PartEnum.Part5),
+                    Part6 = await _unit.ToeicRecords.GetNumCorrectRecordsWithPartAsync(id, (int)PartEnum.Part6),
+                    Part7 = await _unit.ToeicRecords.GetNumCorrectRecordsWithPartAsync(id, (int)PartEnum.Part7),
+                };
+
+                var listeningCon = await _unit.ToeicConversion.GetByNumberCorrectAsync(res.Part1 + res.Part2 + res.Part3 + res.Part4, ToeicEnum.Listening);
+                var readingCon = await _unit.ToeicConversion.GetByNumberCorrectAsync(res.Part5 + res.Part6 + res.Part7, ToeicEnum.Reading);
+
+                res.Listening = listeningCon == null ? 0 : listeningCon.EstimatedScore;
+                res.Reading = readingCon == null ? 0 : readingCon.EstimatedScore;
+
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Success = true,
+                    Message = res
+                };
+            }
+        }
+
+        public async Task<Response> GetOngoingAsync(long enrollId, long? assignmentId, long? examId)
+        {
+            if (!(assignmentId == null ^ examId == null))
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Invalid parameter",
+                    Success = false
+                };
+            };
+
+            var enrollModel = _unit.Enrollment.GetById(enrollId);
+            if (enrollModel == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any enrollments",
+                    Success = false
+                };
+            }
+
+            if (assignmentId.HasValue)
+            {
+                var processModel = _unit.LearningProcesses
+                                        .Include(p => p.Assignment)
+                                        .Where(p => p.EnrollId == enrollModel.EnrollId &&
+                                                             p.Status == (int)ProcessStatusEnum.Ongoing &&
+                                                             p.AssignmentId == assignmentId.Value)
+                                        .FirstOrDefault();
+                if (processModel != null)
+                {
+                    DateTime endTime = processModel.StartTime.Add(processModel.Assignment.Time.ToTimeSpan());
+
+                    if (endTime <= DateTime.Now)
+                    {
+                        var response = await HandleSubmitProcessAsync(processModel.ProcessId, new LearningProcessDto()
+                        {
+                            AssignmentId = processModel.AssignmentId
+                        });
+
+                        if (!response.Success) return response;
+
+                        return new Response
+                        {
+                            StatusCode = System.Net.HttpStatusCode.OK,
+                            Message = null,
+                            Success = true
+                        };
+                    }
+                }
+
+                return new Response
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Message = _mapper.Map<LearningProcessResDto>(processModel),
+                    Success = true
+                };
+            }
+            else
+            {
+                var processModel = _unit.LearningProcesses
+                                        .Include(p => p.Examination)
+                                        .Where(p => p.EnrollId == enrollModel.EnrollId &&
+                                                             p.Status == (int)ProcessStatusEnum.Ongoing &&
+                                                             p.ExamId == examId!.Value)
+                                        .FirstOrDefault();
+
+                if (processModel != null)
+                {
+                    DateTime endTime = processModel.StartTime.Add(processModel.Examination.Time.ToTimeSpan());
+
+                    if (endTime <= DateTime.Now)
+                    {
+                        var response = await HandleSubmitProcessAsync(processModel.ProcessId, new LearningProcessDto()
+                        {
+                            ExamId = processModel.ExamId
+                        });
+
+                        if (!response.Success) return response;
+
+                        return new Response
+                        {
+                            StatusCode = System.Net.HttpStatusCode.OK,
+                            Message = null,
+                            Success = true
+                        };
+                    }
+                }
+
+                return new Response
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Message = _mapper.Map<LearningProcessResDto>(processModel),
+                    Success = true
+                };
+            }
+        }
+
+        public async Task<Response> HandleSubmitProcessAsync(long id, LearningProcessDto model)
+        {
+            var processModel = _unit.LearningProcesses
+                                    .Include(p => p.Assignment)
+                                    .Include(p => p.Enrollment)
+                                    .FirstOrDefault(p => p.ProcessId == id);
+
+            if (processModel == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any processes",
+                    Success = false
+                };
+            }
+
+            if (processModel.Status != (int)ProcessStatusEnum.Ongoing)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Process isn't valid",
+                    Success = false
+                };
+            }
+
+            if (!(model.AssignmentId == null ^ model.ExamId == null))
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Invalid input",
+                    Success = false
+                };
+            }
+
             await _unit.BeginTransAsync();
 
             try
             {
-                if (model.Answers != null && model.Answers.Count > 0)
+                if (model.AssignmentId.HasValue)
                 {
-                    foreach (var answer in model.Answers)
-                    {
-                        var response = await _answerService.CreateAsync(answer);
-                        if (!response.Success) return response;
-                    }
+                    var response = await HandleSubmitWithAssignmentAsync(processModel, model);
+                    if (!response.Success) return response;
+                }
+                else
+                {
+                    var response = await HandleSubmitWithExamAsync(processModel, model);
+                    if (!response.Success) return response;
                 }
 
-                var correctNum = _unit.AnswerRecords.Find(a => a.LearningProcessId == id && a.IsCorrect == true).Count();
-                var numQues = await _unit.AssignQues.GetNumberByAssignmentAsync(processModel.AssignmentId);
-
-                bool isQualified = (correctNum * 100.0 / numQues) > processModel.Assignment.AchievedPercentage;
-
-                processModel.Status = isQualified ? (int)ProcessStatusEnum.Completed : (int)ProcessStatusEnum.NotAchieved;
-                processModel.EndTime = DateTime.Now;
-
-                var courseContent = _unit.CourseContents.GetById(processModel.Assignment.CourseContentId);
-                if(courseContent.Type != 1)
-                {
-                    var saveRes = await SaveScoreHisAsync(processModel, courseContent.Type, correctNum);
-                    if(!saveRes.Success) return saveRes;
-                }
-
-                await _unit.CompleteAsync();
                 await _unit.CommitTransAsync();
 
                 return new Response()
@@ -477,9 +737,9 @@ namespace EnglishCenter.Business.Services.Assignments
                     Success = true
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                await _unit.RollBackTransAsync();   
+                await _unit.RollBackTransAsync();
 
                 return new Response()
                 {
@@ -488,14 +748,102 @@ namespace EnglishCenter.Business.Services.Assignments
                     Success = false
                 };
             }
+        }
 
+        public Task<Response> GetStatusExamAsync(long enrollId, long examId)
+        {
+            var enrollModel = _unit.Enrollment.GetById(enrollId);
+            if (enrollModel == null)
+            {
+                return Task.FromResult(new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any enrollment",
+                    Success = false
+                });
+            }
+
+            var processModel = _unit.LearningProcesses.Find(p => p.EnrollId == enrollId && p.ExamId == examId).FirstOrDefault();
+            if (processModel == null)
+            {
+                return Task.FromResult(new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Message = null,
+                    Success = true
+                });
+            }
+
+            return Task.FromResult(new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = new
+                {
+                    ProcessId = processModel.ProcessId,
+                    Status = ((ProcessStatusEnum)processModel.Status).ToString(),
+                },
+                Success = true
+            });
+        }
+        public async Task<Response> GetStatusLessonAsync(long id, long? assignmentId, long? examId)
+        {
+            var enrollModel = _unit.Enrollment.Include(e => e.Class).FirstOrDefault(e => e.EnrollId == id);
+            if (enrollModel == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any enrollment",
+                    Success = false
+                };
+            }
+
+            var status = await IsStatusLessonAsync(enrollModel, assignmentId, examId);
+
+
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = status.ToString(),
+                Success = true
+            };
+        }
+
+        public async Task<LessonStatusEnum> IsStatusLessonAsync(Enrollment enroll, long? assignmentId, long? examId)
+        {
+            if (enroll.StatusId != (int)EnrollEnum.Ongoing) return LessonStatusEnum.Locked;
+            if (!(assignmentId == null ^ examId == null)) return LessonStatusEnum.Locked;
+
+            var courseModel = _unit.Courses.GetById(enroll.Class.CourseId);
+            if (courseModel == null) return LessonStatusEnum.Locked;
+
+            if (assignmentId.HasValue)
+            {
+                var assignment = await _unit.Assignments
+                                            .Include(a => a.CourseContent)
+                                            .FirstOrDefaultAsync(a => a.AssignmentId == assignmentId.Value);
+
+                if (assignment == null) return LessonStatusEnum.Locked;
+
+                return await IsStatusWithAssignmentAsync(enroll, assignment, courseModel.IsSequential);
+            }
+            else
+            {
+                var examModel = await _unit.Examinations
+                                           .Include(a => a.CourseContent)
+                                           .FirstOrDefaultAsync(a => a.ExamId == examId);
+
+                if (examModel == null) return LessonStatusEnum.Locked;
+
+                return await IsStatusWithExamAsync(enroll, examModel, courseModel.IsSequential);
+            }
         }
 
         public async Task<Response> UpdateAsync(long id, LearningProcessDto model)
         {
             var processModel = _unit.LearningProcesses.GetById(id);
 
-            if(processModel == null)
+            if (processModel == null)
             {
                 return new Response()
                 {
@@ -536,7 +884,7 @@ namespace EnglishCenter.Business.Services.Assignments
                     Success = true
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 await _unit.RollBackTransAsync();
 
@@ -548,65 +896,494 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
-            
+
         }
 
-        private Task<Response> SaveScoreHisAsync(LearningProcess process, int type, int correctNum)
+        private async Task<Response> CreateWithAssignmentAsync(LearningProcessDto model)
         {
-            var enrollModel = _unit.Enrollment.GetById(process.EnrollId);
-            if(enrollModel == null)
+            var assignmentModel = await _unit.Assignments
+                                .Include(a => a.CourseContent)
+                                .FirstOrDefaultAsync(a => a.AssignmentId == model.AssignmentId);
+
+            if (assignmentModel == null)
             {
-                return Task.FromResult(new Response()
+                return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Can't find any enrollments",
+                    Message = "Can't find any assignments",
                     Success = false
-                });
+                };
             }
 
-            if (!enrollModel.ScoreHisId.HasValue)
+            if (assignmentModel.CourseContent.Type != (int)CourseContentTypeEnum.Normal)
             {
-                return Task.FromResult(new Response()
+                return new Response
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Can't find any score history",
+                    Message = "Can't create process with this assignment",
                     Success = false
-                });
+                };
             }
 
-            var scoreHisModel = _unit.ScoreHis.GetById(enrollModel.ScoreHisId.Value);
-            if (scoreHisModel == null)
+
+            if (assignmentModel.NoNum == 1 && assignmentModel.CourseContent.NoNum == 1)
             {
-                return Task.FromResult(new Response()
+                var processes = _unit.LearningProcesses.Find(p => p.EnrollId == model.EnrollId && p.AssignmentId == model.AssignmentId)
+                                                       .ToList();
+
+
+
+                if (processes != null && processes.Count > 0)
                 {
-                    StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Can't find any score history",
-                    Success = false
-                });
-            }
+                    var achieveProcesses = processes.Where(p => p.Status == (int)ProcessStatusEnum.Completed || p.Status == (int)ProcessStatusEnum.Achieved)
+                                                    .ToList();
 
-            switch (type)
+
+                    foreach (var process in achieveProcesses)
+                    {
+                        if (process.Status == (int)ProcessStatusEnum.Completed)
+                        {
+                            process.Status = (int)ProcessStatusEnum.Achieved;
+                        }
+                    }
+                }
+            }
+            else
             {
-                case (int)CourseContentTypeEnum.Entrance:
-                    // Todo: calculate points
-                    scoreHisModel.EntrancePoint = 100;
-                    break;
-                case (int)CourseContentTypeEnum.Midterm:
-                    // Todo: calculate points
-                    scoreHisModel.MidtermPoint = 100;
-                    break;
-                case (int)CourseContentTypeEnum.Final:
-                    // Todo: calculate points
-                    scoreHisModel.FinalPoint = 100;
-                    break;
+                var processes = _unit.LearningProcesses.Find(p => p.EnrollId == model.EnrollId && p.AssignmentId == model.AssignmentId)
+                                                       .ToList();
+
+                if (processes != null && processes.Count > 0)
+                {
+                    var achieveProcesses = processes.Where(p => p.Status == (int)ProcessStatusEnum.Completed || p.Status == (int)ProcessStatusEnum.Achieved)
+                                                    .ToList();
+
+                    foreach (var process in achieveProcesses)
+                    {
+                        if (process.Status == (int)ProcessStatusEnum.Completed)
+                        {
+                            process.Status = (int)ProcessStatusEnum.Achieved;
+                        }
+                    }
+                }
+                else
+                {
+                    var previousCourseContent = await _unit.CourseContents.GetPreviousAsync(assignmentModel.CourseContent);
+
+                    if (previousCourseContent != null && previousCourseContent.Type != 1)
+                    {
+                        if (previousCourseContent.Examination == null)
+                        {
+                            return new Response()
+                            {
+                                StatusCode = System.Net.HttpStatusCode.BadRequest,
+                                Message = "Course content isn't set examinations",
+                                Success = false
+                            };
+                        }
+
+                        var isExistProcess = _unit.LearningProcesses
+                                                    .IsExist(p => p.EnrollId == model.EnrollId &&
+                                                                  p.ExamId == previousCourseContent.Examination.ExamId &&
+                                                                  p.Status == (int)ProcessStatusEnum.Completed);
+                        if (!isExistProcess)
+                        {
+                            return new Response()
+                            {
+                                StatusCode = System.Net.HttpStatusCode.BadRequest,
+                                Message = "Please complete the previous assignment to continue with this exercise",
+                                Success = false
+                            };
+                        }
+                    }
+                    else
+                    {
+                        Assignment? previousAssignment = await _unit.Assignments.GetPreviousAssignmentAsync(assignmentModel.AssignmentId);
+                        if (previousAssignment == null)
+                        {
+                            return new Response()
+                            {
+                                StatusCode = System.Net.HttpStatusCode.BadRequest,
+                                Message = "Create process failed",
+                                Success = false
+                            };
+                        }
+
+                        var isQualified = _unit.LearningProcesses
+                                               .IsExist(p => p.EnrollId == model.EnrollId &&
+                                                             p.AssignmentId == previousAssignment.AssignmentId &&
+                                                             (p.Status == (int)ProcessStatusEnum.Achieved || p.Status == (int)ProcessStatusEnum.Completed));
+
+                        if (!isQualified)
+                        {
+                            return new Response()
+                            {
+                                StatusCode = System.Net.HttpStatusCode.BadRequest,
+                                Message = "Please complete the previous assignment to continue with this exercise",
+                                Success = false
+                            };
+                        }
+                    }
+                }
             }
 
-            return Task.FromResult(new Response()
+            return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
                 Message = "",
                 Success = true
-            });
+            };
+        }
+
+        private async Task<Response> CreateWithExamAsync(LearningProcessDto model)
+        {
+            var examModel = await _unit.Examinations.Include(e => e.CourseContent).FirstOrDefaultAsync(a => a.ExamId == model.ExamId);
+
+            if (examModel == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any examinations",
+                    Success = false
+                };
+            }
+
+            if (examModel.CourseContent.NoNum == 1)
+            {
+                var isExistProcess = _unit.LearningProcesses.IsExist(p => p.EnrollId == model.EnrollId && p.ExamId == examModel.ExamId);
+                if (isExistProcess)
+                {
+                    return new Response()
+                    {
+                        StatusCode = System.Net.HttpStatusCode.BadRequest,
+                        Message = "You cannot do it again",
+                        Success = false
+                    };
+                }
+            }
+            else
+            {
+                var isExistProcessModel = _unit.LearningProcesses.IsExist(p => p.EnrollId == model.EnrollId && p.ExamId == examModel.ExamId);
+                if (isExistProcessModel)
+                {
+                    return new Response()
+                    {
+                        StatusCode = System.Net.HttpStatusCode.BadRequest,
+                        Message = "You cannot do it again",
+                        Success = false
+                    };
+                }
+
+                var previousCourseContent = await _unit.CourseContents.GetPreviousAsync(examModel.CourseContent);
+                if (previousCourseContent == null)
+                {
+                    return new Response()
+                    {
+                        StatusCode = System.Net.HttpStatusCode.BadRequest,
+                        Message = "Can't find any course content",
+                        Success = false
+                    };
+                }
+
+
+                if (previousCourseContent.Type == (int)CourseContentTypeEnum.Normal)
+                {
+                    var assignment = _unit.Assignments
+                                        .Find(a => a.CourseContentId == previousCourseContent.ContentId)
+                                        .OrderByDescending(p => p.NoNum)
+                                        .FirstOrDefault();
+
+                    if (assignment == null)
+                    {
+                        return new Response()
+                        {
+                            StatusCode = System.Net.HttpStatusCode.BadRequest,
+                            Message = "Can't find any assignments",
+                            Success = false
+                        };
+                    }
+
+                    var isExistProcess = _unit.LearningProcesses
+                                            .IsExist(p => p.EnrollId == model.EnrollId &&
+                                                          p.AssignmentId == assignment.AssignmentId &&
+                                                          (p.Status == (int)ProcessStatusEnum.Achieved || p.Status == (int)ProcessStatusEnum.Completed));
+
+
+                    // Todo: Fake to coding FE
+                    //if (!isExistProcess)
+                    //{
+                    //    return new Response()
+                    //    {
+                    //        StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    //        Message = "Please complete the previous assignment to continue with this exercise",
+                    //        Success = false
+                    //    };
+                    //}
+                }
+                else
+                {
+                    if (previousCourseContent.Examination == null)
+                    {
+                        return new Response()
+                        {
+                            StatusCode = System.Net.HttpStatusCode.BadRequest,
+                            Message = "Course content isn't set examinations",
+                            Success = false
+                        };
+                    }
+
+                    var isExistProcess = _unit.LearningProcesses
+                                            .IsExist(p => p.EnrollId == model.EnrollId &&
+                                                          p.ExamId == previousCourseContent.Examination.ExamId &&
+                                                          p.Status == (int)ProcessStatusEnum.Completed);
+                    if (!isExistProcess)
+                    {
+                        return new Response()
+                        {
+                            StatusCode = System.Net.HttpStatusCode.BadRequest,
+                            Message = "Please complete the previous assignment to continue with this exercise",
+                            Success = false
+                        };
+                    }
+                }
+            }
+
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = "",
+                Success = true
+            };
+        }
+
+        private async Task<Response> HandleSubmitWithAssignmentAsync(LearningProcess processModel, LearningProcessDto model)
+        {
+            try
+            {
+                if (model.AssignmentRecords != null && model.AssignmentRecords.Count > 0)
+                {
+                    foreach (var answer in model.AssignmentRecords)
+                    {
+                        var response = await _assignmentRecordService.CreateAsync(answer);
+                        if (!response.Success) return response;
+                    }
+                }
+                // Todo: Handle submit
+                var correctNum = _unit.AssignmentRecords.Find(a => a.LearningProcessId == processModel.ProcessId && a.IsCorrect).Count();
+                var numQues = await _unit.AssignQues.GetNumberByAssignmentAsync(processModel.AssignmentId!.Value);
+
+                bool isQualified = (correctNum * 100.0 / numQues) > processModel.Assignment!.AchievedPercentage;
+
+                processModel.Status = isQualified ? (int)ProcessStatusEnum.Completed : (int)ProcessStatusEnum.NotAchieved;
+                processModel.EndTime = DateTime.Now;
+
+                await _unit.CompleteAsync();
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Message = "",
+                    Success = true
+                };
+            }
+            catch (Exception ex)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = ex.Message,
+                    Success = false
+                };
+            }
+        }
+
+        private async Task<Response> HandleSubmitWithExamAsync(LearningProcess processModel, LearningProcessDto model)
+        {
+            try
+            {
+                if (model.ToeicRecords != null && model.ToeicRecords.Count > 0)
+                {
+                    foreach (var record in model.ToeicRecords)
+                    {
+                        var response = await _toeicRecordService.CreateAsync(record);
+                        if (!response.Success) return response;
+                    }
+                }
+
+                var examModel = await _unit.Examinations
+                                     .Include(e => e.CourseContent)
+                                     .FirstOrDefaultAsync(e => e.ExamId == model.ExamId);
+
+                if (examModel == null)
+                {
+                    return new Response()
+                    {
+                        StatusCode = System.Net.HttpStatusCode.BadRequest,
+                        Message = "Can't find any examinations",
+                        Success = false
+                    };
+                }
+
+                var scoreHisModel = _unit.ScoreHis.GetById(processModel.Enrollment.ScoreHisId!.Value);
+                if (scoreHisModel == null)
+                {
+                    return new Response()
+                    {
+                        StatusCode = System.Net.HttpStatusCode.BadRequest,
+                        Message = "Can't find any score history",
+                        Success = false
+                    };
+                }
+
+                var totalCorrectLcNum = _unit.ToeicRecords
+                                             .Include(t => t.SubToeic)
+                                             .Where(t => t.SubToeic.QuesNo <= 100 && t.IsCorrect)
+                                             .Count();
+
+                var totalCorrectRcNum = _unit.ToeicRecords
+                                             .Include(t => t.SubToeic)
+                                             .Where(t => t.SubToeic.QuesNo > 100 && t.IsCorrect)
+                                             .Count();
+
+                var lcConversion = _unit.ToeicConversion
+                                      .Find(t => t.NumberCorrect == totalCorrectLcNum &&
+                                                 t.Section == ToeicEnum.Listening.ToString())
+                                      .FirstOrDefault();
+                var rcConversion = _unit.ToeicConversion
+                                      .Find(t => t.NumberCorrect == totalCorrectRcNum &&
+                                                 t.Section == ToeicEnum.Reading.ToString())
+                                      .FirstOrDefault();
+
+                var totalPoint = lcConversion!.EstimatedScore + rcConversion!.EstimatedScore;
+
+                if (examModel.CourseContent.Type == (int)CourseContentTypeEnum.Entrance)
+                {
+                    scoreHisModel.EntrancePoint = totalPoint;
+                }
+
+                if (examModel.CourseContent.Type == (int)CourseContentTypeEnum.Midterm)
+                {
+                    scoreHisModel.MidtermPoint = totalPoint;
+                }
+
+                if (examModel.CourseContent.Type == (int)CourseContentTypeEnum.Final)
+                {
+                    scoreHisModel.FinalPoint = totalPoint;
+                }
+
+                processModel.Status = (int)ProcessStatusEnum.Completed;
+                processModel.EndTime = DateTime.Now;
+
+                await _unit.CompleteAsync();
+
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Message = "",
+                    Success = true
+                };
+
+            }
+            catch (Exception ex)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = ex.Message,
+                    Success = false
+                };
+            }
+        }
+
+        private async Task<LessonStatusEnum> IsStatusWithAssignmentAsync(Enrollment enroll, Assignment assignment, bool isSequential)
+        {
+            var isExistProcess = false;
+
+            isExistProcess = _unit.LearningProcesses
+                                  .IsExist(p => p.EnrollId == enroll.EnrollId &&
+                                                p.AssignmentId == assignment.AssignmentId &&
+                                                (p.Status == (int)ProcessStatusEnum.Completed ||
+                                                p.Status == (int)ProcessStatusEnum.Achieved));
+
+            if (isExistProcess) return LessonStatusEnum.Passed;
+
+            isExistProcess = _unit.LearningProcesses
+                                  .IsExist(p => p.EnrollId == enroll.EnrollId &&
+                                                p.AssignmentId == assignment.AssignmentId &&
+                                                p.Status == (int)ProcessStatusEnum.NotAchieved);
+
+            if (isExistProcess) return LessonStatusEnum.Failed;
+
+            if (!isSequential) return LessonStatusEnum.Open;
+
+            isExistProcess = _unit.LearningProcesses
+                                  .IsExist(p => p.EnrollId == enroll.EnrollId &&
+                                                p.AssignmentId == assignment.AssignmentId &&
+                                                p.Status == (int)ProcessStatusEnum.Ongoing);
+
+            if (isExistProcess) return LessonStatusEnum.Open;
+
+            var preCourseContent = await _unit.CourseContents.GetPreviousAsync(assignment.CourseContent);
+            if (preCourseContent == null && assignment.NoNum == 1) return LessonStatusEnum.Open;
+
+            if (preCourseContent == null || preCourseContent.Type == 1)
+            {
+                var previousAssignment = await _unit.Assignments.GetPreviousAssignmentAsync(assignment.AssignmentId);
+                if (previousAssignment == null) return LessonStatusEnum.Locked;
+
+                isExistProcess = _unit.LearningProcesses
+                                      .IsExist(p => p.EnrollId == enroll.EnrollId &&
+                                                    p.AssignmentId == previousAssignment.AssignmentId &&
+                                                    (p.Status == (int)ProcessStatusEnum.Achieved ||
+                                                    p.Status == (int)ProcessStatusEnum.Completed));
+
+                if (isExistProcess) return LessonStatusEnum.Open;
+
+                return LessonStatusEnum.Locked;
+            }
+
+            if (preCourseContent.Type != 1)
+            {
+                isExistProcess = _unit.LearningProcesses.IsExist(p => p.EnrollId == enroll.EnrollId && p.ExamId == preCourseContent.Examination.ExamId);
+                if (isExistProcess) return LessonStatusEnum.Open;
+            }
+
+            return LessonStatusEnum.Locked;
+        }
+
+        private async Task<LessonStatusEnum> IsStatusWithExamAsync(Enrollment enroll, Examination exam, bool isSequential)
+        {
+            var isExist = _unit.LearningProcesses.IsExist(p => p.EnrollId == enroll.EnrollId && p.ExamId == exam.ExamId);
+            if (isExist) return LessonStatusEnum.Passed;
+            if (!isSequential) return LessonStatusEnum.Open;
+
+            var preCourseContent = await _unit.CourseContents.GetPreviousAsync(exam.CourseContent);
+            if (preCourseContent == null) return LessonStatusEnum.Open;
+
+            if (preCourseContent.Type != 1)
+            {
+                isExist = _unit.LearningProcesses.IsExist(p => p.EnrollId == enroll.EnrollId && p.ExamId == preCourseContent.Examination.ExamId);
+                if (isExist) return LessonStatusEnum.Open;
+
+                return LessonStatusEnum.Locked;
+            }
+
+            var preAssignment = _unit.Assignments
+                                     .Find(a => a.CourseContentId == preCourseContent.ContentId)
+                                     .OrderByDescending(a => a.NoNum)
+                                     .FirstOrDefault();
+
+            if (preAssignment == null) return LessonStatusEnum.Locked;
+
+            isExist = _unit.LearningProcesses
+                           .IsExist(p => p.EnrollId == enroll.EnrollId &&
+                                         p.AssignmentId == preAssignment.AssignmentId &&
+                                         (p.Status == (int)ProcessStatusEnum.Completed ||
+                                         p.Status == (int)ProcessStatusEnum.Achieved));
+
+            if (isExist) return LessonStatusEnum.Open;
+
+            return LessonStatusEnum.Locked;
         }
     }
 }

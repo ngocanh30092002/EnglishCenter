@@ -2,7 +2,6 @@
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.IRepositories;
 using EnglishCenter.Presentation.Global.Enum;
-using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
 {
@@ -29,7 +28,7 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
         {
             if (processModel == null) return Task.FromResult(false);
 
-            if(processModel.StartTime > dateTime)
+            if (processModel.StartTime > dateTime)
             {
                 return Task.FromResult(false);
             }
@@ -38,11 +37,11 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
             return Task.FromResult(true);
         }
 
-        public Task<bool> ChangeStatusAsync(LearningProcess processModel, ProcessStatusEnum statusEnum) 
+        public Task<bool> ChangeStatusAsync(LearningProcess processModel, ProcessStatusEnum statusEnum)
         {
             if (processModel == null) return Task.FromResult(false);
 
-            processModel.Status = (int) statusEnum;
+            processModel.Status = (int)statusEnum;
 
             return Task.FromResult(true);
         }

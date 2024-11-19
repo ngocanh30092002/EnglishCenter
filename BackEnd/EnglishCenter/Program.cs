@@ -35,6 +35,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseRouting();
 app.MapHub<NotificationHub>("api/hub/notification");
+app.MapHub<ChatHub>("api/hub/chats");
 app.UseCors("AllPolicy");
 app.UseStaticFiles();
 app.UseSession();

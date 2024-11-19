@@ -2,12 +2,10 @@
 using EnglishCenter.Business.IServices;
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.UnitOfWork;
-using EnglishCenter.Presentation.Global.Enum;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
 using EnglishCenter.Presentation.Models.ResDTOs;
 using Microsoft.EntityFrameworkCore;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace EnglishCenter.Business.Services.Courses
 {
@@ -25,7 +23,7 @@ namespace EnglishCenter.Business.Services.Courses
         public async Task<Response> ChangeCourseContentAsync(long assignmentId, long contentId)
         {
             var assignModel = _unit.Assignments.GetById(assignmentId);
-            if(assignModel == null)
+            if (assignModel == null)
             {
                 return new Response()
                 {
@@ -36,7 +34,7 @@ namespace EnglishCenter.Business.Services.Courses
             }
 
             var isExistCourseContent = _unit.CourseContents.IsExist(c => c.ContentId == contentId);
-            if(!isExistCourseContent)
+            if (!isExistCourseContent)
             {
                 return new Response()
                 {
@@ -47,11 +45,12 @@ namespace EnglishCenter.Business.Services.Courses
             }
 
             var isSuccess = await _unit.Assignments.ChangeCourseContentAsync(assignModel, contentId);
-            if(!isSuccess)
+            if (!isSuccess)
             {
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't change course content",
                     Success = false,
                 };
             }
@@ -94,6 +93,7 @@ namespace EnglishCenter.Business.Services.Courses
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't change no number",
                     Success = false,
                 };
             }
@@ -136,6 +136,7 @@ namespace EnglishCenter.Business.Services.Courses
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't change percentage",
                     Success = false,
                 };
             }
@@ -178,6 +179,7 @@ namespace EnglishCenter.Business.Services.Courses
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't change time",
                     Success = false,
                 };
             }
@@ -210,6 +212,7 @@ namespace EnglishCenter.Business.Services.Courses
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't change title",
                     Success = false,
                 };
             }
@@ -225,7 +228,7 @@ namespace EnglishCenter.Business.Services.Courses
 
         public async Task<Response> CreateAsync(AssignmentDto model)
         {
-            if(!TimeOnly.TryParse(model.Time, out TimeOnly timeOnly))
+            if (!TimeOnly.TryParse(model.Time, out TimeOnly timeOnly))
             {
                 return new Response()
                 {
@@ -257,20 +260,20 @@ namespace EnglishCenter.Business.Services.Courses
                 };
             }
 
-            if(courseContentModel.Type != 1 && courseContentModel.Assignments.Count > 0)
+            if (courseContentModel.Type != 1)
             {
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Can't add more assignments"
+                    Message = "It isn't possible to add courses with a status other than normal"
                 };
             }
 
             var currentNum = courseContentModel.Assignments
                                             .Select(s => (int?)s.NoNum)
                                             .Max();
-            var assignModel =  new Assignment();
 
+            var assignModel = new Assignment();
             assignModel.NoNum = currentNum.HasValue ? currentNum.Value + 1 : 1;
             assignModel.Title = model.Title;
             assignModel.Time = timeOnly;
@@ -292,7 +295,7 @@ namespace EnglishCenter.Business.Services.Courses
         public async Task<Response> DeleteAsync(long assignmentId)
         {
             var assignModel = _unit.Assignments.GetById(assignmentId);
-            if(assignModel == null)
+            if (assignModel == null)
             {
                 return new Response()
                 {
@@ -335,11 +338,11 @@ namespace EnglishCenter.Business.Services.Courses
                                             .OrderBy(a => a.CourseContentId)
                                             .ThenBy(a => a.NoNum);
 
-            foreach(var assign in assignments)
+            foreach (var assign in assignments)
             {
-                foreach(var item in assign.AssignQues)
+                foreach (var item in assign.AssignQues)
                 {
-                    await _unit.AssignQues.LoadQuestionAsync(item);
+                    await _unit.AssignQues.LoadQuestionWithoutAnswerAsync(item);
                 }
             }
 
@@ -353,12 +356,9 @@ namespace EnglishCenter.Business.Services.Courses
 
         public async Task<Response> GetAsync(long assignmentId)
         {
-            var assignment = _unit.Assignments.GetById(assignmentId);
-
-            foreach(var item in assignment.AssignQues)
-            {
-                await _unit.AssignQues.LoadQuestionAsync(item);
-            }
+            var assignment = _unit.Assignments
+                                .Include(a => a.CourseContent)
+                                .FirstOrDefault(a => a.AssignmentId == assignmentId);
 
             return new Response()
             {
@@ -382,7 +382,7 @@ namespace EnglishCenter.Business.Services.Courses
 
         public async Task<Response> GetNumberByCourseAsync(string courseId)
         {
-            if(!_unit.Courses.IsExist(c => c.CourseId == courseId))
+            if (!_unit.Courses.IsExist(c => c.CourseId == courseId))
             {
                 return new Response()
                 {

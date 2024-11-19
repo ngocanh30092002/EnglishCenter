@@ -2,7 +2,6 @@
 using EnglishCenter.Presentation.Global;
 using EnglishCenter.Presentation.Models.DTOs;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EnglishCenter.Presentation.Controllers.AssignmentPage
@@ -14,7 +13,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
     {
         private readonly ILearningProcessService _processService;
 
-        public LearningProcessesController(ILearningProcessService processService) 
+        public LearningProcessesController(ILearningProcessService processService)
         {
             _processService = processService;
         }
@@ -32,6 +31,56 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
             var response = await _processService.GetAsync(id);
             return await response.ChangeActionAsync();
         }
+
+        [HttpGet("ongoing/enrollments/{enrollId}")]
+        public async Task<IActionResult> GetOngoingAsync([FromRoute] long enrollId, [FromQuery] long? assignmentId, [FromQuery] long? examId)
+        {
+            var response = await _processService.GetOngoingAsync(enrollId, assignmentId, examId);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("his/enrollments/{enrollId}")]
+        public async Task<IActionResult> GetHisProcesses([FromRoute] long enrollId, [FromQuery] long? assignmentId, [FromQuery] long? examId)
+        {
+            var response = await _processService.GetHisProcessesAsync(enrollId, assignmentId, examId);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("{id}/score")]
+        public async Task<IActionResult> GetScoreByProcessAsync([FromRoute] long id)
+        {
+            var response = await _processService.GetScoreByProcessAsync(id);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("enrollments/{enrollId}/number-attempted")]
+        public async Task<IActionResult> GetNumberAttemptedAsync([FromRoute] long enrollId, [FromQuery] long assignmentId)
+        {
+            var response = await _processService.GetNumberAttemptedAsync(enrollId, assignmentId);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("enrollments/{enrollId}/status-exam")]
+        public async Task<IActionResult> GetStatusExamAsync([FromRoute] long enrollId, [FromQuery] long examId)
+        {
+            var response = await _processService.GetStatusExamAsync(enrollId, examId);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("enrollments/{enrollId}/status")]
+        public async Task<IActionResult> GetStatusLessonAsync([FromRoute] long enrollId, [FromQuery] long? assignmentId, [FromQuery] long? examId)
+        {
+            var response = await _processService.GetStatusLessonAsync(enrollId, assignmentId, examId);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("{id}/is-submitted")]
+        public async Task<IActionResult> IsSubmittedAsync([FromRoute] long id)
+        {
+            var response = await _processService.IsSubmittedAsync(id);
+            return await response.ChangeActionAsync();
+        }
+
 
         [HttpPost]
         public async Task<IActionResult> CreateAsync([FromForm] LearningProcessDto model)

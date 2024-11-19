@@ -6,6 +6,7 @@ using EnglishCenter.Presentation.Global.Enum;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
 using EnglishCenter.Presentation.Models.ResDTOs;
+using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.Business.Services.Courses
 {
@@ -35,13 +36,13 @@ namespace EnglishCenter.Business.Services.Courses
 
             return Task.FromResult(isStillLearning);
         }
-        
+
         private Task<bool> IsValidChangeAsync(string classId)
         {
             var classModel = _unit.Classes.GetById(classId);
             if (classModel == null) return Task.FromResult(false);
 
-            if(classModel.RegisteredNum >= classModel.MaxNum) return Task.FromResult(false);
+            if (classModel.RegisteredNum >= classModel.MaxNum) return Task.FromResult(false);
             if (classModel.EndDate <= DateOnly.FromDateTime(DateTime.Now)) return Task.FromResult(false);
 
             return Task.FromResult(true);
@@ -109,7 +110,7 @@ namespace EnglishCenter.Business.Services.Courses
 
             classModel.RegisteringNum++;
             _unit.Enrollment.Add(enrollModel);
-            
+
             await _unit.CompleteAsync();
 
             return new Response()
@@ -151,7 +152,43 @@ namespace EnglishCenter.Business.Services.Courses
                 Success = true
             });
         }
-        
+
+        public Task<Response> GetAsync(string userId, long enrollmentId)
+        {
+            var enrollment = _unit.Enrollment
+                                  .Include(e => e.User)
+                                  .Include(e => e.Class)
+                                  .ThenInclude(c => c.Teacher)
+                                  .FirstOrDefault(e => e.EnrollId == enrollmentId);
+
+            if (enrollment == null)
+            {
+                return Task.FromResult(new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any enrollments",
+                    Success = false
+                });
+            }
+
+            if (enrollment.UserId != userId)
+            {
+                return Task.FromResult(new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "You can't access other people's information",
+                    Success = false
+                });
+            }
+
+            return Task.FromResult(new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = _mapper.Map<EnrollResDto>(enrollment),
+                Success = true
+            });
+        }
+
         public async Task<Response> GetAsync(string userId)
         {
             var isExistUser = _unit.Students.IsExist(s => s.UserId == userId);
@@ -162,7 +199,7 @@ namespace EnglishCenter.Business.Services.Courses
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
                     Message = "Can't find any Students",
                     Success = false
-                }; 
+                };
             }
 
             var enrolls = await _unit.Enrollment.GetAsync(userId);
@@ -187,7 +224,7 @@ namespace EnglishCenter.Business.Services.Courses
                 };
             }
 
-            var enrollments = await _unit.Enrollment.GetAsync(classId, (EnrollEnum) statusId);
+            var enrollments = await _unit.Enrollment.GetAsync(classId, (EnrollEnum)statusId);
 
             return new Response()
             {
@@ -224,7 +261,7 @@ namespace EnglishCenter.Business.Services.Courses
             }
 
             var enrolls = await _unit.Enrollment.GetCurrentClassesByStudentAsync(userId);
-            
+
             return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
@@ -232,11 +269,11 @@ namespace EnglishCenter.Business.Services.Courses
                 Success = true
             };
         }
-    
+
         public async Task<Response> GetByTeacherAsync(string userId)
         {
             var teacherModel = _unit.Teachers.GetById(userId);
-            if(teacherModel == null)
+            if (teacherModel == null)
             {
                 return new Response()
                 {
@@ -344,12 +381,12 @@ namespace EnglishCenter.Business.Services.Courses
                 Message = _mapper.Map<List<EnrollResDto>>(enrolls.Where(e => e.Class.CourseId == courseId).OrderByDescending(e => e.UpdateTime)),
                 Success = true
             };
-        } 
+        }
 
         public async Task<Response> HandleStartClassAsync(string classId)
         {
             var classModel = _unit.Classes.GetById(classId);
-            if(classModel == null)
+            if (classModel == null)
             {
                 return new Response()
                 {
@@ -359,7 +396,7 @@ namespace EnglishCenter.Business.Services.Courses
                 };
             }
 
-            if(classModel.StartDate > DateOnly.FromDateTime(DateTime.Now))
+            if (classModel.StartDate > DateOnly.FromDateTime(DateTime.Now))
             {
                 return new Response()
                 {
@@ -371,9 +408,9 @@ namespace EnglishCenter.Business.Services.Courses
 
             var courseModel = _unit.Courses.GetById(classModel.CourseId);
             var preCourse = await _unit.Courses.GetPreviousAsync(courseModel);
-            
+
             var isSuccess = await _unit.Enrollment.HandleStartClassAsync(classId, preCourse);
-            if(!isSuccess)
+            if (!isSuccess)
             {
                 return new Response()
                 {
@@ -405,7 +442,7 @@ namespace EnglishCenter.Business.Services.Courses
         public async Task<Response> HandleEndClassAsync(string classId)
         {
             var classModel = _unit.Classes.GetById(classId);
-            if(classModel == null)
+            if (classModel == null)
             {
                 return new Response()
                 {
@@ -436,7 +473,7 @@ namespace EnglishCenter.Business.Services.Courses
             }
 
             var isChangeSuccess = await _unit.Classes.ChangeStatusAsync(classModel, ClassEnum.End);
-            if(!isChangeSuccess)
+            if (!isChangeSuccess)
             {
                 return new Response()
                 {
@@ -457,8 +494,8 @@ namespace EnglishCenter.Business.Services.Courses
 
         public async Task<Response> HandleAcceptedAsync(long enrollmentId)
         {
-            var enrollModel = _unit.Enrollment.GetById(enrollmentId);
-            if(enrollModel == null)
+            var enrollModel = _unit.Enrollment.Include(e => e.Class).FirstOrDefault(e => e.EnrollId == enrollmentId);
+            if (enrollModel == null)
             {
                 return new Response()
                 {
@@ -471,7 +508,7 @@ namespace EnglishCenter.Business.Services.Courses
             var classModel = _unit.Classes.GetById(enrollModel.ClassId);
 
             var isSuccess = await _unit.Enrollment.HandleAcceptedAsync(enrollModel);
-            if(!isSuccess)
+            if (!isSuccess)
             {
                 return new Response()
                 {
@@ -495,7 +532,7 @@ namespace EnglishCenter.Business.Services.Courses
         public async Task<Response> HandleAcceptedAsync(string classId)
         {
             var classModel = _unit.Classes.GetById(classId);
-            if(classModel == null)
+            if (classModel == null)
             {
                 return new Response()
                 {
@@ -506,7 +543,7 @@ namespace EnglishCenter.Business.Services.Courses
             }
 
             var enrollNum = _unit.Enrollment.Find(e => e.ClassId == classId && e.StatusId == (int)EnrollEnum.Pending).Count();
-            
+
             var isSuccess = await _unit.Enrollment.HandleAcceptedAsync(classId);
             if (!isSuccess)
             {
@@ -528,11 +565,11 @@ namespace EnglishCenter.Business.Services.Courses
                 Success = true
             };
         }
-        
+
         public async Task<Response> HandleRejectAsync(long enrollmentId)
         {
             var enrollModel = _unit.Enrollment.GetById(enrollmentId);
-            if(enrollModel == null)
+            if (enrollModel == null)
             {
                 return new Response()
                 {
@@ -593,7 +630,7 @@ namespace EnglishCenter.Business.Services.Courses
             var enrollModel = _unit.Enrollment.GetById(enrollmentId);
             int statusId = enrollModel.StatusId ?? 0;
 
-            if(enrollModel == null)
+            if (enrollModel == null)
             {
                 return new Response()
                 {
@@ -603,7 +640,7 @@ namespace EnglishCenter.Business.Services.Courses
                 };
             }
 
-            if(statusId != (int)EnrollEnum.Pending && statusId != (int) EnrollEnum.Waiting)
+            if (statusId != (int)EnrollEnum.Pending && statusId != (int)EnrollEnum.Waiting)
             {
                 return new Response()
                 {
@@ -633,7 +670,7 @@ namespace EnglishCenter.Business.Services.Courses
                 };
             }
 
-            if(statusId == (int)EnrollEnum.Pending)
+            if (statusId == (int)EnrollEnum.Pending)
             {
                 classModel.RegisteringNum--;
             }
@@ -644,7 +681,7 @@ namespace EnglishCenter.Business.Services.Courses
 
             await _unit.CompleteAsync();
 
-            return new Response()   
+            return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
                 Message = "",
@@ -655,7 +692,7 @@ namespace EnglishCenter.Business.Services.Courses
         public async Task<Response> HandleChangeClassAsync(long enrollmentId, string classId)
         {
             var enrollModel = _unit.Enrollment.GetById(enrollmentId);
-            if(enrollModel.StatusId != (int) EnrollEnum.Pending && enrollModel.StatusId != (int)EnrollEnum.Waiting)
+            if (enrollModel.StatusId != (int)EnrollEnum.Pending && enrollModel.StatusId != (int)EnrollEnum.Waiting)
             {
                 return new Response()
                 {
@@ -683,7 +720,7 @@ namespace EnglishCenter.Business.Services.Courses
             {
                 var isSuccess = await _unit.Enrollment.ChangeClassAsync(enrollModel, classId);
 
-                if(!isSuccess)
+                if (!isSuccess)
                 {
                     return new Response()
                     {
@@ -720,7 +757,7 @@ namespace EnglishCenter.Business.Services.Courses
                 preClass.RegisteredNum--;
                 nextClass.RegisteringNum++;
             }
-                
+
             await _unit.CompleteAsync();
 
             return new Response()
@@ -734,7 +771,7 @@ namespace EnglishCenter.Business.Services.Courses
         public async Task<Response> CreateAsync(EnrollmentDto model)
         {
             var classModel = _unit.Classes.GetById(model.ClassId);
-            if(classModel == null)
+            if (classModel == null)
             {
                 return new Response()
                 {
@@ -744,6 +781,7 @@ namespace EnglishCenter.Business.Services.Courses
                 };
             }
 
+            // Todo: check time end
             if (classModel.Status == (int)ClassEnum.End)
             {
                 return new Response()
@@ -810,12 +848,12 @@ namespace EnglishCenter.Business.Services.Courses
             }
 
             var classModel = _unit.Classes.GetById(enrollmentModel.ClassId);
-            
-            if(enrollmentModel.StatusId == (int)EnrollEnum.Pending)
+
+            if (enrollmentModel.StatusId == (int)EnrollEnum.Pending)
             {
                 classModel.RegisteringNum--;
             }
-            else if(enrollmentModel.StatusId != (int)EnrollEnum.Rejected)
+            else if (enrollmentModel.StatusId != (int)EnrollEnum.Rejected)
             {
                 classModel.RegisteredNum--;
             }
@@ -829,7 +867,7 @@ namespace EnglishCenter.Business.Services.Courses
                 Message = "",
                 Success = true
             };
-            
+
         }
 
         public async Task<Response> UpdateAsync(long enrollmentId, EnrollmentDto model)

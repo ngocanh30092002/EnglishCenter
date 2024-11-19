@@ -18,5 +18,8 @@
         public const string ALL_ROLES = "all-roles";
         public const string ADMIN_TEACHER = "admin-teacher";
         public const string ADMIN_STUDENT = "admin-student";
+
+        // Toeic
+        public const int TOEIC_NUM = 200;
     }
 }

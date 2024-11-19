@@ -67,7 +67,7 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
 
             var courseContentModel = await context.CourseContents.Include(c => c.Assignments).FirstOrDefaultAsync(c=> c.ContentId == contentId);
             if (courseContentModel == null) return false;
-            if (courseContentModel.Type != 1 && courseContentModel.Assignments.Count > 0) return false;
+            if (courseContentModel.Type != 1) return false;
 
             var currentAssigns = await context.Assignments
                                                         .Where(c => c.CourseContentId == assignmentModel.CourseContentId && c.NoNum > assignmentModel.NoNum)

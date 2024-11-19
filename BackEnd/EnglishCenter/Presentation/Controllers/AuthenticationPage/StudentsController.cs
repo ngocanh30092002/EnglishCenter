@@ -15,7 +15,7 @@ namespace EnglishCenter.Presentation.Controllers.AuthenticationPage
         private readonly IRoleService _roleService;
         private readonly IStudentService _studentService;
 
-        public StudentsController(IStudentService studentService,IRoleService roleService)
+        public StudentsController(IStudentService studentService, IRoleService roleService)
         {
             _roleService = roleService;
             _studentService = studentService;
@@ -25,7 +25,7 @@ namespace EnglishCenter.Presentation.Controllers.AuthenticationPage
         public async Task<IActionResult> ChangeUserImageAsync(IFormFile file)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
-            
+
             var isImageFile = await UploadHelper.IsImageAsync(file);
             if (!isImageFile)
             {
@@ -91,6 +91,17 @@ namespace EnglishCenter.Presentation.Controllers.AuthenticationPage
             var response = await _studentService.GetStudentBackgroundAsync(userId);
 
             return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("full-info")]
+        public async Task<IActionResult> GetUserFullInfoAsync()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
+
+            var response = await _studentService.GetFullInfoAsync(userId);
+
+            return await response.ChangeActionAsync();
+
         }
 
         [HttpGet("roles")]

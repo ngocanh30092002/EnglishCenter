@@ -5,5 +5,6 @@ namespace EnglishCenter.DataAccess.IRepositories
 {
     public interface IToeicConversionRepository : IGenericRepository<ToeicConversion>
     {
+        public Task<ToeicConversion?> GetByNumberCorrectAsync(int numberCorrect, ToeicEnum toeicEnum);
     }
 }

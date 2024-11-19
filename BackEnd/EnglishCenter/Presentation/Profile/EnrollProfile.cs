@@ -5,9 +5,9 @@ using EnglishCenter.Presentation.Models.ResDTOs;
 
 namespace EnglishCenter.Presentation
 {
-    public class EnrollProfile: Profile
+    public class EnrollProfile : Profile
     {
-        public EnrollProfile() 
+        public EnrollProfile()
         {
             CreateMap<EnrollStatusDto, EnrollStatus>()
                         .ForMember(des => des.StatusId, opt => opt.MapFrom(src => src.StatusId))
@@ -29,6 +29,7 @@ namespace EnglishCenter.Presentation
                 .ForMember(des => des.EnrollDate, opt => opt.MapFrom(src => src.EnrollDate))
                 .ForMember(des => des.Class, opt => opt.MapFrom(src => src.Class))
                 .ForMember(des => des.Student, opt => opt.MapFrom(src => src.User))
+                .ForMember(des => des.StudentBackground, opt => opt.MapFrom(src => src.User))
                 .ForMember(des => des.EnrollStatus, opt => opt.MapFrom(src => src.Status.Name.ToString()))
                 .ForMember(des => des.TeacherName, opt => opt.MapFrom((src, des) =>
                 {

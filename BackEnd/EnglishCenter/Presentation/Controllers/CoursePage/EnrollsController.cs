@@ -1,9 +1,7 @@
 ﻿using System.Security.Claims;
 using EnglishCenter.Business.IServices;
-using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.Presentation.Global;
 using EnglishCenter.Presentation.Global.Enum;
-using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -55,12 +53,26 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
 
-            if(string.IsNullOrEmpty(userId))
+            if (string.IsNullOrEmpty(userId))
             {
                 return BadRequest();
             }
 
             var response = await _enrollService.GetAsync(userId);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("{enrollId}/student")]
+        public async Task<IActionResult> GetEnrollmentByStudentAsync([FromRoute] long enrollId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return BadRequest();
+            }
+
+            var response = await _enrollService.GetAsync(userId, enrollId);
             return await response.ChangeActionAsync();
         }
 
@@ -81,9 +93,9 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
         [Authorize(Roles = AppRole.ADMIN)]
         public async Task<IActionResult> GetByClassWithStatusAsync([FromRoute] string classId, [FromQuery] int statusId)
         {
-            if(!Enum.IsDefined(typeof(EnrollEnum), statusId))
+            if (!Enum.IsDefined(typeof(EnrollEnum), statusId))
             {
-                return BadRequest(new 
+                return BadRequest(new
                 {
                     Message = "Status is invalid",
                     Success = false
@@ -102,7 +114,7 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
             if (rolesResponse.Success)
             {
                 var roles = rolesResponse.Message as List<string>;
-                if(!roles.Any(r => r == AppRole.TEACHER))
+                if (!roles.Any(r => r == AppRole.TEACHER))
                 {
                     return BadRequest(new
                     {
@@ -161,7 +173,6 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
         }
 
         [HttpGet("teacher/class/{classId}")]
-        [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> GetTeacherWithoutUserIdAsync([FromRoute] string classId)
         {
             var isTeacher = User.IsInRole(AppRole.TEACHER);
@@ -215,7 +226,7 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
         [Authorize(Policy = GlobalVariable.ADMIN_STUDENT)]
         public async Task<IActionResult> CreateAsync([FromForm] EnrollmentDto model)
         {
-            if(model.UserId == null)
+            if (model.UserId == null)
             {
                 model.UserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
             }
@@ -250,7 +261,7 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
             if (isTeacher)
             {
                 var isClassOfTeacher = await _classService.IsClassOfTeacherAsync(userId, classId);
-                if(!isClassOfTeacher)
+                if (!isClassOfTeacher)
                 {
                     return BadRequest(new
                     {
@@ -300,7 +311,7 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
             if (isTeacher)
             {
                 var getResponse = await _enrollService.GetAsync(enrollmentId);
-                if(getResponse.Success == false)
+                if (getResponse.Success == false)
                 {
                     return await getResponse.ChangeActionAsync();
                 }
@@ -381,7 +392,7 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
             if (isTeacher)
             {
                 var getResponse = await _enrollService.GetAsync(enrollmentId);
-                if(getResponse.Success == false)
+                if (getResponse.Success == false)
                 {
                     return await getResponse.ChangeActionAsync();
                 }

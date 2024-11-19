@@ -6,10 +6,10 @@ namespace EnglishCenter.DataAccess.UnitOfWork
     {
         IEventRepository Events { get; }
         IStudentRepository Students { get; }
-        ITeacherRepository Teachers { get; }    
+        ITeacherRepository Teachers { get; }
         IEnrollStatusRepository EnrollStatus { get; }
         IEnrollmentRepository Enrollment { get; }
-        IClassRepository Classes {  get; }
+        IClassRepository Classes { get; }
         ICourseRepository Courses { get; }
         ICourseContentRepository CourseContents { get; }
         IAssignmentRepository Assignments { get; }
@@ -36,13 +36,23 @@ namespace EnglishCenter.DataAccess.UnitOfWork
         IQuesRcSenMediaRepository QuesRcSenMedia { get; }
         IAnswerRcSenMediaRepository AnswerRcMedia { get; }
         ILearningProcessRepository LearningProcesses { get; }
-        IAnswerRecordsRepository AnswerRecords { get; }
+        IAssignmentRecordRepository AssignmentRecords { get; }
         IHomeworkRepository Homework { get; }
         IHomeQuesRepository HomeQues { get; }
         IHwSubmissionRepository HwSubmissions { get; }
         IHwSubRecordRepository HwSubRecords { get; }
         IToeicConversionRepository ToeicConversion { get; }
-        
+        IToeicRecordRepository ToeicRecords { get; }
+        IExaminationRepository Examinations { get; }
+        IToeicExamRepository ToeicExams { get; }
+        IQuesToeicRepository QuesToeic { get; }
+        ISubToeicRepository SubToeic { get; }
+        IAnswerToeicRepository AnswerToeic { get; }
+        IToeicDirectionRepository ToeicDirections { get; }
+        IToeicPracticeRecordRepository ToeicPracticeRecords { get; }
+        IToeicAttemptRepository ToeicAttempts { get; }
+        IChatFileRepository ChatFiles { get; }
+        IChatMessageRepository ChatMessages { get; }
         public Task<int> CompleteAsync();
         public Task BeginTransAsync();
         public Task CommitTransAsync();

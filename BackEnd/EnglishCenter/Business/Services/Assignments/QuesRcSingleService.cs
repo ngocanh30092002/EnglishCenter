@@ -6,7 +6,6 @@ using EnglishCenter.Presentation.Helpers;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
 using EnglishCenter.Presentation.Models.ResDTOs;
-using Microsoft.AspNetCore.Hosting;
 
 namespace EnglishCenter.Business.Services.Assignments
 {
@@ -18,7 +17,7 @@ namespace EnglishCenter.Business.Services.Assignments
         private readonly IWebHostEnvironment _webHostEnvironment;
         private string _imageBasePath;
 
-        public QuesRcSingleService(IUnitOfWork unit, IMapper mapper, IWebHostEnvironment webHostEnvironment, ISubRcSingleService subService) 
+        public QuesRcSingleService(IUnitOfWork unit, IMapper mapper, IWebHostEnvironment webHostEnvironment, ISubRcSingleService subService)
         {
             _unit = unit;
             _mapper = mapper;
@@ -26,7 +25,7 @@ namespace EnglishCenter.Business.Services.Assignments
             _webHostEnvironment = webHostEnvironment;
             _imageBasePath = Path.Combine("questions", "rc_single", "image");
         }
-        
+
         public async Task<Response> ChangeImageAsync(long quesId, IFormFile imageFile)
         {
             var queModel = _unit.QuesRcSingles.GetById(quesId);
@@ -82,7 +81,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public async Task<Response> ChangeQuantityAsync(long quesId, int quantity)
         {
-            var queModel = _unit.QuesRcSingles.GetById(quesId);
+            var queModel = _unit.QuesRcSingles.Include(q => q.SubRcSingles).FirstOrDefault(q => q.QuesId == quesId);
 
             if (queModel == null)
             {
@@ -104,7 +103,7 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
-            if(queModel.SubRcSingles.Count > quantity)
+            if (queModel.SubRcSingles.Count > quantity)
             {
                 return new Response()
                 {
@@ -182,7 +181,7 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
-            if(queModel.Image == null)
+            if (queModel.Image == null)
             {
                 return new Response()
                 {
@@ -232,7 +231,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public async Task<Response> DeleteAsync(long quesId)
         {
-            var queModel = _unit.QuesRcSingles.GetById(quesId);
+            var queModel = _unit.QuesRcSingles.Include(q => q.SubRcSingles).FirstOrDefault(q => q.QuesId == quesId);
             if (queModel == null)
             {
                 return new Response()

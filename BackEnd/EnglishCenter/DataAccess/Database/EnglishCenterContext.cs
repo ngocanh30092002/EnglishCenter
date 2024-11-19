@@ -95,14 +95,35 @@ public class EnglishCenterContext : IdentityDbContext<User>
 
     public virtual DbSet<LearningProcess> LearningProcesses { set; get; }
 
-    public virtual DbSet<AnswerRecord> AnswerRecords { set; get; }
+    public virtual DbSet<AssignmentRecord> AssignmentRecords { set; get; }
 
     public virtual DbSet<ToeicConversion> ToeicConversion { set; get; }
 
+    public virtual DbSet<ToeicRecord> ToeicRecords { set; get; }
+
+    public virtual DbSet<Examination> Examinations { set; get; }
+
+    public virtual DbSet<ToeicExam> ToeicExams { set; get; }
+
+    public virtual DbSet<QuesToeic> QuesToeic { set; get; }
+
+    public virtual DbSet<SubToeic> SubToeic { set; get; }
+
+    public virtual DbSet<AnswerToeic> AnswerToeic { set; get; }
+
+    public virtual DbSet<ToeicDirection> Directions { set; get; }
+
+    public virtual DbSet<ToeicPracticeRecord> ToeicPracticeRecords { set; get; }
+
+    public virtual DbSet<ToeicAttempt> ToeicAttempts { set; get; }
+
+    public virtual DbSet<ChatMessage> ChatMessages { set; get; }
+
+    public virtual DbSet<ChatFile> ChatFiles { set; get; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseLazyLoadingProxies()
-                    .UseSqlServer("Name=ConnectionStrings:EnglishCenter");
+        optionsBuilder.UseSqlServer("Name=ConnectionStrings:EnglishCenter");
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -117,6 +138,34 @@ public class EnglishCenterContext : IdentityDbContext<User>
                 entityType.SetTableName(tableName.Substring(6));
             }
         }
+
+        modelBuilder.Entity<ChatMessage>(entity =>
+        {
+            entity.HasOne(c => c.ChatFile).WithOne(f => f.ChatMessage)
+                .HasConstraintName("FK_ChatMessage_ChatFile");
+
+            entity.HasOne(c => c.Sender).WithMany(u => u.SentMessages)
+                .HasConstraintName("FK_ChatMessage_Sender")
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(c => c.Receiver).WithMany(u => u.ReceivedMessages)
+                .HasConstraintName("FK_ChatMessage_Receiver");
+        });
+
+        modelBuilder.Entity<ToeicExam>(entity =>
+        {
+            entity.HasOne(q => q.ToeicDirection).WithMany(t => t.ToeicExams).HasConstraintName("FK_Toeic_Exam_Toeic_Directions");
+        });
+
+        modelBuilder.Entity<QuesToeic>(entity =>
+        {
+            entity.HasOne(q => q.ToeicExam).WithMany(t => t.QuesToeic).HasConstraintName("FK_Ques_Toeic_Toeic_Exam");
+        });
+
+        modelBuilder.Entity<SubToeic>(entity =>
+        {
+            entity.HasOne(q => q.QuesToeic).WithMany(t => t.SubToeicList).HasConstraintName("FK_Sub_Toeic_Ques_Toeic");
+        });
 
         modelBuilder.Entity<CourseContent>(entity =>
         {
@@ -152,16 +201,49 @@ public class EnglishCenterContext : IdentityDbContext<User>
 
             entity.HasOne(p => p.Assignment).WithMany(e => e.LearningProcesses).HasConstraintName("FK_LearningProcess_Assignment");
 
+            entity.HasOne(p => p.Examination).WithMany(e => e.LearningProcesses).HasConstraintName("FK_LearningProcess_Examination");
         });
 
-        modelBuilder.Entity<AnswerRecord>(entity =>
+        modelBuilder.Entity<AssignmentRecord>(entity =>
         {
-            entity.HasOne(p => p.LearningProcess).WithMany(e => e.AnswerRecords).HasConstraintName("FK_AnswerRecord_LearningProcess");
+            entity.HasOne(p => p.LearningProcess).WithMany(e => e.AssignmentRecords).HasConstraintName("FK_AssignmentRecord_LearningProcess");
 
             entity.HasOne(p => p.AssignQue)
-                .WithMany(e => e.AnswerRecords)
-                .HasConstraintName("FK_AnswerRecord_AssignQue")
+                .WithMany(e => e.AssignmentRecords)
+                .HasConstraintName("FK_AssignmentRecords_AssignQue")
                 .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        modelBuilder.Entity<ToeicRecord>(entity =>
+        {
+            entity.HasOne(p => p.LearningProcess).WithMany(e => e.ToeicRecords).HasConstraintName("FK_ToeicRecord_LearningProcess");
+            entity.HasOne(p => p.SubToeic).WithMany(e => e.ToeicRecords).HasConstraintName("FK_ToeicRecord_SubToeic");
+        });
+
+        modelBuilder.Entity<ToeicPracticeRecord>(entity =>
+        {
+            entity.HasOne(r => r.SubToeic).WithMany(e => e.ToeicPracticeRecords).HasConstraintName("FK_ToeicPracticeRecord_SubToeic");
+            entity.HasOne(r => r.ToeicAttempt)
+                  .WithMany(e => e.ToeicPracticeRecords)
+                  .HasConstraintName("FK_ToeicPracticeRecords_Attempt")
+                  .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        modelBuilder.Entity<ToeicAttempt>(entity =>
+        {
+            entity.HasOne(a => a.User)
+                   .WithMany(u => u.ToeicAttempts)
+                   .HasConstraintName("FK_ToeicAttempted_User");
+            entity.HasOne(a => a.ToeicExam)
+                  .WithMany(u => u.ToeicAttempts)
+                  .HasConstraintName("FK_ToeicAttempted_ToeicExams");
+        });
+
+        modelBuilder.Entity<Examination>(entity =>
+        {
+            entity.HasOne(p => p.CourseContent).WithOne(e => e.Examination)
+                .HasConstraintName("FK_Examination_CourseContent")
+                .HasForeignKey<Examination>(e => e.ContentId);
         });
 
         modelBuilder.Entity<QuesLcImage>(entity =>

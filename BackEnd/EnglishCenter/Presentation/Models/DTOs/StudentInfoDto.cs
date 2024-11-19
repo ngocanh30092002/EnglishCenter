@@ -27,5 +27,7 @@ namespace EnglishCenter.Presentation.Models.DTOs
         public string Email { set; get; }
 
         public string? Address { get; set; }
+
+        public string? UserName { set; get; }
     }
 }

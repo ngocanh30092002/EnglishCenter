@@ -5,7 +5,7 @@ namespace EnglishCenter.Business.IServices
 {
     public interface IStudentService
     {
-
+        public Task<Response> GetFullInfoAsync(string userId);
         public Task<Response> GetStudentInfoAsync(string userId);
         public Task<Response> GetStudentBackgroundAsync(string userId);
         public Task<Response> ChangeStudentBackgroundAsync(string userId, StudentBackgroundDto stuModel);

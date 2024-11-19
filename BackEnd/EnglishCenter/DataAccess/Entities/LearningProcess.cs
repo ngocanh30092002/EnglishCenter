@@ -21,13 +21,23 @@ namespace EnglishCenter.DataAccess.Entities
 
         public DateTime? EndTime { set; get; }
 
-        public long AssignmentId { set; get; }
+        public long? AssignmentId { set; get; }
 
         [ForeignKey("AssignmentId")]
         [InverseProperty("LearningProcesses")]
-        public virtual Assignment Assignment { set; get; } = null!;
+        public virtual Assignment? Assignment { set; get; }
+
+        public long? ExamId { set; get; }
+
+        [ForeignKey("ExamId")]
+        [InverseProperty("LearningProcesses")]
+        public virtual Examination? Examination { set; get; }
 
         [InverseProperty("LearningProcess")]
-        public virtual ICollection<AnswerRecord> AnswerRecords { set; get; } = new List<AnswerRecord>();
+        public virtual ICollection<AssignmentRecord> AssignmentRecords { set; get; } = new List<AssignmentRecord>();
+        
+        [InverseProperty("LearningProcess")]
+        public virtual ICollection<ToeicRecord> ToeicRecords { set; get; } = new List<ToeicRecord>();
+
     }
 }

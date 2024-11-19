@@ -8,6 +8,8 @@ namespace EnglishCenter.Business.IServices
         public Task<Response> GetAllAsync();
         public Task<Response> GetAsync(long contentId);
         public Task<Response> GetByCourseAsync(string courseId);
+        public Task<Response> GetTotalTimeByCourseAsync(string courseId);
+        public Task<Response> GetHisCourseContentAsync(string courseId, long enrollId);
         public Task<Response> CreateAsync(CourseContentDto courseContentDto);
         public Task<Response> UpdateAsync(long contentId, CourseContentDto courseContentDto);
         public Task<Response> ChangeNoNumAsync(long contentId, int number);

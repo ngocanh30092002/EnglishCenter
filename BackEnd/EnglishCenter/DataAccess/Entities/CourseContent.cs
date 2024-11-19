@@ -26,5 +26,8 @@ namespace EnglishCenter.DataAccess.Entities
 
         [InverseProperty("CourseContent")]
         public virtual ICollection<Assignment> Assignments { get; set; } = new List<Assignment>();
+
+        [InverseProperty("CourseContent")]
+        public virtual Examination? Examination { get; set; }
     }
 }

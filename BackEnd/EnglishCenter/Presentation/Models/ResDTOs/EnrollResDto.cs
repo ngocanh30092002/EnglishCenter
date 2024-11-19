@@ -1,5 +1,4 @@
-﻿using EnglishCenter.DataAccess.Entities;
-using EnglishCenter.Presentation.Models.DTOs;
+﻿using EnglishCenter.Presentation.Models.DTOs;
 
 namespace EnglishCenter.Presentation.Models.ResDTOs
 {
@@ -9,6 +8,7 @@ namespace EnglishCenter.Presentation.Models.ResDTOs
         public DateOnly? EnrollDate { set; get; }
         public DateTime? UpdateTime { set; get; }
         public StudentInfoDto? Student { set; get; }
+        public StudentBackgroundDto? StudentBackground { set; get; }
         public ClassResDto? Class { set; get; }
         public string? EnrollStatus { set; get; }
         public string? TeacherName { set; get; }

@@ -1,13 +1,11 @@
 ﻿using AutoMapper;
 using EnglishCenter.Business.IServices;
 using EnglishCenter.DataAccess.Entities;
-using EnglishCenter.DataAccess.IRepositories;
 using EnglishCenter.DataAccess.UnitOfWork;
 using EnglishCenter.Presentation.Helpers;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
 using EnglishCenter.Presentation.Models.ResDTOs;
-using Microsoft.AspNetCore.Hosting;
 
 namespace EnglishCenter.Business.Services.Assignments
 {
@@ -24,7 +22,7 @@ namespace EnglishCenter.Business.Services.Assignments
             IUnitOfWork unit,
             IMapper mapper,
             IWebHostEnvironment webHostEnvironment,
-            ISubLcConService subService) 
+            ISubLcConService subService)
         {
             _unit = unit;
             _mapper = mapper;
@@ -37,7 +35,7 @@ namespace EnglishCenter.Business.Services.Assignments
         public async Task<Response> ChangeAudioAsync(long quesId, IFormFile audioFile)
         {
             var queModel = _unit.QuesLcCons.GetById(quesId);
-            if(queModel == null)
+            if (queModel == null)
             {
                 return new Response()
                 {
@@ -154,8 +152,8 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public async Task<Response> ChangeQuantityAsync(long quesId, int quantity)
         {
-            var queModel = _unit.QuesLcCons.GetById(quesId);
-            if(queModel == null)
+            var queModel = _unit.QuesLcCons.Include(q => q.SubLcConversations).FirstOrDefault(q => q.QuesId == quesId);
+            if (queModel == null)
             {
                 return new Response()
                 {
@@ -165,7 +163,7 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
-            if(quantity < 0)
+            if (quantity < 0)
             {
                 return new Response()
                 {
@@ -210,7 +208,7 @@ namespace EnglishCenter.Business.Services.Assignments
         {
             var queEntity = new QuesLcConversation();
 
-            if(queModel.Image != null)
+            if (queModel.Image != null)
             {
                 var folderPath = Path.Combine(_webHostEnvironment.WebRootPath, _imageBasePath);
                 var fileImage = $"image_{DateTime.Now.Ticks}{Path.GetExtension(queModel.Image.FileName)}";
@@ -228,7 +226,7 @@ namespace EnglishCenter.Business.Services.Assignments
                 queEntity.Image = Path.Combine(_imageBasePath, fileImage);
             }
 
-            if(queModel.Audio != null)
+            if (queModel.Audio != null)
             {
                 var folderPath = Path.Combine(_webHostEnvironment.WebRootPath, _audioBasePath);
                 var fileAudio = $"audio_{DateTime.Now.Ticks}{Path.GetExtension(queModel.Audio.FileName)}";
@@ -258,7 +256,7 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
-            if(queModel.Quantity <= 0 )
+            if (queModel.Quantity <= 0)
             {
                 return new Response()
                 {
@@ -283,8 +281,9 @@ namespace EnglishCenter.Business.Services.Assignments
 
         public async Task<Response> DeleteAsync(long quesId)
         {
-            var queModel = _unit.QuesLcCons.GetById(quesId);
-            if(queModel == null)
+            var queModel = _unit.QuesLcCons.Include(q => q.SubLcConversations).FirstOrDefault(q => q.QuesId == quesId);
+
+            if (queModel == null)
             {
                 return new Response()
                 {
@@ -294,7 +293,7 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
-            if(queModel.Image?.Length > 0)
+            if (queModel.Image?.Length > 0)
             {
                 var previousImagePath = Path.Combine(_webHostEnvironment.WebRootPath, queModel.Image);
                 if (File.Exists(previousImagePath))
@@ -383,7 +382,7 @@ namespace EnglishCenter.Business.Services.Assignments
                     Success = true
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 await _unit.RollBackTransAsync();
 

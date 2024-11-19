@@ -1,6 +1,4 @@
-﻿using EnglishCenter.DataAccess.Entities;
-
-namespace EnglishCenter.Presentation.Models.ResDTOs
+﻿namespace EnglishCenter.Presentation.Models.ResDTOs
 {
     public class AssignmentResDto
     {
@@ -10,6 +8,9 @@ namespace EnglishCenter.Presentation.Models.ResDTOs
         public string? Time { set; get; }
         public string? ExpectedTime { set; get; }
         public string? Achieved_Percentage { set; get; }
+        public string? Status { set; get; }
+        public string CourseContentTitle { set; get; }
+        public bool CanViewResult { set; get; }
         public List<AssignQueResDto>? AssignQues { set; get; }
     }
 }

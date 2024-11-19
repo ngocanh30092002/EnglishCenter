@@ -6,9 +6,9 @@ using EnglishCenter.Presentation.Models.ResDTOs;
 
 namespace EnglishCenter.Presentation
 {
-    public class AssignQuesProfile: Profile
+    public class AssignQuesProfile : Profile
     {
-        public AssignQuesProfile() 
+        public AssignQuesProfile()
         {
             CreateMap<AssignQueDto, AssignQue>()
                .ForMember(des => des.Type, opt => opt.MapFrom(src => src.Type))
@@ -16,6 +16,7 @@ namespace EnglishCenter.Presentation
                .ForMember(des => des.ImageQuesId, opt => opt.MapFrom(src => src.Type == (int)QuesTypeEnum.Image ? src.QuesId : (long?)null))
                .ForMember(des => des.AudioQuesId, opt => opt.MapFrom(src => src.Type == (int)QuesTypeEnum.Audio ? src.QuesId : (long?)null))
                .ForMember(des => des.ConversationQuesId, opt => opt.MapFrom(src => src.Type == (int)QuesTypeEnum.Conversation ? src.QuesId : (long?)null))
+               .ForMember(des => des.SentenceQuesId, opt => opt.MapFrom(src => src.Type == (int)QuesTypeEnum.Sentence ? src.QuesId : (long?)null))
                .ForMember(des => des.SingleQuesId, opt => opt.MapFrom(src => src.Type == (int)QuesTypeEnum.Single ? src.QuesId : (long?)null))
                .ForMember(des => des.DoubleQuesId, opt => opt.MapFrom(src => src.Type == (int)QuesTypeEnum.Double ? src.QuesId : (long?)null))
                .ForMember(des => des.TripleQuesId, opt => opt.MapFrom(src => src.Type == (int)QuesTypeEnum.Triple ? src.QuesId : (long?)null))
@@ -27,7 +28,7 @@ namespace EnglishCenter.Presentation
                .ForMember(des => des.Type, opt => opt.MapFrom(src => ((QuesTypeEnum)src.Type).ToString()))
                .ForMember(des => des.QuesInfo, opt => opt.MapFrom((src, des, index, context) =>
                {
-                   switch(src.Type)
+                   switch (src.Type)
                    {
                        case (int)QuesTypeEnum.Image:
                            return context.Mapper.Map<QuesLcImageResDto>(src.QuesImage);
@@ -53,7 +54,7 @@ namespace EnglishCenter.Presentation
                            return context.Mapper.Map<QuesRcSenMediaResDto>(src.QuesSentenceMedia);
                    }
 
-                   return (object?) null;
+                   return (object?)null;
                }));
 
         }

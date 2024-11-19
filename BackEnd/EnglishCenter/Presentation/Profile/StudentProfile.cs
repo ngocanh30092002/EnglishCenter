@@ -6,7 +6,7 @@ namespace EnglishCenter.Presentation
 {
     public class StudentProfile : Profile
     {
-        public StudentProfile() 
+        public StudentProfile()
         {
             CreateMap<StudentInfoDto, Student>()
                   .ForMember(des => des.FirstName, opt => opt.MapFrom(src => src.FirstName))
@@ -15,6 +15,7 @@ namespace EnglishCenter.Presentation
                   .ForMember(des => des.DateOfBirth, opt => opt.MapFrom(src => src.DateOfBirth))
                   .ForMember(des => des.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
                   .ForMember(des => des.Address, opt => opt.MapFrom(src => src.Address))
+                  .ForMember(des => des.UserName, opt => opt.MapFrom(src => src.UserName))
                   .ReverseMap();
 
             CreateMap<Student, StudentBackgroundDto>()
