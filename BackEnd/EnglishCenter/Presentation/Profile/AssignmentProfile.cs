@@ -19,7 +19,7 @@ namespace EnglishCenter.Presentation
                 .ForMember(des => des.CourseContentTitle, opt => opt.MapFrom(src => src.CourseContent.Title))
                 .ForMember(des => des.AssignQues, opt => opt.MapFrom(src => src.AssignQues))
                 .ForMember(des => des.CanViewResult, opt => opt.MapFrom(src => src.CanViewResult))
-                .ForMember(des => des.Status, opt => opt.MapFrom(src => LessonStatusEnum.Locked.ToString()));
+                .ForMember(des => des.Status, opt => opt.MapFrom(src => ExerciseStatusEnum.Locked.ToString()));
         }
     }
 }

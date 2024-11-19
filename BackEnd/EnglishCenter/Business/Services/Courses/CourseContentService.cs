@@ -301,19 +301,19 @@ namespace EnglishCenter.Business.Services.Courses
                             {
                                 if (!isLocked)
                                 {
-                                    var status = await _processService.IsStatusLessonAsync(enrollModel, assignment.AssignmentId, null);
+                                    var status = await _processService.IsStatusExerciseAsync(enrollModel, assignment.AssignmentId, null);
 
                                     assignment.Status = status.ToString();
-                                    isLocked = status == LessonStatusEnum.Locked;
+                                    isLocked = status == ExerciseStatusEnum.Locked;
 
                                     continue;
                                 }
 
-                                assignment.Status = LessonStatusEnum.Locked.ToString();
+                                assignment.Status = ExerciseStatusEnum.Locked.ToString();
                             }
                             else
                             {
-                                var status = await _processService.IsStatusLessonAsync(enrollModel, assignment.AssignmentId, null);
+                                var status = await _processService.IsStatusExerciseAsync(enrollModel, assignment.AssignmentId, null);
                                 assignment.Status = status.ToString();
                             }
                         }
@@ -324,23 +324,23 @@ namespace EnglishCenter.Business.Services.Courses
                         {
                             if (!isLocked)
                             {
-                                var status = await _processService.IsStatusLessonAsync(enrollModel, null, resModel.Examination!.ExamId);
+                                var status = await _processService.IsStatusExerciseAsync(enrollModel, null, resModel.Examination!.ExamId);
 
                                 resModel.Examination.Status = status.ToString();
-                                isLocked = status == LessonStatusEnum.Locked;
+                                isLocked = status == ExerciseStatusEnum.Locked;
 
                                 continue;
                             }
 
-                            resModel.Examination!.Status = LessonStatusEnum.Locked.ToString();
+                            resModel.Examination!.Status = ExerciseStatusEnum.Locked.ToString();
 
                             // Todo: fake data to coding FE
-                            resModel.Examination.Status = LessonStatusEnum.Open.ToString();
+                            resModel.Examination.Status = ExerciseStatusEnum.Open.ToString();
 
                         }
                         else
                         {
-                            var status = await _processService.IsStatusLessonAsync(enrollModel, null, resModel.Examination!.ExamId);
+                            var status = await _processService.IsStatusExerciseAsync(enrollModel, null, resModel.Examination!.ExamId);
                             resModel.Examination.Status = status.ToString();
                         }
                     }

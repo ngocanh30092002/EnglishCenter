@@ -781,8 +781,9 @@ namespace EnglishCenter.Business.Services.Courses
                 };
             }
 
-            // Todo: check time end
-            if (classModel.Status == (int)ClassEnum.End)
+            var currentDate = DateOnly.FromDateTime(DateTime.Now);
+
+            if (classModel.Status == (int)ClassEnum.End || classModel.EndDate < currentDate)
             {
                 return new Response()
                 {
@@ -791,6 +792,17 @@ namespace EnglishCenter.Business.Services.Courses
                     Success = false
                 };
             }
+
+            if (classModel.StartDate > currentDate)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't register for this class because it hasn't started yet.",
+                    Success = false
+                };
+            }
+
 
             var studentModel = _unit.Students.GetById(model.UserId ?? "");
             if (studentModel == null)

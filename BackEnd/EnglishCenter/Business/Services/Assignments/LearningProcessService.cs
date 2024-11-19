@@ -785,7 +785,7 @@ namespace EnglishCenter.Business.Services.Assignments
                 Success = true
             });
         }
-        public async Task<Response> GetStatusLessonAsync(long id, long? assignmentId, long? examId)
+        public async Task<Response> GetStatusExerciseAsync(long id, long? assignmentId, long? examId)
         {
             var enrollModel = _unit.Enrollment.Include(e => e.Class).FirstOrDefault(e => e.EnrollId == id);
             if (enrollModel == null)
@@ -798,7 +798,7 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
-            var status = await IsStatusLessonAsync(enrollModel, assignmentId, examId);
+            var status = await IsStatusExerciseAsync(enrollModel, assignmentId, examId);
 
 
             return new Response()
@@ -809,13 +809,13 @@ namespace EnglishCenter.Business.Services.Assignments
             };
         }
 
-        public async Task<LessonStatusEnum> IsStatusLessonAsync(Enrollment enroll, long? assignmentId, long? examId)
+        public async Task<ExerciseStatusEnum> IsStatusExerciseAsync(Enrollment enroll, long? assignmentId, long? examId)
         {
-            if (enroll.StatusId != (int)EnrollEnum.Ongoing) return LessonStatusEnum.Locked;
-            if (!(assignmentId == null ^ examId == null)) return LessonStatusEnum.Locked;
+            if (enroll.StatusId != (int)EnrollEnum.Ongoing) return ExerciseStatusEnum.Locked;
+            if (!(assignmentId == null ^ examId == null)) return ExerciseStatusEnum.Locked;
 
             var courseModel = _unit.Courses.GetById(enroll.Class.CourseId);
-            if (courseModel == null) return LessonStatusEnum.Locked;
+            if (courseModel == null) return ExerciseStatusEnum.Locked;
 
             if (assignmentId.HasValue)
             {
@@ -823,7 +823,7 @@ namespace EnglishCenter.Business.Services.Assignments
                                             .Include(a => a.CourseContent)
                                             .FirstOrDefaultAsync(a => a.AssignmentId == assignmentId.Value);
 
-                if (assignment == null) return LessonStatusEnum.Locked;
+                if (assignment == null) return ExerciseStatusEnum.Locked;
 
                 return await IsStatusWithAssignmentAsync(enroll, assignment, courseModel.IsSequential);
             }
@@ -833,7 +833,7 @@ namespace EnglishCenter.Business.Services.Assignments
                                            .Include(a => a.CourseContent)
                                            .FirstOrDefaultAsync(a => a.ExamId == examId);
 
-                if (examModel == null) return LessonStatusEnum.Locked;
+                if (examModel == null) return ExerciseStatusEnum.Locked;
 
                 return await IsStatusWithExamAsync(enroll, examModel, courseModel.IsSequential);
             }
@@ -1295,7 +1295,7 @@ namespace EnglishCenter.Business.Services.Assignments
             }
         }
 
-        private async Task<LessonStatusEnum> IsStatusWithAssignmentAsync(Enrollment enroll, Assignment assignment, bool isSequential)
+        private async Task<ExerciseStatusEnum> IsStatusWithAssignmentAsync(Enrollment enroll, Assignment assignment, bool isSequential)
         {
             var isExistProcess = false;
 
@@ -1305,31 +1305,31 @@ namespace EnglishCenter.Business.Services.Assignments
                                                 (p.Status == (int)ProcessStatusEnum.Completed ||
                                                 p.Status == (int)ProcessStatusEnum.Achieved));
 
-            if (isExistProcess) return LessonStatusEnum.Passed;
+            if (isExistProcess) return ExerciseStatusEnum.Passed;
 
             isExistProcess = _unit.LearningProcesses
                                   .IsExist(p => p.EnrollId == enroll.EnrollId &&
                                                 p.AssignmentId == assignment.AssignmentId &&
                                                 p.Status == (int)ProcessStatusEnum.NotAchieved);
 
-            if (isExistProcess) return LessonStatusEnum.Failed;
+            if (isExistProcess) return ExerciseStatusEnum.Failed;
 
-            if (!isSequential) return LessonStatusEnum.Open;
+            if (!isSequential) return ExerciseStatusEnum.Open;
 
             isExistProcess = _unit.LearningProcesses
                                   .IsExist(p => p.EnrollId == enroll.EnrollId &&
                                                 p.AssignmentId == assignment.AssignmentId &&
                                                 p.Status == (int)ProcessStatusEnum.Ongoing);
 
-            if (isExistProcess) return LessonStatusEnum.Open;
+            if (isExistProcess) return ExerciseStatusEnum.Open;
 
             var preCourseContent = await _unit.CourseContents.GetPreviousAsync(assignment.CourseContent);
-            if (preCourseContent == null && assignment.NoNum == 1) return LessonStatusEnum.Open;
+            if (preCourseContent == null && assignment.NoNum == 1) return ExerciseStatusEnum.Open;
 
             if (preCourseContent == null || preCourseContent.Type == 1)
             {
                 var previousAssignment = await _unit.Assignments.GetPreviousAssignmentAsync(assignment.AssignmentId);
-                if (previousAssignment == null) return LessonStatusEnum.Locked;
+                if (previousAssignment == null) return ExerciseStatusEnum.Locked;
 
                 isExistProcess = _unit.LearningProcesses
                                       .IsExist(p => p.EnrollId == enroll.EnrollId &&
@@ -1337,35 +1337,35 @@ namespace EnglishCenter.Business.Services.Assignments
                                                     (p.Status == (int)ProcessStatusEnum.Achieved ||
                                                     p.Status == (int)ProcessStatusEnum.Completed));
 
-                if (isExistProcess) return LessonStatusEnum.Open;
+                if (isExistProcess) return ExerciseStatusEnum.Open;
 
-                return LessonStatusEnum.Locked;
+                return ExerciseStatusEnum.Locked;
             }
 
             if (preCourseContent.Type != 1)
             {
                 isExistProcess = _unit.LearningProcesses.IsExist(p => p.EnrollId == enroll.EnrollId && p.ExamId == preCourseContent.Examination.ExamId);
-                if (isExistProcess) return LessonStatusEnum.Open;
+                if (isExistProcess) return ExerciseStatusEnum.Open;
             }
 
-            return LessonStatusEnum.Locked;
+            return ExerciseStatusEnum.Locked;
         }
 
-        private async Task<LessonStatusEnum> IsStatusWithExamAsync(Enrollment enroll, Examination exam, bool isSequential)
+        private async Task<ExerciseStatusEnum> IsStatusWithExamAsync(Enrollment enroll, Examination exam, bool isSequential)
         {
             var isExist = _unit.LearningProcesses.IsExist(p => p.EnrollId == enroll.EnrollId && p.ExamId == exam.ExamId);
-            if (isExist) return LessonStatusEnum.Passed;
-            if (!isSequential) return LessonStatusEnum.Open;
+            if (isExist) return ExerciseStatusEnum.Passed;
+            if (!isSequential) return ExerciseStatusEnum.Open;
 
             var preCourseContent = await _unit.CourseContents.GetPreviousAsync(exam.CourseContent);
-            if (preCourseContent == null) return LessonStatusEnum.Open;
+            if (preCourseContent == null) return ExerciseStatusEnum.Open;
 
             if (preCourseContent.Type != 1)
             {
                 isExist = _unit.LearningProcesses.IsExist(p => p.EnrollId == enroll.EnrollId && p.ExamId == preCourseContent.Examination.ExamId);
-                if (isExist) return LessonStatusEnum.Open;
+                if (isExist) return ExerciseStatusEnum.Open;
 
-                return LessonStatusEnum.Locked;
+                return ExerciseStatusEnum.Locked;
             }
 
             var preAssignment = _unit.Assignments
@@ -1373,7 +1373,7 @@ namespace EnglishCenter.Business.Services.Assignments
                                      .OrderByDescending(a => a.NoNum)
                                      .FirstOrDefault();
 
-            if (preAssignment == null) return LessonStatusEnum.Locked;
+            if (preAssignment == null) return ExerciseStatusEnum.Locked;
 
             isExist = _unit.LearningProcesses
                            .IsExist(p => p.EnrollId == enroll.EnrollId &&
@@ -1381,9 +1381,9 @@ namespace EnglishCenter.Business.Services.Assignments
                                          (p.Status == (int)ProcessStatusEnum.Completed ||
                                          p.Status == (int)ProcessStatusEnum.Achieved));
 
-            if (isExist) return LessonStatusEnum.Open;
+            if (isExist) return ExerciseStatusEnum.Open;
 
-            return LessonStatusEnum.Locked;
+            return ExerciseStatusEnum.Locked;
         }
     }
 }

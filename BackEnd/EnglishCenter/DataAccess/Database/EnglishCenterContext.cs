@@ -121,6 +121,14 @@ public class EnglishCenterContext : IdentityDbContext<User>
 
     public virtual DbSet<ChatFile> ChatFiles { set; get; }
 
+    public virtual DbSet<ClassSchedule> ClassSchedules { set; get; }
+
+    public virtual DbSet<Lesson> Lessons { set; get; }
+
+    public virtual DbSet<ClassRoom> ClassRooms { set; get; }
+
+    public virtual DbSet<Period> Periods { set; get; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder.UseSqlServer("Name=ConnectionStrings:EnglishCenter");
@@ -138,6 +146,22 @@ public class EnglishCenterContext : IdentityDbContext<User>
                 entityType.SetTableName(tableName.Substring(6));
             }
         }
+
+        modelBuilder.Entity<ClassSchedule>(entity =>
+        {
+            entity.HasOne(c => c.Class).WithMany(c => c.ClassSchedules).HasConstraintName("FK_ClassSchedule_Class");
+        });
+
+        modelBuilder.Entity<Lesson>(entity =>
+        {
+            entity.HasOne(c => c.Class).WithMany(c => c.Lessons).HasConstraintName("FK_Lessons_Class");
+        });
+
+        modelBuilder.Entity<Period>(entity =>
+        {
+            entity.Property(e => e.PeriodId)
+                .ValueGeneratedNever();
+        });
 
         modelBuilder.Entity<ChatMessage>(entity =>
         {

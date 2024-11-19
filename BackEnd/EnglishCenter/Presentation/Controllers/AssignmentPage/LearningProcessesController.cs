@@ -68,9 +68,9 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
         }
 
         [HttpGet("enrollments/{enrollId}/status")]
-        public async Task<IActionResult> GetStatusLessonAsync([FromRoute] long enrollId, [FromQuery] long? assignmentId, [FromQuery] long? examId)
+        public async Task<IActionResult> GetStatusExerciseAsync([FromRoute] long enrollId, [FromQuery] long? assignmentId, [FromQuery] long? examId)
         {
-            var response = await _processService.GetStatusLessonAsync(enrollId, assignmentId, examId);
+            var response = await _processService.GetStatusExerciseAsync(enrollId, assignmentId, examId);
             return await response.ChangeActionAsync();
         }
 

@@ -1,6 +1,6 @@
 ﻿namespace EnglishCenter.Presentation.Global.Enum
 {
-    public enum LessonStatusEnum
+    public enum ExerciseStatusEnum
     {
         Passed = 1,
         Failed = 2,

@@ -32,7 +32,7 @@ namespace EnglishCenter.Business.Services.Courses
         public async Task<Response> ChangeDescriptionAsync(string classId, string newDes)
         {
             var classModel = _unit.Classes.GetById(classId);
-            if(classModel == null)
+            if (classModel == null)
             {
                 return new Response()
                 {
@@ -64,7 +64,7 @@ namespace EnglishCenter.Business.Services.Courses
         public async Task<Response> ChangeCourseAsync(string classId, string courseId)
         {
             var isExistCourse = _unit.Courses.IsExist(c => c.CourseId == courseId);
-            if(!isExistCourse)
+            if (!isExistCourse)
             {
                 return new Response()
                 {
@@ -162,8 +162,8 @@ namespace EnglishCenter.Business.Services.Courses
                     Message = "Can't find any classes"
                 };
             }
-            
-            if(maxNum < 0)
+
+            if (maxNum < 0)
             {
                 return new Response()
                 {
@@ -196,7 +196,7 @@ namespace EnglishCenter.Business.Services.Courses
         public async Task<Response> ChangeImageAsync(string classId, IFormFile image)
         {
             var classModel = _unit.Classes.GetById(classId);
-            if(classModel == null)
+            if (classModel == null)
             {
                 return new Response()
                 {
@@ -208,7 +208,7 @@ namespace EnglishCenter.Business.Services.Courses
 
             var isSuccess = await _unit.Classes.ChangeImageAsync(classModel, image);
 
-            if(!isSuccess)
+            if (!isSuccess)
             {
                 return new Response()
                 {
@@ -229,8 +229,8 @@ namespace EnglishCenter.Business.Services.Courses
         public async Task<Response> ChangeStartTimeAsync(string classId, DateOnly startTime)
         {
             var classModel = _unit.Classes.GetById(classId);
-            
-            if(classModel == null)
+
+            if (classModel == null)
             {
                 return new Response()
                 {
@@ -242,7 +242,7 @@ namespace EnglishCenter.Business.Services.Courses
 
             if (classModel.EndDate.HasValue)
             {
-                if(classModel.EndDate.Value < startTime)
+                if (classModel.EndDate.Value < startTime)
                 {
                     return new Response()
                     {
@@ -254,7 +254,7 @@ namespace EnglishCenter.Business.Services.Courses
             }
 
             var isSuccess = await _unit.Classes.ChangeStartTimeAsync(classModel, startTime);
-            if(!isSuccess)
+            if (!isSuccess)
             {
                 return new Response()
                 {
@@ -275,7 +275,7 @@ namespace EnglishCenter.Business.Services.Courses
         public async Task<Response> CreateAsync(ClassDto model)
         {
             var isExistCourse = _unit.Courses.IsExist(c => c.CourseId == model.CourseId);
-            if(!isExistCourse)
+            if (!isExistCourse)
             {
                 return new Response()
                 {
@@ -318,7 +318,7 @@ namespace EnglishCenter.Business.Services.Courses
             }
 
             var classModel = _mapper.Map<Class>(model);
-            if(model.Image != null)
+            if (model.Image != null)
             {
                 var uploadFolder = Path.Combine(_webHostEnvironment.WebRootPath, _imageBase);
                 var fileName = $"{DateTime.Now.Ticks}_{model.Image.FileName}";
@@ -344,7 +344,7 @@ namespace EnglishCenter.Business.Services.Courses
                 ClaimValue = model.ClassId
             });
 
-            if(!isAddClaimSuccess)
+            if (!isAddClaimSuccess)
             {
                 return new Response()
                 {
@@ -366,7 +366,7 @@ namespace EnglishCenter.Business.Services.Courses
         public async Task<Response> DeleteAsync(string classId)
         {
             var classModel = _unit.Classes.GetById(classId);
-            if(classModel == null)
+            if (classModel == null)
             {
                 return new Response()
                 {
@@ -393,7 +393,7 @@ namespace EnglishCenter.Business.Services.Courses
                 ClaimValue = classModel.ClassId
             });
 
-            if(!isDeleteSuccess)
+            if (!isDeleteSuccess)
             {
                 return new Response()
                 {
@@ -438,10 +438,14 @@ namespace EnglishCenter.Business.Services.Courses
                 };
             }
 
+            var currentDate = DateOnly.FromDateTime(DateTime.Now);
+
             var classes = await _unit.Classes.Include(c => c.Teacher)
-                                       .Where(c => c.CourseId == courseId && c.Status != (int)ClassEnum.End)
+                                       .Where(c => c.CourseId == courseId &&
+                                                   c.Status != (int)ClassEnum.End &&
+                                                   c.StartDate <= currentDate && currentDate <= c.EndDate)
                                        .ToListAsync();
-            
+
             return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
@@ -455,7 +459,7 @@ namespace EnglishCenter.Business.Services.Courses
             var classModel = await _unit.Classes.Include(c => c.Teacher)
                                 .FirstOrDefaultAsync(c => c.ClassId == classId);
 
-            if(classModel == null)
+            if (classModel == null)
             {
                 return new Response()
                 {
@@ -476,7 +480,7 @@ namespace EnglishCenter.Business.Services.Courses
         public async Task<Response> GetClassesWithTeacherAsync(string userId)
         {
             var isExistTeacher = _unit.Teachers.IsExist(t => t.UserId == userId);
-            if(!isExistTeacher)
+            if (!isExistTeacher)
             {
                 return new Response()
                 {

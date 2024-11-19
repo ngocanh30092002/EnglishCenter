@@ -22,7 +22,7 @@ namespace EnglishCenter.Presentation
                .ForMember(des => des.ToeicId, opt => opt.MapFrom(src => src.ToeicId))
                .ForMember(des => des.Title, opt => opt.MapFrom(src => src.Title))
                .ForMember(des => des.Time, opt => opt.MapFrom(src => src.Time.ToString("hh:mm:ss")))
-               .ForMember(des => des.Status, opt => opt.MapFrom(src => LessonStatusEnum.Locked.ToString()))
+               .ForMember(des => des.Status, opt => opt.MapFrom(src => ExerciseStatusEnum.Locked.ToString()))
                .ForMember(des => des.Description, opt => opt.MapFrom(src => src.Description));
 
 
