@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
 {
-    public class CourseRepository : GenericRepository<Course> ,ICourseRepository
+    public class CourseRepository : GenericRepository<Course>, ICourseRepository
     {
         private readonly IWebHostEnvironment _webHost;
 
@@ -33,11 +33,10 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
 
             course.Name = model.Name;
             course.Description = model.Description;
-            course.NumLesson = model.NumLesson;
             course.EntryPoint = model.EntryPoint;
             course.StandardPoint = model.StandardPoint;
 
-            if(model.Priority.HasValue && course.Priority != model.Priority)
+            if (model.Priority.HasValue && course.Priority != model.Priority)
             {
                 var isSuccess = await this.ChangePriorityAsync(course, model.Priority.Value);
 
@@ -52,10 +51,10 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
                 }
             }
 
-            if(model.Image != null)
+            if (model.Image != null)
             {
                 var isSuccess = await UploadImageAsync(course, model.Image);
-                if(!isSuccess)
+                if (!isSuccess)
                 {
                     return new Response()
                     {
@@ -65,7 +64,7 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
                 }
             }
 
-            if(model.ImageThumbnail != null)
+            if (model.ImageThumbnail != null)
             {
                 var isSuccess = await UploadImageThumbnailAsync(course, model.ImageThumbnail);
                 if (!isSuccess)
@@ -186,7 +185,7 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
             if (courseModel == null) return null;
             if (!courseModel.Priority.HasValue) return null;
 
-            var previousCourse = await context.Courses.FirstOrDefaultAsync(c => c.Priority ==  courseModel.Priority - 1);
+            var previousCourse = await context.Courses.FirstOrDefaultAsync(c => c.Priority == courseModel.Priority - 1);
             if (previousCourse == null) return null;
 
             return previousCourse;

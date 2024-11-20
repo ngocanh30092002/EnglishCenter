@@ -107,7 +107,6 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
             model.SingleQuesId = null;
             model.DoubleQuesId = null;
             model.TripleQuesId = null;
-            model.SentenceMediaQuesId = null;
 
             switch (type)
             {
@@ -131,9 +130,6 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
                     break;
                 case QuesTypeEnum.Triple:
                     model.TripleQuesId = quesId;
-                    break;
-                case QuesTypeEnum.Sentence_Media:
-                    model.SentenceMediaQuesId = quesId;
                     break;
                 default:
                     throw new ArgumentException("Invalid Question Type");
@@ -211,8 +207,6 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
                     return _mapper.Map<AnswerRcDoubleDto>(assignQueModel.QuesDouble.SubRcDoubles.FirstOrDefault(s => s.SubId == subId.Value).Answer);
                 case (int)QuesTypeEnum.Triple:
                     return _mapper.Map<AnswerRcTripleDto>(assignQueModel.QuesTriple.SubRcTriples.FirstOrDefault(s => s.SubId == subId.Value).Answer);
-                case (int)QuesTypeEnum.Sentence_Media:
-                    return _mapper.Map<AnswerRcSenMediaDto>(assignQueModel.QuesSentenceMedia.Answer);
             }
 
             return null;
@@ -257,9 +251,6 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
                     break;
                 case QuesTypeEnum.Triple:
                     isExist = await context.QuesRcTriples.AnyAsync(q => q.QuesId == quesId);
-                    break;
-                case QuesTypeEnum.Sentence_Media:
-                    isExist = await context.QuesRcSentenceMedias.AnyAsync(q => q.QuesId == quesId);
                     break;
                 default:
                     throw new ArgumentException("Invalid Question Type");
@@ -307,9 +298,6 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
                         if (!subId.HasValue) return false;
                         var subQueTriple = model.QuesTriple!.SubRcTriples.FirstOrDefault(s => s.SubId == subId.Value);
                         return subQueTriple!.Answer!.CorrectAnswer == selectedAnswer.ToUpper();
-
-                    case (int)QuesTypeEnum.Sentence_Media:
-                        return model.QuesSentenceMedia!.Answer!.CorrectAnswer == selectedAnswer.ToUpper();
                 }
 
                 return false;
@@ -367,13 +355,6 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
                                         .AnyAsync(q => q.Type == (int)type &&
                                                        q.TripleQuesId == quesId &&
                                                        q.AssignmentId == assignmentId);
-                    break;
-
-                case QuesTypeEnum.Sentence_Media:
-                    isExist = await context.AssignQues
-                                       .AnyAsync(q => q.Type == (int)type &&
-                                                      q.SentenceMediaQuesId == quesId &&
-                                                      q.AssignmentId == assignmentId);
                     break;
                 default:
                     throw new ArgumentException("Invalid Question Type");
@@ -441,14 +422,6 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
                                 .ThenInclude(a => a.Answer)
                                 .LoadAsync();
                     break;
-
-                case QuesTypeEnum.Sentence_Media:
-                    await context.Entry(model)
-                                .Reference(m => m.QuesSentenceMedia)
-                                .Query()
-                                .Include(a => a.Answer)
-                                .LoadAsync();
-                    break;
                 default:
                     throw new ArgumentException("Invalid Question Type");
             }
@@ -503,12 +476,6 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
                                 .Reference(m => m.QuesTriple)
                                 .Query()
                                 .Include(a => a.SubRcTriples)
-                                .LoadAsync();
-                    break;
-
-                case QuesTypeEnum.Sentence_Media:
-                    await context.Entry(model)
-                                .Reference(m => m.QuesSentenceMedia)
                                 .LoadAsync();
                     break;
                 default:
@@ -606,9 +573,6 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
                     break;
                 case QuesTypeEnum.Triple:
                     quesId = model.TripleQuesId!.Value;
-                    break;
-                case QuesTypeEnum.Sentence_Media:
-                    quesId = model.SentenceMediaQuesId!.Value;
                     break;
                 default:
                     throw new ArgumentException("Invalid Question Type");

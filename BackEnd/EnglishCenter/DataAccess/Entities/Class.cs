@@ -52,4 +52,7 @@ public class Class
 
     [InverseProperty("Class")]
     public virtual ICollection<Lesson> Lessons { set; get; } = new List<Lesson>();
+
+    [InverseProperty("Class")]
+    public virtual ICollection<ClassMaterial> ClassMaterials { set; get; } = new List<ClassMaterial>();
 }

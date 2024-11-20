@@ -24,5 +24,13 @@ namespace EnglishCenter.DataAccess.Entities
 
         [Range(1, 12)]
         public int EndPeriod { set; get; }
+
+        public long ClassRoomId { set; get; }
+
+        [ForeignKey("ClassRoomId")]
+        [InverseProperty("ClassSchedules")]
+        public virtual ClassRoom ClassRoom { set; get; } = null!;
+
+        public bool IsActive { set; get; }
     }
 }

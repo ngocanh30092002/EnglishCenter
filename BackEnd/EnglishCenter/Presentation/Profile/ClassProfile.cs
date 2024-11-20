@@ -33,6 +33,37 @@ namespace EnglishCenter.Presentation
                     .ForMember(des => des.Status, opt => opt.MapFrom(src => ((ClassEnum)src.Status).ToString()))
                     .ForMember(des => des.Description, opt => opt.MapFrom(src => src.Description))
                     .ForMember(des => des.Teacher, opt => opt.MapFrom(src => src.Teacher));
+
+
+            CreateMap<ClassScheduleDto, ClassSchedule>()
+                    .ForMember(des => des.ClassId, opt => opt.MapFrom(src => src.ClassId))
+                    .ForMember(des => des.DayOfWeek, opt => opt.MapFrom(src => src.DayOfWeek))
+                    .ForMember(des => des.StartPeriod, opt => opt.MapFrom(src => src.StartPeriod))
+                    .ForMember(des => des.EndPeriod, opt => opt.MapFrom(src => src.EndPeriod))
+                    .ForMember(des => des.ClassRoomId, opt => opt.MapFrom(src => src.ClassRoomId))
+                    .ReverseMap();
+
+            CreateMap<ClassRoomDto, ClassRoom>()
+                    .ForMember(des => des.ClassRoomName, opt => opt.MapFrom(src => src.ClassRoomName))
+                    .ForMember(des => des.Capacity, opt => opt.MapFrom(src => src.Capacity))
+                    .ForMember(des => des.Location, opt => opt.MapFrom(src => src.Location))
+                    .ReverseMap();
+
+            CreateMap<LessonDto, Lesson>()
+                    .ForMember(des => des.ClassId, opt => opt.MapFrom(src => src.ClassId))
+                    .ForMember(des => des.Date, opt => opt.MapFrom(src => DateOnly.Parse(src.Date)))
+                    .ForMember(des => des.StartPeriod, opt => opt.MapFrom(src => src.StartPeriod))
+                    .ForMember(des => des.EndPeriod, opt => opt.MapFrom(src => src.EndPeriod))
+                    .ForMember(des => des.Topic, opt => opt.MapFrom(src => src.Topic))
+                    .ForMember(des => des.ClassRoomId, opt => opt.MapFrom(src => src.ClassRoomId))
+                    .ReverseMap();
+
+            CreateMap<ClassMaterial, ClassMaterialResDto>()
+                    .ForMember(des => des.ClassMaterialId, opt => opt.MapFrom(src => src.ClassMaterialId))
+                    .ForMember(des => des.Title, opt => opt.MapFrom(src => src.Title))
+                    .ForMember(des => des.FilePath, opt => opt.MapFrom(src => src.FilePath.Replace("\\", "/")))
+                    .ForMember(des => des.UploadAt, opt => opt.MapFrom(src => src.UploadAt.ToString("HH:mm:ss dd-MM-yyyy")))
+                    .ForMember(des => des.UploadBy, opt => opt.MapFrom(src => src.UploadBy));
         }
     }
 }

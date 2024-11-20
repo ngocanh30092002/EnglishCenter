@@ -2,58 +2,47 @@
 using EnglishCenter.Business.IServices;
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.UnitOfWork;
-using EnglishCenter.Presentation.Global.Enum;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
-using EnglishCenter.Presentation.Models.ResDTOs;
-using Microsoft.EntityFrameworkCore;
 
-namespace EnglishCenter.Business.Services.HomeworkTasks
+namespace EnglishCenter.Business.Services.Classes
 {
-    public class HomeworkService : IHomeworkService
+    public class LessonService : ILessonService
     {
         private readonly IUnitOfWork _unit;
         private readonly IMapper _mapper;
 
-        public HomeworkService(IUnitOfWork unit, IMapper mapper)
+        public LessonService(IUnitOfWork unit, IMapper mapper)
         {
             _unit = unit;
             _mapper = mapper;
         }
 
-        public async Task<bool> IsInChargeClass(string userId, long homeId)
-        {
-            var homeModel = await _unit.Homework.Include(h => h.Class)
-                                                .FirstOrDefaultAsync(h => h.HomeworkId == homeId);
-
-            return await _unit.Homework.IsInChargeAsync(homeModel, userId);
-        }
-
         public async Task<Response> ChangeClassAsync(long id, string classId)
         {
-            var homeModel = _unit.Homework.GetById(id);
-            if (homeModel == null)
+            var lessonModel = _unit.Lessons.GetById(id);
+            if (lessonModel == null)
             {
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Can't find any homework",
+                    Message = "Can't find any lessons",
                     Success = false
                 };
             }
 
-            var isExistClass = _unit.Classes.IsExist(c => c.ClassId == classId && c.Status == (int)ClassEnum.Opening);
-            if (!isExistClass)
+            var classModel = _unit.Classes.GetById(classId);
+            if (classModel == null)
             {
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Can't find any classes with ongoing status",
+                    Message = "Can't find any classes",
                     Success = false
                 };
             }
 
-            var isChangeSuccess = await _unit.Homework.ChangeClassAsync(homeModel, classId);
+            var isChangeSuccess = await _unit.Lessons.ChangeClassAsync(lessonModel, classId);
             if (!isChangeSuccess)
             {
                 return new Response()
@@ -65,6 +54,7 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
             }
 
             await _unit.CompleteAsync();
+
             return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
@@ -73,41 +63,43 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
             };
         }
 
-        public async Task<Response> ChangeEndTimeAsync(long id, string endTime)
+        public async Task<Response> ChangeClassRoomAsync(long id, long classRoomId)
         {
-            var homeModel = _unit.Homework.GetById(id);
-            if (homeModel == null)
+            var lessonModel = _unit.Lessons.GetById(id);
+            if (lessonModel == null)
             {
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Can't find any homework",
+                    Message = "Can't find any lessons",
                     Success = false
                 };
             }
 
-            if (!DateTime.TryParse(endTime, out DateTime dateTime))
+            var classRoomModel = _unit.ClassRooms.GetById(classRoomId);
+            if (classRoomModel == null)
             {
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Input time isn't valid",
+                    Message = "Can't find any classes",
                     Success = false
                 };
             }
 
-            var isChangeSuccess = await _unit.Homework.ChangeEndTimeAsync(homeModel, dateTime);
+            var isChangeSuccess = await _unit.Lessons.ChangeClassRoomAsync(lessonModel, classRoomId);
             if (!isChangeSuccess)
             {
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Change end time failed",
+                    Message = "Change class room failed",
                     Success = false
                 };
             }
 
             await _unit.CompleteAsync();
+
             return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
@@ -116,31 +108,42 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
             };
         }
 
-        public async Task<Response> ChangeLateSubmitDaysAsync(long id, int days)
+        public async Task<Response> ChangeDateAsync(long id, string dateOnlyStr)
         {
-            var homeModel = _unit.Homework.GetById(id);
-            if (homeModel == null)
+            var lessonModel = _unit.Lessons.GetById(id);
+            if (lessonModel == null)
             {
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Can't find any homework",
+                    Message = "Can't find any lessons",
                     Success = false
                 };
             }
 
-            var isChangeSuccess = await _unit.Homework.ChangeLateSubmitDaysAsync(homeModel, days);
+            if (!DateOnly.TryParse(dateOnlyStr, out DateOnly date))
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Date is invalid",
+                    Success = false
+                };
+            }
+
+            var isChangeSuccess = await _unit.Lessons.ChangeDateAsync(lessonModel, date);
             if (!isChangeSuccess)
             {
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Change late submit days failed",
+                    Message = "Change date failed",
                     Success = false
                 };
             }
 
             await _unit.CompleteAsync();
+
             return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
@@ -149,41 +152,52 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
             };
         }
 
-        public async Task<Response> ChangePercentageAsync(long id, int percentage)
+        public async Task<Response> ChangeEndPeriodAsync(long id, int endPeriod)
         {
-            var homeModel = _unit.Homework.GetById(id);
-            if (homeModel == null)
+            var lessonModel = _unit.Lessons.GetById(id);
+            if (lessonModel == null)
             {
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Can't find any homework",
+                    Message = "Can't find any lessons",
                     Success = false
                 };
             }
 
-            if (percentage < 0 || percentage > 100)
+            if (endPeriod < 0 || endPeriod > 12)
             {
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Percentage must be between 0 - 100",
+                    Message = "End period is invalid",
                     Success = false
                 };
             }
 
-            var isChangeSuccess = await _unit.Homework.ChangePercentageAsync(homeModel, percentage);
+            if (lessonModel.StartPeriod > endPeriod)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "End period must be greater than start",
+                    Success = false
+                };
+            }
+
+            var isChangeSuccess = await _unit.Lessons.ChangeEndPeriodAsync(lessonModel, endPeriod);
             if (!isChangeSuccess)
             {
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Change percentage failed",
+                    Message = "Change end period failed",
                     Success = false
                 };
             }
 
             await _unit.CompleteAsync();
+
             return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
@@ -192,41 +206,52 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
             };
         }
 
-        public async Task<Response> ChangeStartTimeAsync(long id, string startTime)
+        public async Task<Response> ChangeStartPeriodAsync(long id, int startPeriod)
         {
-            var homeModel = _unit.Homework.GetById(id);
-            if (homeModel == null)
+            var lessonModel = _unit.Lessons.GetById(id);
+            if (lessonModel == null)
             {
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Can't find any homework",
+                    Message = "Can't find any lessons",
                     Success = false
                 };
             }
 
-            if (!DateTime.TryParse(startTime, out DateTime dateTime))
+            if (startPeriod < 0 || startPeriod > 12)
             {
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Input time isn't valid",
+                    Message = "Start period is invalid",
                     Success = false
                 };
             }
 
-            var isChangeSuccess = await _unit.Homework.ChangeStartTimeAsync(homeModel, dateTime);
+            if (lessonModel.EndPeriod < startPeriod)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "End period must be greater than start",
+                    Success = false
+                };
+            }
+
+            var isChangeSuccess = await _unit.Lessons.ChangeStartPeriodAsync(lessonModel, startPeriod);
             if (!isChangeSuccess)
             {
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Change end time failed",
+                    Message = "Change start period failed",
                     Success = false
                 };
             }
 
             await _unit.CompleteAsync();
+
             return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
@@ -235,40 +260,32 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
             };
         }
 
-        public async Task<Response> ChangeTimeAsync(long id, string time)
+        public async Task<Response> ChangeTopicAsync(long id, string topic)
         {
-            var homeModel = _unit.Homework.GetById(id);
-            if (homeModel == null)
+            var lessonModel = _unit.Lessons.GetById(id);
+            if (lessonModel == null)
             {
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Can't find any homework",
+                    Message = "Can't find any lessons",
                     Success = false
                 };
             }
 
-            if (!TimeOnly.TryParse(time, out TimeOnly timeOnly))
-            {
-                return new Response()
-                {
-                    StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Time is not in correct format"
-                };
-            }
-
-            var isChangeSuccess = await _unit.Homework.ChangeTimeAsync(homeModel, timeOnly);
+            var isChangeSuccess = await _unit.Lessons.ChangeTopicAsync(lessonModel, topic);
             if (!isChangeSuccess)
             {
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Change time failed",
+                    Message = "Change topic failed",
                     Success = false
                 };
             }
 
             await _unit.CompleteAsync();
+
             return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
@@ -277,125 +294,83 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
             };
         }
 
-        public async Task<Response> ChangeTitleAsync(long id, string title)
+        public async Task<Response> CreateAsync(LessonDto lessonModel)
         {
-            var homeModel = _unit.Homework.GetById(id);
-            if (homeModel == null)
+            var classModel = _unit.Classes.GetById(lessonModel.ClassId);
+            if (classModel == null)
             {
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Can't find any homework",
+                    Message = "Can't find any classes",
                     Success = false
                 };
             }
 
-            var isChangeSuccess = await _unit.Homework.ChangeTitleAsync(homeModel, title);
-            if (!isChangeSuccess)
+            if (lessonModel.StartPeriod > lessonModel.EndPeriod)
             {
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Change title failed",
+                    Message = "Start period must be less than End period",
                     Success = false
                 };
             }
 
+            var classRoomModel = _unit.ClassRooms.GetById(lessonModel.ClassRoomId);
+            if (classRoomModel == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any class rooms",
+                    Success = false
+                };
+            }
+
+            if (classRoomModel.Capacity < classModel.RegisteredNum)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Classroom capacity is not enough",
+                    Success = false
+                };
+            }
+
+            var lessonEntity = _mapper.Map<Lesson>(lessonModel);
+
+            var isExistClass = _unit.Lessons
+                                .Find(s => s.ClassId == lessonEntity.ClassId &&
+                                            s.Date == lessonEntity.Date &&
+                                            s.StartPeriod == lessonEntity.StartPeriod &&
+                                            s.EndPeriod == lessonEntity.EndPeriod)
+                                .Any();
+
+            if (isExistClass)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't create same lesson",
+                    Success = false
+                };
+            }
+
+            var isDuplicate = await _unit.Lessons.IsDuplicateAsync(lessonEntity.Date, lessonEntity.ClassRoomId, lessonEntity.StartPeriod, lessonEntity.EndPeriod);
+            if (isDuplicate)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Cannot register because this schedule has been duplicated",
+                    Success = false
+                };
+            }
+
+            _unit.Lessons.Add(lessonEntity);
             await _unit.CompleteAsync();
-            return new Response()
-            {
-                StatusCode = System.Net.HttpStatusCode.OK,
-                Message = "",
-                Success = true
-            };
-        }
 
-        public async Task<Response> CreateAsync(HomeworkDto model)
-        {
-            if (!DateTime.TryParse(model.EndTime, out DateTime endTime))
-            {
-                return new Response()
-                {
-                    StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "End time isn't valid",
-                    Success = false
-                };
-            }
-
-            if (!DateTime.TryParse(model.StartTime, out DateTime startTime))
-            {
-                return new Response()
-                {
-                    StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Start time isn't valid",
-                    Success = false
-                };
-            }
-
-            if (startTime > endTime)
-            {
-                return new Response()
-                {
-                    StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Start time must be less than end time",
-                    Success = false
-                };
-            }
-
-            var isExistClass = _unit.Classes.IsExist(c => c.ClassId == model.ClassId && c.Status == (int)ClassEnum.Opening);
-            if (!isExistClass)
-            {
-                return new Response()
-                {
-                    StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Can't find any classes with opening status",
-                    Success = false
-                };
-            }
-
-            if (model.LateSubmitDays.HasValue && model.LateSubmitDays < 0)
-            {
-                return new Response()
-                {
-                    StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Late submit days isn't valid",
-                    Success = false
-                };
-            }
-
-            if (!TimeOnly.TryParse(model.Time, out TimeOnly timeOnly))
-            {
-                return new Response()
-                {
-                    StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Time is not in correct format",
-                    Success = false
-                };
-            }
-
-            if (timeOnly == TimeOnly.MinValue)
-            {
-                return new Response()
-                {
-                    StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "You need to set a time for your homework.",
-                    Success = false
-                };
-            }
-
-            var homeModel = new Homework();
-            homeModel.ClassId = model.ClassId;
-            homeModel.Title = model.Title;
-            homeModel.AchievedPercentage = model.Achieved_Percentage;
-            homeModel.Time = timeOnly;
-            homeModel.ExpectedTime = TimeOnly.MinValue;
-            homeModel.StartTime = startTime;
-            homeModel.EndTime = endTime;
-            homeModel.LateSubmitDays = model.LateSubmitDays.HasValue ? model.LateSubmitDays.Value : 0;
-
-            _unit.Homework.Add(homeModel);
-
-            await _unit.CompleteAsync();
             return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
@@ -406,20 +381,20 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
 
         public async Task<Response> DeleteAsync(long id)
         {
-            var homeModel = _unit.Homework.GetById(id);
-            if (homeModel == null)
+            var lessonModel = _unit.Lessons.GetById(id);
+            if (lessonModel == null)
             {
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Can't find any homework",
+                    Message = "Can't find any lessons",
                     Success = false
                 };
             }
 
-            _unit.Homework.Remove(homeModel);
-
+            _unit.Lessons.Remove(lessonModel);
             await _unit.CompleteAsync();
+
             return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
@@ -430,37 +405,37 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
 
         public Task<Response> GetAllAsync()
         {
-            var models = _unit.Homework.GetAll();
+            var models = _unit.Lessons.GetAll();
 
             return Task.FromResult(new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Message = _mapper.Map<List<HomeworkResDto>>(models),
+                Message = _mapper.Map<List<LessonDto>>(models),
                 Success = true
             });
         }
 
         public Task<Response> GetAsync(long id)
         {
-            var model = _unit.Homework.GetById(id);
+            var model = _unit.Lessons.GetById(id);
 
             return Task.FromResult(new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Message = _mapper.Map<HomeworkResDto>(model),
+                Message = _mapper.Map<LessonDto>(model),
                 Success = true
             });
         }
 
-        public async Task<Response> UpdateAsync(long id, HomeworkDto model)
+        public async Task<Response> UpdateAsync(long id, LessonDto lessonModel)
         {
-            var homeModel = _unit.Homework.GetById(id);
-            if (homeModel == null)
+            var lessonEntity = _unit.Lessons.GetById(id);
+            if (lessonModel == null)
             {
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Can't find any homework",
+                    Message = "Can't find any lessons",
                     Success = false
                 };
             }
@@ -469,48 +444,43 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
 
             try
             {
-                if (homeModel.ClassId != model.ClassId)
+                if (lessonEntity.ClassRoomId != lessonModel.ClassRoomId)
                 {
-                    var changeResponse = await ChangeClassAsync(id, model.ClassId);
-                    if (!changeResponse.Success) return changeResponse;
+                    var res = await ChangeClassRoomAsync(id, lessonModel.ClassRoomId);
+                    if (!res.Success) return res;
                 }
 
-                if (homeModel.StartTime.ToString() != model.StartTime)
+                if (lessonEntity.ClassId != lessonModel.ClassId)
                 {
-                    var changeResponse = await ChangeStartTimeAsync(id, model.StartTime);
-                    if (!changeResponse.Success) return changeResponse;
+                    var res = await ChangeClassAsync(id, lessonModel.ClassId);
+                    if (!res.Success) return res;
                 }
 
-                if (homeModel.EndTime.ToString() != model.EndTime)
+                if (lessonEntity.Date.ToString() != lessonModel.Date)
                 {
-                    var changeResponse = await ChangeEndTimeAsync(id, model.EndTime);
-                    if (!changeResponse.Success) return changeResponse;
+                    var res = await ChangeDateAsync(id, lessonModel.Date);
+                    if (!res.Success) return res;
                 }
 
-                if (model.LateSubmitDays.HasValue)
+                if (lessonEntity.StartPeriod != lessonModel.StartPeriod)
                 {
-                    var changeResponse = await ChangeLateSubmitDaysAsync(id, model.LateSubmitDays.Value);
-                    if (!changeResponse.Success) return changeResponse;
+                    var res = await ChangeStartPeriodAsync(id, lessonModel.StartPeriod);
+                    if (!res.Success) return res;
                 }
 
-                if (homeModel.AchievedPercentage != model.Achieved_Percentage)
+                if (lessonEntity.EndPeriod != lessonModel.EndPeriod)
                 {
-                    var changeResponse = await ChangePercentageAsync(id, model.Achieved_Percentage);
-                    if (!changeResponse.Success) return changeResponse;
+                    var res = await ChangeEndPeriodAsync(id, lessonModel.EndPeriod);
+                    if (!res.Success) return res;
                 }
 
-                if (homeModel.Time.ToString() != model.Time)
+                if (lessonEntity.Topic != lessonModel.Topic)
                 {
-                    var changeResponse = await ChangeTimeAsync(id, model.Time);
-                    if (!changeResponse.Success) return changeResponse;
+                    var res = await ChangeTopicAsync(id, lessonModel.Topic ?? "");
+                    if (!res.Success) return res;
                 }
 
-                if (homeModel.Title != model.Title)
-                {
-                    var changeResponse = await ChangeTitleAsync(id, model.Title);
-                    if (!changeResponse.Success) return changeResponse;
-                }
-
+                await _unit.CompleteAsync();
                 await _unit.CommitTransAsync();
 
                 return new Response()
@@ -523,7 +493,6 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
             catch (Exception ex)
             {
                 await _unit.RollBackTransAsync();
-
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,

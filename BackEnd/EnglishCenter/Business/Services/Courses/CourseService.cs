@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using EnglishCenter.Business.IServices;
 using EnglishCenter.DataAccess.Entities;
-using EnglishCenter.DataAccess.IRepositories;
 using EnglishCenter.DataAccess.UnitOfWork;
 using EnglishCenter.Presentation.Helpers;
 using EnglishCenter.Presentation.Models;
@@ -60,7 +59,7 @@ namespace EnglishCenter.Business.Services.Courses
         public async Task<Response> CheckIsQualifiedAsync(string userId, string courseId)
         {
             var isExistUser = _unit.Students.IsExist(s => s.UserId == userId);
-            if(!isExistUser) 
+            if (!isExistUser)
             {
                 return new Response()
                 {
@@ -92,7 +91,7 @@ namespace EnglishCenter.Business.Services.Courses
             }
 
             var priority = courseModel.Priority.Value;
-            var preCourse = _unit.Courses.Find(c => c.Priority ==  priority - 1).FirstOrDefault();
+            var preCourse = _unit.Courses.Find(c => c.Priority == priority - 1).FirstOrDefault();
             if (preCourse == null)
             {
                 return new Response()
@@ -104,7 +103,7 @@ namespace EnglishCenter.Business.Services.Courses
             }
 
             var highestScore = await _unit.Enrollment.GetHighestScoreAsync(userId, preCourse.CourseId);
-            if(highestScore >= courseModel.EntryPoint)
+            if (highestScore >= courseModel.EntryPoint)
             {
                 return new Response()
                 {
@@ -138,6 +137,7 @@ namespace EnglishCenter.Business.Services.Courses
             }
 
             var courseModel = _mapper.Map<Course>(model);
+            courseModel.NumLesson = 0;
 
             if (model.Image != null)
             {
@@ -158,7 +158,7 @@ namespace EnglishCenter.Business.Services.Courses
                 courseModel.Image = Path.Combine(_imageBase, fileName);
             }
 
-            if(model.ImageThumbnail != null)
+            if (model.ImageThumbnail != null)
             {
                 var uploadFolder = Path.Combine(_webHostEnvironment.WebRootPath, _imageThumbnailBase);
                 var fileName = $"{DateTime.Now.Ticks}_{model.ImageThumbnail?.FileName}";
@@ -191,7 +191,7 @@ namespace EnglishCenter.Business.Services.Courses
         public async Task<Response> DeleteAsync(string courseId)
         {
             var courseModel = _unit.Courses.GetById(courseId);
-            if(courseModel == null)
+            if (courseModel == null)
             {
                 return new Response()
                 {
@@ -201,8 +201,8 @@ namespace EnglishCenter.Business.Services.Courses
                 };
             }
 
-            var classesCourse = _unit.Classes.Find(c => c.CourseId ==  courseId);
-            if(classesCourse != null && classesCourse.Any())
+            var classesCourse = _unit.Classes.Find(c => c.CourseId == courseId);
+            if (classesCourse != null && classesCourse.Any())
             {
                 return new Response()
                 {
@@ -304,7 +304,7 @@ namespace EnglishCenter.Business.Services.Courses
         {
             var courseModel = _unit.Courses.GetById(courseId);
 
-            if(courseModel == null)
+            if (courseModel == null)
             {
                 return new Response()
                 {

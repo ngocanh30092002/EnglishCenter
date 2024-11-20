@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.DataAccess.Entities;
 
@@ -14,7 +11,7 @@ public class AssignQue
 
     [Required]
     public int Type { get; set; }
-    
+
     public int NoNum { set; get; } = 1;
 
     [Column("ImageQues_Id")]
@@ -65,13 +62,6 @@ public class AssignQue
     [ForeignKey("SentenceQuesId")]
     [InverseProperty("AssignQues")]
     public virtual QuesRcSentence? QuesSentence { get; set; }
-
-    [Column("SentenceMediaQuesId")]
-    public long? SentenceMediaQuesId { set; get; } = null;
-
-    [ForeignKey("SentenceMediaQuesId")]
-    [InverseProperty("AssignQues")]
-    public virtual QuesRcSentenceMedia? QuesSentenceMedia { get; set; }
 
     public long AssignmentId { set; get; }
 

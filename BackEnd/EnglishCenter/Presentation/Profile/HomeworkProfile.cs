@@ -8,7 +8,7 @@ namespace EnglishCenter.Presentation
 {
     public class HomeworkProfile : Profile
     {
-        public HomeworkProfile() 
+        public HomeworkProfile()
         {
             CreateMap<Homework, HomeworkResDto>()
                 .ForMember(des => des.HomeworkId, opt => opt.MapFrom(src => src.HomeworkId))
@@ -30,8 +30,7 @@ namespace EnglishCenter.Presentation
                .ForMember(des => des.ConversationQuesId, opt => opt.MapFrom(src => src.Type == (int)QuesTypeEnum.Conversation ? src.QuesId : (long?)null))
                .ForMember(des => des.SingleQuesId, opt => opt.MapFrom(src => src.Type == (int)QuesTypeEnum.Single ? src.QuesId : (long?)null))
                .ForMember(des => des.DoubleQuesId, opt => opt.MapFrom(src => src.Type == (int)QuesTypeEnum.Double ? src.QuesId : (long?)null))
-               .ForMember(des => des.TripleQuesId, opt => opt.MapFrom(src => src.Type == (int)QuesTypeEnum.Triple ? src.QuesId : (long?)null))
-               .ForMember(des => des.SentenceMediaQuesId, opt => opt.MapFrom(src => src.Type == (int)QuesTypeEnum.Sentence_Media ? src.QuesId : (long?)null));
+               .ForMember(des => des.TripleQuesId, opt => opt.MapFrom(src => src.Type == (int)QuesTypeEnum.Triple ? src.QuesId : (long?)null));
 
             CreateMap<HomeQue, HomeQueResDto>()
                .ForMember(des => des.HomeQuesId, opt => opt.MapFrom(src => src.HomeQuesId))
@@ -61,9 +60,6 @@ namespace EnglishCenter.Presentation
 
                        case (int)QuesTypeEnum.Triple:
                            return context.Mapper.Map<QuesRcTripleResDto>(src.QuesTriple);
-
-                       case (int)QuesTypeEnum.Sentence_Media:
-                           return context.Mapper.Map<QuesRcSenMediaResDto>(src.QuesSentenceMedia);
                    }
 
                    return (object?)null;

@@ -46,8 +46,6 @@ namespace EnglishCenter.DataAccess.UnitOfWork
             IHomeQuesRepository homeQuesRepo,
             IHwSubmissionRepository hwSubmissionRepo,
             IHwSubRecordRepository hwSubRecordRepo,
-            IQuesRcSenMediaRepository quesRcSenMediaRepo,
-            IAnswerRcSenMediaRepository answerRcSenMediaRepo,
             IToeicConversionRepository toeicConRepo,
             IToeicRecordRepository toeicRecordRepo,
             IExaminationRepository examRepo,
@@ -59,7 +57,12 @@ namespace EnglishCenter.DataAccess.UnitOfWork
             IToeicPracticeRecordRepository toeicPracticeRecordRepo,
             IToeicAttemptRepository toeicAttemptRepo,
             IChatMessageRepository chatMessageRepo,
-            IChatFileRepository chatFileRepo
+            IChatFileRepository chatFileRepo,
+            IPeriodRepository periodRepo,
+            IClassRoomRepository classRoomRepo,
+            ILessonRepository lessonRepo,
+            IClassScheduleRepository classScheduleRepo,
+            IClassMaterialRepository classMaterialRepo
             )
         {
             _context = context;
@@ -98,8 +101,6 @@ namespace EnglishCenter.DataAccess.UnitOfWork
             HomeQues = homeQuesRepo;
             HwSubmissions = hwSubmissionRepo;
             HwSubRecords = hwSubRecordRepo;
-            QuesRcSenMedia = quesRcSenMediaRepo;
-            AnswerRcMedia = answerRcSenMediaRepo;
             ToeicConversion = toeicConRepo;
             ToeicRecords = toeicRecordRepo;
             Examinations = examRepo;
@@ -112,6 +113,11 @@ namespace EnglishCenter.DataAccess.UnitOfWork
             ToeicAttempts = toeicAttemptRepo;
             ChatFiles = chatFileRepo;
             ChatMessages = chatMessageRepo;
+            Periods = periodRepo;
+            ClassRooms = classRoomRepo;
+            Lessons = lessonRepo;
+            ClassSchedules = classScheduleRepo;
+            ClassMaterials = classMaterialRepo;
         }
 
         public IEventRepository Events { get; private set; }
@@ -149,8 +155,6 @@ namespace EnglishCenter.DataAccess.UnitOfWork
         public IHomeQuesRepository HomeQues { get; private set; }
         public IHwSubmissionRepository HwSubmissions { get; private set; }
         public IHwSubRecordRepository HwSubRecords { get; private set; }
-        public IQuesRcSenMediaRepository QuesRcSenMedia { get; private set; }
-        public IAnswerRcSenMediaRepository AnswerRcMedia { get; private set; }
         public IToeicConversionRepository ToeicConversion { get; private set; }
         public IToeicRecordRepository ToeicRecords { get; private set; }
         public IExaminationRepository Examinations { get; private set; }
@@ -163,6 +167,11 @@ namespace EnglishCenter.DataAccess.UnitOfWork
         public IToeicAttemptRepository ToeicAttempts { get; private set; }
         public IChatFileRepository ChatFiles { get; private set; }
         public IChatMessageRepository ChatMessages { get; private set; }
+        public IPeriodRepository Periods { get; private set; }
+        public IClassRoomRepository ClassRooms { get; private set; }
+        public ILessonRepository Lessons { get; private set; }
+        public IClassScheduleRepository ClassSchedules { get; private set; }
+        public IClassMaterialRepository ClassMaterials { get; private set; }
 
         public async Task BeginTransAsync()
         {

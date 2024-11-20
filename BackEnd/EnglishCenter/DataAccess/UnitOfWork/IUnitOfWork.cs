@@ -33,8 +33,6 @@ namespace EnglishCenter.DataAccess.UnitOfWork
         IQuesRcTripleRepository QuesRcTriples { get; }
         ISubRcTripleRepository SubRcTriples { get; }
         IAnswerRcTripleRepository AnswerRcTriples { get; }
-        IQuesRcSenMediaRepository QuesRcSenMedia { get; }
-        IAnswerRcSenMediaRepository AnswerRcMedia { get; }
         ILearningProcessRepository LearningProcesses { get; }
         IAssignmentRecordRepository AssignmentRecords { get; }
         IHomeworkRepository Homework { get; }
@@ -53,6 +51,11 @@ namespace EnglishCenter.DataAccess.UnitOfWork
         IToeicAttemptRepository ToeicAttempts { get; }
         IChatFileRepository ChatFiles { get; }
         IChatMessageRepository ChatMessages { get; }
+        IPeriodRepository Periods { get; }
+        IClassRoomRepository ClassRooms { get; }
+        ILessonRepository Lessons { get; }
+        IClassScheduleRepository ClassSchedules { get; }
+        IClassMaterialRepository ClassMaterials { get; }
         public Task<int> CompleteAsync();
         public Task BeginTransAsync();
         public Task CommitTransAsync();

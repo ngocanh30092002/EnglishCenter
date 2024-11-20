@@ -6,12 +6,11 @@ namespace EnglishCenter.Presentation
 {
     public class CourseProfile : Profile
     {
-        public CourseProfile() 
+        public CourseProfile()
         {
             CreateMap<CourseDto, Course>()
                .ForMember(des => des.Name, opt => opt.MapFrom(src => src.Name))
                .ForMember(des => des.Description, opt => opt.MapFrom(src => src.Description))
-               .ForMember(des => des.NumLesson, opt => opt.MapFrom(src => src.NumLesson))
                .ForMember(des => des.EntryPoint, opt => opt.MapFrom(src => src.EntryPoint))
                .ForMember(des => des.StandardPoint, opt => opt.MapFrom(src => src.StandardPoint))
                .ForMember(des => des.Priority, opt => opt.MapFrom(src => src.Priority))

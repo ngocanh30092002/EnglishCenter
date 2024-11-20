@@ -26,5 +26,12 @@ namespace EnglishCenter.DataAccess.Entities
 
         public string? Topic { set; get; }
 
+        public long ClassRoomId { set; get; }
+
+        [ForeignKey("ClassRoomId")]
+        [InverseProperty("Lessons")]
+        public ClassRoom ClassRoom { set; get; } = null!;
+
+        public virtual ICollection<ClassMaterial> ClassMaterials { set; get; } = new List<ClassMaterial>();
     }
 }

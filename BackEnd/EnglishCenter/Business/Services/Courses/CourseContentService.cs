@@ -175,6 +175,8 @@ namespace EnglishCenter.Business.Services.Courses
             courseContentModel.NoNum = currentNum.HasValue ? currentNum.Value + 1 : 1;
 
             _unit.CourseContents.Add(courseContentModel);
+
+            courseModel.NumLesson++;
             await _unit.CompleteAsync();
 
             return new Response()
@@ -381,6 +383,19 @@ namespace EnglishCenter.Business.Services.Courses
                 StatusCode = System.Net.HttpStatusCode.OK,
                 Message = totalTime,
                 Success = true
+            };
+        }
+
+        public async Task<Response> GetNumLessonAsync(string courseId)
+        {
+            var numAssignment = await _unit.Assignments.GetNumberByCourseAsync(courseId);
+            var otherLesson = _unit.CourseContents.Find(c => c.CourseId == courseId && c.Type != 1).Count();
+
+            return new Response()
+            {
+                Message = numAssignment + otherLesson,
+                Success = true,
+                StatusCode = System.Net.HttpStatusCode.OK
             };
         }
 
