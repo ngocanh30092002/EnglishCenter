@@ -32,6 +32,13 @@ namespace EnglishCenter.DataAccess.Entities
         [InverseProperty("Lessons")]
         public ClassRoom ClassRoom { set; get; } = null!;
 
+        [InverseProperty("Lesson")]
         public virtual ICollection<ClassMaterial> ClassMaterials { set; get; } = new List<ClassMaterial>();
+
+        [InverseProperty("Lesson")]
+        public virtual ICollection<Homework> HomeworkTasks { set; get; } = new List<Homework>();
+
+        [InverseProperty("Lesson")]
+        public virtual ICollection<SubmissionTask> SubmissionTasks { set; get; } = new List<SubmissionTask>();
     }
 }

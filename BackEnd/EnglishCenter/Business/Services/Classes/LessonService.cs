@@ -2,8 +2,11 @@
 using EnglishCenter.Business.IServices;
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.UnitOfWork;
+using EnglishCenter.Presentation.Global.Enum;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
+using EnglishCenter.Presentation.Models.ResDTOs;
+using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.Business.Services.Classes
 {
@@ -16,6 +19,27 @@ namespace EnglishCenter.Business.Services.Classes
         {
             _unit = unit;
             _mapper = mapper;
+        }
+
+        public Task<Response> IsInChargeOfClassAsync(long id, string userId)
+        {
+            var lessonModel = _unit.Lessons.Include(l => l.Class).FirstOrDefault(l => l.LessonId == id);
+            if (lessonModel == null)
+            {
+                return Task.FromResult(new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any lessons",
+                    Success = false
+                });
+            }
+
+            return Task.FromResult(new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = lessonModel.Class.TeacherId == userId,
+                Success = true
+            });
         }
 
         public async Task<Response> ChangeClassAsync(long id, string classId)
@@ -425,6 +449,51 @@ namespace EnglishCenter.Business.Services.Classes
                 Message = _mapper.Map<LessonDto>(model),
                 Success = true
             });
+        }
+
+        public async Task<Response> GetByEnrollAsync(long enrollId)
+        {
+            var enrollModel = _unit.Enrollment.GetById(enrollId);
+            if (enrollModel == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any enrollments",
+                    Success = false
+                };
+            }
+
+            if (enrollModel.StatusId != (int)EnrollEnum.Ongoing)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "You are not permitted to access this website",
+                    Success = false
+                };
+            }
+
+            var lessonModels = await _unit.Lessons
+                                         .Include(l => l.ClassRoom)
+                                         .Where(l => l.ClassId == enrollModel.ClassId)
+                                         .OrderBy(l => l.Date)
+                                         .ToListAsync();
+
+            var lessonResDtos = _mapper.Map<List<LessonResDto>>(lessonModels);
+            foreach (var resDto in lessonResDtos)
+            {
+                resDto.StartPeriodTime = _unit.Periods.GetById(resDto.StartPeriod).StartTime;
+                resDto.EndPeriodTime = _unit.Periods.GetById(resDto.EndPeriod).EndTime;
+            }
+
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = lessonResDtos,
+                Success = true
+            };
+
         }
 
         public async Task<Response> UpdateAsync(long id, LessonDto lessonModel)

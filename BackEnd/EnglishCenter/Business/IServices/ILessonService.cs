@@ -7,6 +7,8 @@ namespace EnglishCenter.Business.IServices
     {
         public Task<Response> GetAllAsync();
         public Task<Response> GetAsync(long id);
+        public Task<Response> GetByEnrollAsync(long enrollId);
+        public Task<Response> IsInChargeOfClassAsync(long id, string userId);
         public Task<Response> ChangeClassAsync(long id, string classId);
         public Task<Response> ChangeDateAsync(long id, string dateOnlyStr);
         public Task<Response> ChangeStartPeriodAsync(long id, int startPeriod);

@@ -19,4 +19,7 @@ public class User : IdentityUser
 
     [InverseProperty("Receiver")]
     public virtual ICollection<ChatMessage> ReceivedMessages { set; get; } = new List<ChatMessage>();
+
+    [InverseProperty("User")]
+    public virtual ICollection<UserWord> UserWords { set; get; } = new List<UserWord>();
 }

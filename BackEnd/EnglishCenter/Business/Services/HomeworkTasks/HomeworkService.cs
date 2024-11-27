@@ -2,11 +2,10 @@
 using EnglishCenter.Business.IServices;
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.UnitOfWork;
-using EnglishCenter.Presentation.Global.Enum;
+using EnglishCenter.Presentation.Helpers;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
 using EnglishCenter.Presentation.Models.ResDTOs;
-using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.Business.Services.HomeworkTasks
 {
@@ -14,63 +13,20 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
     {
         private readonly IUnitOfWork _unit;
         private readonly IMapper _mapper;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public HomeworkService(IUnitOfWork unit, IMapper mapper)
+        public HomeworkService(IUnitOfWork unit, IMapper mapper, IWebHostEnvironment webHostEnvironment)
         {
             _unit = unit;
             _mapper = mapper;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         public async Task<bool> IsInChargeClass(string userId, long homeId)
         {
-            var homeModel = await _unit.Homework.Include(h => h.Class)
-                                                .FirstOrDefaultAsync(h => h.HomeworkId == homeId);
+            var homeModel = _unit.Homework.GetById(homeId);
 
             return await _unit.Homework.IsInChargeAsync(homeModel, userId);
-        }
-
-        public async Task<Response> ChangeClassAsync(long id, string classId)
-        {
-            var homeModel = _unit.Homework.GetById(id);
-            if (homeModel == null)
-            {
-                return new Response()
-                {
-                    StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Can't find any homework",
-                    Success = false
-                };
-            }
-
-            var isExistClass = _unit.Classes.IsExist(c => c.ClassId == classId && c.Status == (int)ClassEnum.Opening);
-            if (!isExistClass)
-            {
-                return new Response()
-                {
-                    StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Can't find any classes with ongoing status",
-                    Success = false
-                };
-            }
-
-            var isChangeSuccess = await _unit.Homework.ChangeClassAsync(homeModel, classId);
-            if (!isChangeSuccess)
-            {
-                return new Response()
-                {
-                    StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Change class failed",
-                    Success = false
-                };
-            }
-
-            await _unit.CompleteAsync();
-            return new Response()
-            {
-                StatusCode = System.Net.HttpStatusCode.OK,
-                Message = "",
-                Success = true
-            };
         }
 
         public async Task<Response> ChangeEndTimeAsync(long id, string endTime)
@@ -277,6 +233,59 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
             };
         }
 
+        public async Task<Response> ChangeImageAsync(long id, IFormFile file)
+        {
+            var homeModel = _unit.Homework.GetById(id);
+            if (homeModel == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any homework",
+                    Success = false
+                };
+            }
+
+            var previousFile = Path.Combine(_webHostEnvironment.WebRootPath, homeModel.Image ?? "");
+            if (File.Exists(previousFile))
+            {
+                File.Delete(previousFile);
+            }
+
+            var folderPath = Path.Combine(_webHostEnvironment.WebRootPath, "homework_imgs");
+            var fileName = $"{DateTime.Now.Ticks}_{file.FileName}";
+            var result = await UploadHelper.UploadFileAsync(file, folderPath, fileName);
+            if (!string.IsNullOrEmpty(result))
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = result,
+                    Success = false
+                };
+            }
+
+            var isChangeSuccess = await _unit.Homework.ChangeImageAsync(homeModel, Path.Combine("homework_imgs", fileName));
+            if (!isChangeSuccess)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't change image",
+                    Success = false
+                };
+            }
+
+            await _unit.CompleteAsync();
+
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = "",
+                Success = true
+            };
+        }
+
         public async Task<Response> ChangeTitleAsync(long id, string title)
         {
             var homeModel = _unit.Homework.GetById(id);
@@ -312,6 +321,18 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
 
         public async Task<Response> CreateAsync(HomeworkDto model)
         {
+            var lessonModel = _unit.Lessons.GetById(model.LessonId);
+            if (lessonModel == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any lessons",
+                    Success = false
+                };
+            }
+
+
             if (!DateTime.TryParse(model.EndTime, out DateTime endTime))
             {
                 return new Response()
@@ -338,17 +359,6 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
                     Message = "Start time must be less than end time",
-                    Success = false
-                };
-            }
-
-            var isExistClass = _unit.Classes.IsExist(c => c.ClassId == model.ClassId && c.Status == (int)ClassEnum.Opening);
-            if (!isExistClass)
-            {
-                return new Response()
-                {
-                    StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Can't find any classes with opening status",
                     Success = false
                 };
             }
@@ -383,8 +393,30 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
                 };
             }
 
+            if (model.Image == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Image is required",
+                    Success = false
+                };
+            }
+
+            var folderPath = Path.Combine(_webHostEnvironment.WebRootPath, "homework_imgs");
+            var fileName = $"{DateTime.Now.Ticks}_{model.Image.FileName}";
+            var result = await UploadHelper.UploadFileAsync(model.Image, folderPath, fileName);
+            if (!string.IsNullOrEmpty(result))
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = result,
+                    Success = false
+                };
+            }
             var homeModel = new Homework();
-            homeModel.ClassId = model.ClassId;
+            homeModel.LessonId = model.LessonId;
             homeModel.Title = model.Title;
             homeModel.AchievedPercentage = model.Achieved_Percentage;
             homeModel.Time = timeOnly;
@@ -392,6 +424,7 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
             homeModel.StartTime = startTime;
             homeModel.EndTime = endTime;
             homeModel.LateSubmitDays = model.LateSubmitDays.HasValue ? model.LateSubmitDays.Value : 0;
+            homeModel.Image = Path.Combine("homework_imgs", fileName);
 
             _unit.Homework.Add(homeModel);
 
@@ -415,6 +448,12 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
                     Message = "Can't find any homework",
                     Success = false
                 };
+            }
+
+            var previousPath = Path.Combine(_webHostEnvironment.WebRootPath, homeModel.Image ?? "");
+            if (File.Exists(previousPath))
+            {
+                File.Delete(previousPath);
             }
 
             _unit.Homework.Remove(homeModel);
@@ -452,6 +491,22 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
             });
         }
 
+        public Task<Response> GetCurrentByClassAsync(string classId)
+        {
+            var homeworkModels = _unit.Homework
+                                      .Include(h => h.Lesson)
+                                      .Where(h => h.Lesson.ClassId == classId)
+                                      .OrderBy(h => h.StartTime)
+                                      .ToList();
+
+            return Task.FromResult(new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = _mapper.Map<List<HomeworkResDto>>(homeworkModels),
+                Success = true
+            });
+        }
+
         public async Task<Response> UpdateAsync(long id, HomeworkDto model)
         {
             var homeModel = _unit.Homework.GetById(id);
@@ -469,9 +524,9 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
 
             try
             {
-                if (homeModel.ClassId != model.ClassId)
+                if (model.Image != null)
                 {
-                    var changeResponse = await ChangeClassAsync(id, model.ClassId);
+                    var changeResponse = await ChangeImageAsync(id, model.Image);
                     if (!changeResponse.Success) return changeResponse;
                 }
 
@@ -531,6 +586,39 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
                     Success = false
                 };
             }
+        }
+
+        public async Task<Response> ChangeLessonAsync(long id, long lessonId)
+        {
+            var homeModel = _unit.Homework.GetById(id);
+            if (homeModel == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any homework",
+                    Success = false
+                };
+            }
+
+            var isChangeSuccess = await _unit.Homework.ChangeLessonAsync(homeModel, lessonId);
+            if (!isChangeSuccess)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Change lesson failed",
+                    Success = false
+                };
+            }
+
+            await _unit.CompleteAsync();
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = "",
+                Success = true
+            };
         }
     }
 }

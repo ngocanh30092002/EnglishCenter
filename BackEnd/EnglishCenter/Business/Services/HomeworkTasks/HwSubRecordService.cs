@@ -1,4 +1,6 @@
-﻿using AutoMapper;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
+using AutoMapper;
 using EnglishCenter.Business.IServices;
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.UnitOfWork;
@@ -20,10 +22,11 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
             _unit = unit;
             _mapper = mapper;
         }
+
         public async Task<Response> ChangeHomeQuesAsync(long id, long homeQueId)
         {
             var subRecord = _unit.HwSubRecords.GetById(id);
-            if(subRecord == null)
+            if (subRecord == null)
             {
                 return new Response()
                 {
@@ -34,7 +37,7 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
             }
 
             var isExistHomeQues = _unit.HomeQues.IsExist(h => h.HomeQuesId == homeQueId);
-            if(!isExistHomeQues)
+            if (!isExistHomeQues)
             {
                 return new Response()
                 {
@@ -46,7 +49,7 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
 
             var isChangeSuccess = await _unit.HwSubRecords.ChangeHomeQuesAsync(subRecord, homeQueId);
             if (!isChangeSuccess)
-            { 
+            {
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
@@ -177,7 +180,7 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
         public async Task<Response> CreateAsync(HwSubRecordDto model)
         {
             var submissionModel = _unit.HwSubmissions.GetById(model.SubmissionId);
-            if(submissionModel == null)
+            if (submissionModel == null)
             {
                 return new Response()
                 {
@@ -188,7 +191,7 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
             }
 
             var homeQueModel = _unit.HomeQues.GetById(model.HwQuesId);
-            if(homeQueModel == null)
+            if (homeQueModel == null)
             {
                 return new Response()
                 {
@@ -198,7 +201,7 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
                 };
             }
 
-            if(homeQueModel.HomeworkId != submissionModel.HomeworkId)
+            if (homeQueModel.HomeworkId != submissionModel.HomeworkId)
             {
                 return new Response()
                 {
@@ -220,14 +223,14 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
             }
 
             var isCorrectAnswer = await _unit.HomeQues.IsCorrectAnswerAsync(homeQueModel, model.SelectedAnswer, model.HwSubQuesId);
-            
+
             var existRecords = _unit.HwSubRecords
-                                    .Find(a => a.SubmissionId == model.SubmissionId && 
+                                    .Find(a => a.SubmissionId == model.SubmissionId &&
                                                a.HwQuesId == model.HwQuesId &&
                                                a.HwSubQuesId == model.HwSubQuesId)
                                     .FirstOrDefault();
 
-            if(existRecords != null)
+            if (existRecords != null)
             {
                 _unit.HwSubRecords.Remove(existRecords);
             }
@@ -249,7 +252,7 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
         public async Task<Response> DeleteAsync(long id)
         {
             var subRecord = _unit.HwSubRecords.GetById(id);
-            if(subRecord == null)
+            if (subRecord == null)
             {
                 return new Response()
                 {
@@ -328,10 +331,67 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
             });
         }
 
+        public async Task<Response> GetResultAsync(long id)
+        {
+            var submissionModel = await _unit.HwSubmissions
+                                       .Include(s => s.Homework)
+                                       .FirstOrDefaultAsync(s => s.SubmissionId == id);
+
+            if (submissionModel == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any submissions",
+                    Success = false
+                };
+            }
+
+            if (submissionModel.SubmitStatus == (int)SubmitStatusEnum.Ongoing)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't get result with this status",
+                    Success = false
+                };
+            }
+
+            var records = _unit.HwSubRecords
+                                    .Find(r => r.SubmissionId == submissionModel.SubmissionId)
+                                    .ToList();
+
+            JsonSerializerOptions options = new()
+            {
+                ReferenceHandler = ReferenceHandler.IgnoreCycles,
+                WriteIndented = true
+            };
+
+
+            var homeSubRecords = new List<HwSubRecordResDto>();
+
+            foreach (var record in records)
+            {
+                var resultModel = _mapper.Map<HwSubRecordResDto>(record);
+                var answerInfo = await _unit.HomeQues.GetAnswerInfoAsync(record.HwQuesId, record.HwSubQuesId);
+                resultModel.AnswerInfo = answerInfo;
+
+                homeSubRecords.Add(resultModel);
+            }
+
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = homeSubRecords,
+                Success = true
+            };
+
+        }
+
         public async Task<Response> UpdateAsync(long id, HwSubRecordDto model)
         {
             var subModel = _unit.HwSubRecords.GetById(id);
-            if(subModel == null)
+            if (subModel == null)
             {
                 return new Response()
                 {
@@ -344,7 +404,7 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
             await _unit.BeginTransAsync();
             try
             {
-                if(subModel.SubmissionId != model.SubmissionId)
+                if (subModel.SubmissionId != model.SubmissionId)
                 {
                     var changeResponse = await ChangeSubmissionAsync(id, model.SubmissionId);
                     if (!changeResponse.Success) return changeResponse;
@@ -377,7 +437,7 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
                     Success = true
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 await _unit.RollBackTransAsync();
                 return new Response()

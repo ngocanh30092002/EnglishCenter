@@ -56,6 +56,10 @@ namespace EnglishCenter.DataAccess.UnitOfWork
         ILessonRepository Lessons { get; }
         IClassScheduleRepository ClassSchedules { get; }
         IClassMaterialRepository ClassMaterials { get; }
+        ISubmissionTaskRepository SubmissionTasks { get; }
+        ISubmissionFileRepository SubmissionFiles { get; }
+        IUserWordRepository UserWords { get; }
+
         public Task<int> CompleteAsync();
         public Task BeginTransAsync();
         public Task CommitTransAsync();

@@ -3,7 +3,8 @@
     public enum SubmitStatusEnum
     {
         OnTime = 1,
-        Late = 2, 
-        Overdue = 3
+        Late = 2,
+        Overdue = 3,
+        Ongoing = 4
     }
 }

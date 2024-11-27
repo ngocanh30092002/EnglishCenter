@@ -8,6 +8,7 @@ using EnglishCenter.Presentation.Helpers;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
 using EnglishCenter.Presentation.Models.ResDTOs;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.Business.Services.Courses
@@ -18,14 +19,16 @@ namespace EnglishCenter.Business.Services.Courses
         private readonly IMapper _mapper;
         private readonly IClaimService _claimService;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly UserManager<User> _userManager;
         private string _imageBase;
 
-        public ClassService(IMapper mapper, IUnitOfWork unit, IWebHostEnvironment webHostEnvironment, IClaimService claimService)
+        public ClassService(IMapper mapper, IUnitOfWork unit, IWebHostEnvironment webHostEnvironment, IClaimService claimService, UserManager<User> userManager)
         {
             _unit = unit;
             _mapper = mapper;
             _claimService = claimService;
             _webHostEnvironment = webHostEnvironment;
+            _userManager = userManager;
             _imageBase = Path.Combine("classes", "images");
         }
 
@@ -469,10 +472,16 @@ namespace EnglishCenter.Business.Services.Courses
                 };
             }
 
+            var classResDto = _mapper.Map<ClassResDto>(classModel);
+
+            var userModel = await _userManager.FindByIdAsync(classModel.TeacherId);
+
+            classResDto.Teacher!.Email = userModel!.Email;
+
             return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Message = _mapper.Map<ClassResDto>(classModel),
+                Message = classResDto,
                 Success = true
             };
         }

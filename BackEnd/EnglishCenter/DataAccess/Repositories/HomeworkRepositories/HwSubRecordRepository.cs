@@ -18,15 +18,15 @@ namespace EnglishCenter.DataAccess.Repositories.HomeworkRepositories
 
         public async Task<bool> ChangeHomeQuesAsync(HwSubRecord hwSubRecord, long homeQueId)
         {
-            if(hwSubRecord == null) return false;
+            if (hwSubRecord == null) return false;
 
             var homeQueModel = await context.HomeQues.FindAsync(homeQueId);
             if (homeQueModel == null) return false;
 
-            if(hwSubRecord.HwSubQuesId.HasValue)
+            if (hwSubRecord.HwSubQuesId.HasValue)
             {
                 var isExistSub = await IsExistSubAsync((QuesTypeEnum)homeQueModel.Type, hwSubRecord.HwSubQuesId.Value);
-                if(!isExistSub) return false;
+                if (!isExistSub) return false;
             }
 
             hwSubRecord.HwQuesId = homeQueId;
@@ -58,11 +58,11 @@ namespace EnglishCenter.DataAccess.Repositories.HomeworkRepositories
             if (homeQueModel == null) return false;
 
             var isExist = await IsExistSubAsync((QuesTypeEnum)homeQueModel.Type, subId);
-            if(isExist == false) return false;
+            if (isExist == false) return false;
 
             hwSubRecord.HwSubQuesId = subId;
             hwSubRecord.IsCorrect = await _homeQuesRepo.IsCorrectAnswerAsync(homeQueModel, hwSubRecord.SelectedAnswer, hwSubRecord.HwSubQuesId);
-            
+
             return true;
         }
 

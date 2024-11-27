@@ -104,9 +104,12 @@ namespace EnglishCenter.Presentation.Hub
 
         public Task<List<string>> GetOnlineUsers(string classId)
         {
-            //Todo: handle to filter user same class
+            var usersInClass = _connections.Keys.Where(k =>
+            {
+                return _unit.Enrollment.IsExist(e => e.UserId == k && e.ClassId == classId);
+            }).ToList();
 
-            return Task.FromResult(_connections.Keys.ToList());
+            return Task.FromResult(usersInClass);
         }
         public override async Task OnDisconnectedAsync(Exception? exception)
         {

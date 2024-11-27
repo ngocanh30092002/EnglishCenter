@@ -38,8 +38,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="DataAccess\Migrations\" />
     <Folder Include="wwwroot\classes\images\" />
+    <Folder Include="wwwroot\dictionary\" />
     <Folder Include="wwwroot\notifications\images\" />
     <Folder Include="wwwroot\questions\" />
     <Folder Include="wwwroot\toeic\2023\1\Part_6\" />

@@ -62,7 +62,10 @@ namespace EnglishCenter.DataAccess.UnitOfWork
             IClassRoomRepository classRoomRepo,
             ILessonRepository lessonRepo,
             IClassScheduleRepository classScheduleRepo,
-            IClassMaterialRepository classMaterialRepo
+            IClassMaterialRepository classMaterialRepo,
+            ISubmissionTaskRepository submissionTaskRepo,
+            ISubmissionFileRepository submissionFileRepo,
+            IUserWordRepository userWordRepo
             )
         {
             _context = context;
@@ -118,6 +121,9 @@ namespace EnglishCenter.DataAccess.UnitOfWork
             Lessons = lessonRepo;
             ClassSchedules = classScheduleRepo;
             ClassMaterials = classMaterialRepo;
+            SubmissionTasks = submissionTaskRepo;
+            SubmissionFiles = submissionFileRepo;
+            UserWords = userWordRepo;
         }
 
         public IEventRepository Events { get; private set; }
@@ -172,6 +178,9 @@ namespace EnglishCenter.DataAccess.UnitOfWork
         public ILessonRepository Lessons { get; private set; }
         public IClassScheduleRepository ClassSchedules { get; private set; }
         public IClassMaterialRepository ClassMaterials { get; private set; }
+        public ISubmissionTaskRepository SubmissionTasks { get; private set; }
+        public ISubmissionFileRepository SubmissionFiles { get; private set; }
+        public IUserWordRepository UserWords { get; private set; }
 
         public async Task BeginTransAsync()
         {

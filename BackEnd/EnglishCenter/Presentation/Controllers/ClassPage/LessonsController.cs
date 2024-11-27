@@ -32,6 +32,13 @@ namespace EnglishCenter.Presentation.Controllers.ClassPage
             return await response.ChangeActionAsync();
         }
 
+        [HttpGet("enrolls/{enrollId}")]
+        public async Task<IActionResult> GetByEnrollAsync([FromRoute] long enrollId)
+        {
+            var response = await _lessonService.GetByEnrollAsync(enrollId);
+            return await response.ChangeActionAsync();
+        }
+
         [HttpPost]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> CreateAsync([FromForm] LessonDto model)

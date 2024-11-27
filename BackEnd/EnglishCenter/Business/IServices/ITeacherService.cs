@@ -6,5 +6,7 @@ namespace EnglishCenter.Business.IServices
     {
         public Task<Response> GetFullNameAsync(string userId);
         public Task<Response> GetAsync(string userId);
+        public Task<Response> ChangeBackgroundImageAsync(IFormFile file, string userId);
+        public Task<Response> ChangeTeacherImageAsync(IFormFile file, string userId);
     }
 }

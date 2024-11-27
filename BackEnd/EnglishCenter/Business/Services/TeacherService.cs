@@ -21,7 +21,7 @@ namespace EnglishCenter.Business.Services
         {
             var teacher = _unit.Teachers.GetById(userId);
 
-            if(teacher == null)
+            if (teacher == null)
             {
                 return Task.FromResult(new Response()
                 {
@@ -41,7 +41,7 @@ namespace EnglishCenter.Business.Services
             });
         }
 
-        public Task<Response> GetAsync(string userId) 
+        public Task<Response> GetAsync(string userId)
         {
             var teacherModel = _unit.Teachers.GetById(userId);
 
@@ -51,6 +51,74 @@ namespace EnglishCenter.Business.Services
                 Message = _mapper.Map<TeacherResDto>(teacherModel),
                 Success = true
             });
+        }
+
+        public async Task<Response> ChangeBackgroundImageAsync(IFormFile file, string userId)
+        {
+            var teacher = _unit.Teachers.GetById(userId);
+
+            if (teacher == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any teachers",
+                    Success = false
+                };
+            }
+
+            var isSuccess = await _unit.Teachers.ChangeBackgroundImageAsync(file, teacher);
+
+            if (!isSuccess)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Success = false
+                };
+            }
+
+            await _unit.CompleteAsync();
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Success = true,
+                Message = ""
+            };
+        }
+
+        public async Task<Response> ChangeTeacherImageAsync(IFormFile file, string userId)
+        {
+            var teacher = _unit.Teachers.GetById(userId);
+
+            if (teacher == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any teachers",
+                    Success = false
+                };
+            }
+
+            var isSuccess = await _unit.Teachers.ChangeTeacherImageAsync(file, teacher);
+
+            if (!isSuccess)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Success = false
+                };
+            }
+
+            await _unit.CompleteAsync();
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Success = true,
+                Message = ""
+            };
         }
     }
 }

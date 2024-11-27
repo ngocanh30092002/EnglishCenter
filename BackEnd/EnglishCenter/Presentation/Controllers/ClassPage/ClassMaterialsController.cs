@@ -33,6 +33,13 @@ namespace EnglishCenter.Presentation.Controllers.ClassPage
             return await response.ChangeActionAsync();
         }
 
+        [HttpGet("classes/{classId}")]
+        public async Task<IActionResult> GetByClassAsync([FromRoute] string classId)
+        {
+            var response = await _materialService.GetByClassAsync(classId);
+            return await response.ChangeActionAsync();
+        }
+
         [HttpPost]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> CreateAsync([FromForm] ClassMaterialDto model)

@@ -3,7 +3,6 @@ using EnglishCenter.Business.IServices;
 using EnglishCenter.Presentation.Global;
 using EnglishCenter.Presentation.Models.DTOs;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EnglishCenter.Presentation.Controllers.HomeworkPage
@@ -34,6 +33,41 @@ namespace EnglishCenter.Presentation.Controllers.HomeworkPage
             return await response.ChangeActionAsync();
         }
 
+        [HttpGet("{id}/score")]
+        public async Task<IActionResult> GetScoreAsync([FromRoute] long id)
+        {
+            var response = await _submitService.GetScoreAsync(id);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("enrolls/{enrollId}")]
+        public async Task<IActionResult> GetByEnrollAsync([FromRoute] long enrollId, [FromQuery] long homeworkId)
+        {
+            var response = await _submitService.GetByEnrollAsync(enrollId, homeworkId);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("enrolls/{enrollId}/ongoing")]
+        public async Task<IActionResult> GetOngoingAsync([FromRoute] long enrollId, [FromQuery] long homeworkId)
+        {
+            var response = await _submitService.GetOngoingAsync(enrollId, homeworkId);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("enrolls/{enrollId}/number-attempt")]
+        public async Task<IActionResult> GetNumberAttemptAsync([FromRoute] long enrollId, [FromQuery] long homeworkId)
+        {
+            var response = await _submitService.GetNumberAttemptAsync(enrollId, homeworkId);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("{id}/is-submitted")]
+        public async Task<IActionResult> IsSubmittedAsync([FromRoute] long id)
+        {
+            var response = await _submitService.IsSubmittedAsync(id);
+            return await response.ChangeActionAsync();
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreateAsync([FromForm] HwSubmissionDto model)
         {
@@ -41,9 +75,16 @@ namespace EnglishCenter.Presentation.Controllers.HomeworkPage
             return await response.ChangeActionAsync();
         }
 
+        [HttpPut("{id}/submit")]
+        public async Task<IActionResult> HandleSubmitHomework([FromRoute] long id, [FromForm] HwSubmissionDto model)
+        {
+            var response = await _submitService.HandleSubmitHomework(id, model);
+            return await response.ChangeActionAsync();
+        }
+
         [HttpPut("{id}")]
         [Authorize(Roles = AppRole.ADMIN)]
-        public async Task<IActionResult> UpdateAsync([FromRoute] long id,[FromForm] HwSubmissionDto model)
+        public async Task<IActionResult> UpdateAsync([FromRoute] long id, [FromForm] HwSubmissionDto model)
         {
             var response = await _submitService.UpdateAsync(id, model);
             return await response.ChangeActionAsync();
@@ -96,7 +137,7 @@ namespace EnglishCenter.Presentation.Controllers.HomeworkPage
             var isTeacher = User.IsInRole(AppRole.TEACHER);
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
 
-            if(isTeacher)
+            if (isTeacher)
             {
                 var isValid = await _submitService.IsInChargeAsync(userId, id);
                 if (!isValid)

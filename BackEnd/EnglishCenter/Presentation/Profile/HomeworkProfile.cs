@@ -12,14 +12,30 @@ namespace EnglishCenter.Presentation
         {
             CreateMap<Homework, HomeworkResDto>()
                 .ForMember(des => des.HomeworkId, opt => opt.MapFrom(src => src.HomeworkId))
-                .ForMember(des => des.ClassId, opt => opt.MapFrom(src => src.ClassId))
-                .ForMember(des => des.StartTime, opt => opt.MapFrom(src => src.StartTime.ToString("yyyy-MM-dd HH:mm:ss")))
-                .ForMember(des => des.EndTime, opt => opt.MapFrom(src => src.EndTime.ToString("yyyy-MM-dd HH:mm:ss")))
+                .ForMember(des => des.LessonId, opt => opt.MapFrom(src => src.LessonId))
+                .ForMember(des => des.StartTime, opt => opt.MapFrom(src => src.StartTime.ToString("HH:mm:ss dd-MM-yyyy ")))
+                .ForMember(des => des.EndTime, opt => opt.MapFrom(src => src.EndTime.ToString("HH:mm:ss dd-MM-yyyy ")))
                 .ForMember(des => des.LateSubmitDays, opt => opt.MapFrom(src => src.LateSubmitDays))
                 .ForMember(des => des.Achieved_Percentage, opt => opt.MapFrom(src => src.AchievedPercentage))
-                .ForMember(des => des.ExpectedTime, opt => opt.MapFrom(src => src.ExpectedTime))
-                .ForMember(des => des.Time, opt => opt.MapFrom(src => src.Time))
-                .ForMember(des => des.Title, opt => opt.MapFrom(src => src.Title));
+                .ForMember(des => des.ExpectedTime, opt => opt.MapFrom(src => src.ExpectedTime.ToString("HH:mm:ss")))
+                .ForMember(des => des.Time, opt => opt.MapFrom(src => src.Time.ToString("HH:mm:ss")))
+                .ForMember(des => des.Title, opt => opt.MapFrom(src => src.Title))
+                .ForMember(des => des.Status, opt => opt.MapFrom((src, des) =>
+                {
+                    if (DateTime.Now <= src.StartTime)
+                    {
+                        return 0;
+                    }
+
+                    if (src.StartTime <= DateTime.Now && DateTime.Now <= src.EndTime)
+                    {
+                        return 1;
+                    }
+
+                    return 2;
+                }))
+                .ForMember(des => des.Image, opt => opt.MapFrom(src => src.Image == null ? null : src.Image.Replace("\\", "/")))
+                ;
 
 
             CreateMap<HomeQueDto, HomeQue>()
@@ -84,6 +100,15 @@ namespace EnglishCenter.Presentation
                 .ForMember(des => des.HwSubQuesId, opt => opt.MapFrom(src => src.HwSubQuesId))
                 .ForMember(des => des.SelectedAnswer, opt => opt.MapFrom(src => src.SelectedAnswer))
                 .ForMember(des => des.IsCorrect, opt => opt.MapFrom(src => src.IsCorrect));
+
+            CreateMap<HwSubmission, HwSubmissionResDto>()
+                .ForMember(des => des.SubmissionId, opt => opt.MapFrom(src => src.SubmissionId))
+                .ForMember(des => des.Homework, opt => opt.MapFrom(src => src.Homework))
+                .ForMember(des => des.Date, opt => opt.MapFrom(src => src.Date.ToString("HH:mm:ss dd-MM-yyyy")))
+                .ForMember(des => des.Status, opt => opt.MapFrom(src => ((SubmitStatusEnum)src.SubmitStatus).ToString()))
+                .ForMember(des => des.FeedBack, opt => opt.MapFrom(src => src.FeedBack))
+                .ForMember(des => des.IsPass, opt => opt.MapFrom(src => src.IsPass));
+
         }
     }
 }

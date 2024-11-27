@@ -127,6 +127,12 @@ public class EnglishCenterContext : IdentityDbContext<User>
 
     public virtual DbSet<ClassMaterial> ClassMaterials { set; get; }
 
+    public virtual DbSet<SubmissionTask> SubmissionTask { set; get; }
+
+    public virtual DbSet<SubmissionFile> SubmissionFiles { set; get; }
+
+    public virtual DbSet<UserWord> UserWords { set; get; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder.UseSqlServer("Name=ConnectionStrings:EnglishCenter");
@@ -145,10 +151,25 @@ public class EnglishCenterContext : IdentityDbContext<User>
             }
         }
 
+        modelBuilder.Entity<UserWord>(entity =>
+        {
+            entity.HasOne(u => u.User).WithMany(u => u.UserWords).HasConstraintName("FK_UserWord_User");
+        });
+
         modelBuilder.Entity<ClassMaterial>(entity =>
         {
             entity.HasOne(c => c.Class).WithMany(c => c.ClassMaterials).HasConstraintName("FK_ClassMaterials_Classes");
             entity.HasOne(c => c.Lesson).WithMany(c => c.ClassMaterials).HasConstraintName("FK_ClassMaterials_Lessons");
+        });
+
+        modelBuilder.Entity<SubmissionFile>(entity =>
+        {
+            entity.HasOne(s => s.SubmissionTask).WithMany(l => l.SubmissionFiles).HasConstraintName("FK_SubmissionTasks_SubmissionFiles");
+        });
+
+        modelBuilder.Entity<SubmissionTask>(entity =>
+        {
+            entity.HasOne(s => s.Lesson).WithMany(l => l.SubmissionTasks).HasConstraintName("FK_SubmissionTask_Lessons");
         });
 
         modelBuilder.Entity<ClassSchedule>(entity =>
@@ -317,8 +338,7 @@ public class EnglishCenterContext : IdentityDbContext<User>
 
         modelBuilder.Entity<Homework>(entity =>
         {
-            entity.HasOne(d => d.Class).WithMany(c => c.HomeworkTasks).HasConstraintName("FK_Homework_Class");
-
+            entity.HasOne(d => d.Lesson).WithMany(c => c.HomeworkTasks).HasConstraintName("FK_Homework_Lessons");
             entity.HasMany(d => d.Submissions).WithOne(c => c.Homework).HasConstraintName("FK_HwSubmission_Homework");
         });
 

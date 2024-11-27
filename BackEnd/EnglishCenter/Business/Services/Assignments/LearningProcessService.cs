@@ -785,6 +785,7 @@ namespace EnglishCenter.Business.Services.Assignments
                 Success = true
             });
         }
+
         public async Task<Response> GetStatusExerciseAsync(long id, long? assignmentId, long? examId)
         {
             var enrollModel = _unit.Enrollment.Include(e => e.Class).FirstOrDefault(e => e.EnrollId == id);
@@ -1169,7 +1170,7 @@ namespace EnglishCenter.Business.Services.Assignments
                         if (!response.Success) return response;
                     }
                 }
-                // Todo: Handle submit
+
                 var correctNum = _unit.AssignmentRecords.Find(a => a.LearningProcessId == processModel.ProcessId && a.IsCorrect).Count();
                 var numQues = await _unit.AssignQues.GetNumberByAssignmentAsync(processModel.AssignmentId!.Value);
 

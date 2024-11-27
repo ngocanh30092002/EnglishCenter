@@ -9,13 +9,10 @@ namespace EnglishCenter.DataAccess.Entities
         public long HomeworkId { set; get; }
 
         public DateTime StartTime { set; get; } = DateTime.Now;
-        
+
         public DateTime EndTime { set; get; }
 
         public int LateSubmitDays { set; get; } = 0;
-
-        [StringLength(10)]
-        public string ClassId { set; get; } = null!;
 
         public TimeOnly Time { set; get; } = TimeOnly.MinValue;
 
@@ -28,14 +25,18 @@ namespace EnglishCenter.DataAccess.Entities
         [Column(TypeName = "nvarchar(200)")]
         public string Title { set; get; } = null!;
 
-        [ForeignKey("ClassId")]
-        [InverseProperty("HomeworkTasks")]
-        public virtual Class Class { set; get; } = null!;
-
         [InverseProperty("Homework")]
         public virtual ICollection<HwSubmission> Submissions { set; get; } = new List<HwSubmission>();
 
         [InverseProperty("Homework")]
         public virtual ICollection<HomeQue> HomeQues { set; get; } = new List<HomeQue>();
+
+        public long LessonId { set; get; }
+
+        [ForeignKey("LessonId")]
+        [InverseProperty("HomeworkTasks")]
+        public virtual Lesson Lesson { set; get; } = null!;
+
+        public string? Image { set; get; }
     }
 }

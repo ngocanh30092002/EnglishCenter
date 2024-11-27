@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
@@ -48,4 +46,7 @@ public class Enrollment
 
     [InverseProperty("Enrollment")]
     public virtual ICollection<HwSubmission> Submissions { set; get; } = new List<HwSubmission>();
+
+    [InverseProperty("Enrollment")]
+    public virtual ICollection<SubmissionFile> SubmissionFiles { set; get; } = new List<SubmissionFile>();
 }

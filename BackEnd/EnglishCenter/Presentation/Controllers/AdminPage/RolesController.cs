@@ -1,5 +1,5 @@
-﻿using EnglishCenter.Business.IServices;
-using EnglishCenter.DataAccess.IRepositories;
+﻿using System.Security.Claims;
+using EnglishCenter.Business.IServices;
 using EnglishCenter.Presentation.Global;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -39,6 +39,17 @@ namespace EnglishCenter.Presentation.Controllers.AdminPage
         {
             var response = await _roleService.GetUserRolesAsync(userId);
 
+            return await response.ChangeActionAsync();
+        }
+
+        [Authorize]
+        [HttpGet("user")]
+        public async Task<IActionResult> GetUserRoleAsync()
+        {
+            string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
+            if (userId == null) return BadRequest();
+
+            var response = await _roleService.GetUserRolesAsync(userId);
             return await response.ChangeActionAsync();
         }
 

@@ -1,4 +1,5 @@
-﻿using EnglishCenter.DataAccess.Database;
+﻿using AutoMapper;
+using EnglishCenter.DataAccess.Database;
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.IRepositories;
 using EnglishCenter.Presentation.Global.Enum;
@@ -9,8 +10,11 @@ namespace EnglishCenter.DataAccess.Repositories.HomeworkRepositories
 {
     public class HomeQuesRepository : GenericRepository<HomeQue>, IHomeQuesRepository
     {
-        public HomeQuesRepository(EnglishCenterContext context) : base(context)
+        private readonly IMapper _mapper;
+
+        public HomeQuesRepository(EnglishCenterContext context, IMapper mapper) : base(context)
         {
+            _mapper = mapper;
         }
 
         public async Task<bool> ChangeHomeworkIdAsync(HomeQue model, long homeworkId)
@@ -256,6 +260,34 @@ namespace EnglishCenter.DataAccess.Repositories.HomeworkRepositories
             }
 
             return timeResult;
+        }
+
+        public async Task<object> GetAnswerInfoAsync(long homeQuesId, long? subId)
+        {
+            var homeQueModel = await context.HomeQues.FindAsync(homeQuesId);
+            if (homeQueModel == null) return null;
+
+            await LoadQuestionAsync(homeQueModel);
+
+            switch (homeQueModel.Type)
+            {
+                case (int)QuesTypeEnum.Image:
+                    return _mapper.Map<AnswerLcImageDto>(homeQueModel.QuesImage.Answer);
+                case (int)QuesTypeEnum.Audio:
+                    return _mapper.Map<AnswerLcAudioDto>(homeQueModel.QuesAudio.Answer);
+                case (int)QuesTypeEnum.Conversation:
+                    return _mapper.Map<AnswerLcConDto>(homeQueModel.QuesConversation.SubLcConversations.FirstOrDefault(s => s.SubId == subId.Value).Answer);
+                case (int)QuesTypeEnum.Sentence:
+                    return _mapper.Map<AnswerRcSentenceDto>(homeQueModel.QuesSentence.Answer);
+                case (int)QuesTypeEnum.Single:
+                    return _mapper.Map<AnswerRcSingleDto>(homeQueModel.QuesSingle.SubRcSingles.FirstOrDefault(s => s.SubId == subId.Value).Answer);
+                case (int)QuesTypeEnum.Double:
+                    return _mapper.Map<AnswerRcDoubleDto>(homeQueModel.QuesDouble.SubRcDoubles.FirstOrDefault(s => s.SubId == subId.Value).Answer);
+                case (int)QuesTypeEnum.Triple:
+                    return _mapper.Map<AnswerRcTripleDto>(homeQueModel.QuesTriple.SubRcTriples.FirstOrDefault(s => s.SubId == subId.Value).Answer);
+            }
+
+            return null;
         }
 
         public async Task<bool> IsCorrectAnswerAsync(HomeQue model, string selectedAnswer, long? subId)

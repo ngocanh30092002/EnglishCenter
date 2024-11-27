@@ -8,6 +8,7 @@ using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
 using EnglishCenter.Presentation.Models.ResDTOs;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.Business.Services.Classes
 {
@@ -211,7 +212,7 @@ namespace EnglishCenter.Business.Services.Classes
 
             if (!string.IsNullOrEmpty(model.ClassId))
             {
-                var classModel = _unit.Classes.GetById(classId);
+                var classModel = _unit.Classes.GetById(model.ClassId);
                 if (classModel == null)
                 {
                     return new Response()
@@ -222,7 +223,7 @@ namespace EnglishCenter.Business.Services.Classes
                     };
                 }
 
-                classMaterial.ClassId = classId;
+                classMaterial.ClassId = model.ClassId;
                 classId = classModel.ClassId;
             }
 
@@ -339,6 +340,47 @@ namespace EnglishCenter.Business.Services.Classes
                 Message = _mapper.Map<ClassMaterialResDto>(model),
                 Success = true
             });
+        }
+
+        public async Task<Response> GetByClassAsync(string classId)
+        {
+            var models = await _unit.ClassMaterials
+                              .Include(c => c.Lesson)
+                              .Where(c => c.ClassId == classId || (c.Lesson != null && c.Lesson.ClassId == classId))
+                              .ToListAsync();
+            var resDtos = _mapper.Map<List<ClassMaterialResDto>>(models);
+
+            foreach (var resDto in resDtos)
+            {
+                var filePath = Path.Combine(_webHostEnvironment.WebRootPath, resDto.FilePath ?? "");
+
+                if (File.Exists(filePath))
+                {
+                    FileInfo fileInfo = new FileInfo(filePath);
+                    long fileSizeInBytes = fileInfo.Length;
+
+                    double fileSizeInKB = fileSizeInBytes / 1024.0;
+                    double fileSizeInMB = fileSizeInKB / 1024.0;
+
+                    double roundSize = Math.Round(fileSizeInMB, 2);
+
+                    if (roundSize != 0)
+                    {
+                        resDto.FileSize = $"{roundSize} MB";
+                    }
+                    else
+                    {
+                        resDto.FileSize = $"{Math.Round(fileSizeInKB, 2)} KB";
+                    }
+                }
+            }
+
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = resDtos,
+                Success = true
+            };
         }
     }
 }
