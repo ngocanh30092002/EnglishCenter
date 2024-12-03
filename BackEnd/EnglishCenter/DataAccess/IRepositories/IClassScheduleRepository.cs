@@ -9,6 +9,7 @@ namespace EnglishCenter.DataAccess.IRepositories
         public Task<bool> ChangeDayOfWeekAsync(ClassSchedule schedule, int dayOfWeek);
         public Task<bool> ChangeClassAsync(ClassSchedule schedule, string classId);
         public Task<bool> ChangeClassRoomAsync(ClassSchedule schedule, long classRoomId);
+        public Task<bool> IsDuplicateTeacherAsync(int dayOfWeek, int start, int end, string teacherId, long? scheduleId = null);
         public Task<bool> IsDuplicateAsync(int dayOfWeek, long classRoomId, int start, int end, long? scheduleId = null);
     }
 }

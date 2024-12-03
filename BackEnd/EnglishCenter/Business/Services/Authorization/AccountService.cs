@@ -25,6 +25,7 @@ namespace EnglishCenter.Business.Services.Authorization
         private readonly LinkGenerator _linkGenerator;
         private readonly IClaimService _claimService;
         private readonly IJsonTokenService _jwtService;
+        private readonly IUserService _userService;
 
         public AccountService(
             UserManager<User> userManager,
@@ -35,7 +36,8 @@ namespace EnglishCenter.Business.Services.Authorization
             IHttpContextAccessor httpContextAccessor,
             MailHelper mailHelper,
             LinkGenerator linkGenerator,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IUserService userService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -46,6 +48,7 @@ namespace EnglishCenter.Business.Services.Authorization
             _linkGenerator = linkGenerator;
             _claimService = claimService;
             _jwtService = jwtService;
+            _userService = userService;
         }
 
         public async Task<Response> LockedOutUserAsync(User user)
@@ -139,7 +142,6 @@ namespace EnglishCenter.Business.Services.Authorization
         public async Task<Response> RegisterAsync(RegisterModel model, Provider provider = Provider.System)
         {
             var user = await _userManager.FindByNameAsync(model.UserName);
-            Response response;
             if (user != null)
             {
                 return new Response()
@@ -209,6 +211,194 @@ namespace EnglishCenter.Business.Services.Authorization
                 Message = "Registered successfully",
                 StatusCode = HttpStatusCode.OK
             };
+        }
+
+        public async Task<Response> RegisterWithRoleAsync(RegisterModel model, Provider provider = Provider.System)
+        {
+            var user = await _userManager.FindByNameAsync(model.UserName);
+            if (user != null)
+            {
+                return new Response()
+                {
+                    Message = "User already exists",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            var newUser = new User()
+            {
+                UserName = model.UserName,
+                Email = model.Email,
+                PhoneNumber = model?.PhoneNumber
+            };
+
+            var result = await _userManager.CreateAsync(newUser, model.Password);
+
+            if (!result.Succeeded)
+            {
+                return new Response()
+                {
+                    Message = result.Errors.Select(e => e.Description).ToList(),
+                    StatusCode = HttpStatusCode.InternalServerError
+                };
+            }
+
+            // Add role to user
+            if (!await _roleManager.RoleExistsAsync(model.Role))
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Role isn't exist",
+                    Success = false
+                };
+            }
+
+
+            if (model.Role == AppRole.ADMIN)
+            {
+                await _userManager.AddToRoleAsync(newUser, AppRole.ADMIN);
+                await _userManager.AddToRoleAsync(newUser, AppRole.TEACHER);
+                await _userManager.AddToRoleAsync(newUser, AppRole.STUDENT);
+            }
+            else if (model.Role == AppRole.TEACHER)
+            {
+                await _userManager.AddToRoleAsync(newUser, AppRole.TEACHER);
+                await _userManager.AddToRoleAsync(newUser, AppRole.STUDENT);
+            }
+            else
+            {
+                await _userManager.AddToRoleAsync(newUser, AppRole.STUDENT);
+            }
+
+            await _claimService.AddClaimToUserAsync(newUser, new ClaimDto(ClaimTypes.Email, newUser.Email));
+            await _claimService.AddClaimToUserAsync(newUser, new ClaimDto(ClaimTypes.Gender, model.Gender.ToString()));
+
+            if (model.DateOfBirth.HasValue)
+            {
+                await _claimService.AddClaimToUserAsync(newUser, new ClaimDto(ClaimTypes.DateOfBirth, model.DateOfBirth.Value.ToString()));
+            }
+
+            if (model.PhoneNumber != null)
+            {
+                await _claimService.AddClaimToUserAsync(newUser, new ClaimDto(ClaimTypes.MobilePhone, model.PhoneNumber.ToString()));
+
+                // Verify phone number
+                var phoneCode = await _userManager.GenerateChangePhoneNumberTokenAsync(newUser, model.PhoneNumber);
+                var isConfirmPhone = await _userManager.VerifyChangePhoneNumberTokenAsync(newUser, phoneCode, model.PhoneNumber);
+            }
+
+
+            // Send Email to User
+            var sendEmailResult = SendEmailToUserAsync(newUser, provider, model);
+
+            var createdResponse = await CreateUserWithRoleAsync(newUser, model);
+
+            if (model.Image != null)
+            {
+                var changeSuccess = await _userService.ChangeUserImageAsync(newUser.Id, model.Image);
+                if (!changeSuccess.Success) return changeSuccess;
+            }
+
+            if (model.BackgroundImage != null)
+            {
+                var changeSuccess = await _userService.ChangeUserBackgroundImageAsync(newUser.Id, model.BackgroundImage);
+                if (!changeSuccess.Success) return changeSuccess;
+            }
+
+            if (!createdResponse.Success)
+            {
+                return createdResponse;
+            };
+
+            return new Response()
+            {
+                Success = true,
+                Message = "Registered successfully",
+                StatusCode = HttpStatusCode.OK
+            };
+        }
+
+        private async Task<Response> CreateUserWithRoleAsync(User newUser, RegisterModel model)
+        {
+            var isExistUser = _unit.Students.IsExist(x => x.UserId == newUser.Id);
+
+            if (isExistUser)
+            {
+                return new Response
+                {
+                    Success = false,
+                    Message = "This student already exists in the database",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+
+
+            if (!await _roleManager.RoleExistsAsync(model.Role))
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Role isn't exist",
+                    Success = false
+                };
+            }
+
+            await _unit.BeginTransAsync();
+
+            try
+            {
+
+                if (model.Role == AppRole.TEACHER || model.Role == AppRole.ADMIN)
+                {
+                    var teacherModel = new Teacher()
+                    {
+                        FirstName = model.FirstName,
+                        LastName = model.LastName,
+                        Gender = (int)model.Gender,
+                        Address = model?.Address,
+                        DateOfBirth = model?.DateOfBirth,
+                        PhoneNumber = model?.PhoneNumber,
+                        UserId = newUser.Id,
+                        UserName = model?.FirstName + " " + model?.LastName
+                    };
+
+                    _unit.Teachers.Add(teacherModel);
+                }
+
+
+                var response = await CreateStudentWithUser(newUser, model);
+                if (!response.Success)
+                {
+                    return new Response()
+                    {
+                        StatusCode = System.Net.HttpStatusCode.BadRequest,
+                        Message = "Create student failed",
+                        Success = false
+                    };
+                }
+
+                await _unit.CompleteAsync();
+                await _unit.CommitTransAsync();
+
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Message = "",
+                    Success = true
+                };
+            }
+            catch (Exception ex)
+            {
+                await _unit.RollBackTransAsync();
+
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = ex.Message,
+                    Success = false
+                };
+            }
         }
 
         private async Task<Response> CreateStudentWithUser(User newUser, RegisterModel model)

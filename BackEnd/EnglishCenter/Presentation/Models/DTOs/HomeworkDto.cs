@@ -16,6 +16,7 @@ namespace EnglishCenter.Presentation.Models.DTOs
 
         public string Time { set; get; } = null!;
 
+        public int? Type { set; get; } = 1;
         public IFormFile Image { set; get; }
     }
 }

@@ -5,6 +5,8 @@ using EnglishCenter.DataAccess.UnitOfWork;
 using EnglishCenter.Presentation.Global.Enum;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
+using EnglishCenter.Presentation.Models.ResDTOs;
+using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.Business.Services.Classes
 {
@@ -306,6 +308,17 @@ namespace EnglishCenter.Business.Services.Classes
                 };
             }
 
+            var isDuplicateScheduleOfTeacher = await _unit.ClassSchedules.IsDuplicateTeacherAsync(classSchedule.DayOfWeek, classSchedule.StartPeriod, classSchedule.EndPeriod, classModel.TeacherId);
+            if (isDuplicateScheduleOfTeacher)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Teacher's schedule is already booked so cannot register",
+                    Success = false
+                };
+            }
+
             var isExist = _unit.ClassSchedules
                                .IsExist(s => s.ClassId == classSchedule.ClassId &&
                                              s.DayOfWeek == classSchedule.DayOfWeek &&
@@ -349,6 +362,47 @@ namespace EnglishCenter.Business.Services.Classes
                 };
             }
 
+            var classModel = _unit.Classes.GetById(classSchedule.ClassId);
+            if (classModel == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any classes",
+                    Success = false
+                };
+            }
+
+            if (classModel.StartDate.HasValue == false || classModel.EndDate.HasValue == false)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Classes have no start or end times.",
+                    Success = false
+                };
+            }
+
+            for (DateOnly current = classModel.StartDate.Value; current <= classModel.EndDate.Value; current = current.AddDays(1))
+            {
+                if (classSchedule.DayOfWeek == (int)current.DayOfWeek)
+                {
+
+                    var lessonModel = _unit.Lessons.Find(s => s.ClassId == classSchedule.ClassId &&
+                                                              s.Date == current &&
+                                                              s.StartPeriod == classSchedule.StartPeriod &&
+                                                              s.EndPeriod == classSchedule.EndPeriod)
+                                                   .FirstOrDefault();
+
+
+                    if (lessonModel != null)
+                    {
+                        var deleteRes = await _lessonService.DeleteAsync(lessonModel.LessonId);
+                        if (!deleteRes.Success) return deleteRes;
+                    }
+                }
+            }
+
             _unit.ClassSchedules.Remove(classSchedule);
             await _unit.CompleteAsync();
 
@@ -380,6 +434,55 @@ namespace EnglishCenter.Business.Services.Classes
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
                 Message = _mapper.Map<ClassScheduleDto>(model),
+                Success = true
+            });
+        }
+
+        public async Task<Response> GetByClassAsync(string classId)
+        {
+            var scheduleModels = await _unit.ClassSchedules
+                                      .Include(c => c.ClassRoom)
+                                      .Where(c => c.ClassId == classId && c.IsActive == true)
+                                      .ToListAsync();
+
+            var scheduleResDtos = new List<ClassScheduleResDto>();
+
+            foreach (var schedule in scheduleModels)
+            {
+                var startPeriod = _unit.Periods.GetById(schedule.StartPeriod);
+                var endPeriod = _unit.Periods.GetById(schedule.EndPeriod);
+                var resDto = new ClassScheduleResDto();
+                resDto.ScheduleId = schedule.ScheduleId;
+                resDto.ClassId = schedule.ClassId;
+                resDto.DayOfWeek = schedule.DayOfWeek;
+                resDto.DayOfWeekStr = ((DayOfWeek)schedule.DayOfWeek).ToString();
+                resDto.StartPeriod = schedule.StartPeriod;
+                resDto.EndPeriod = schedule.EndPeriod;
+                resDto.StartPeriodStr = startPeriod.StartTime + "-" + startPeriod.EndTime;
+                resDto.EndPeriodStr = endPeriod.StartTime + "-" + endPeriod.EndTime;
+                resDto.ClassRoomInfo = _mapper.Map<ClassRoomDto>(schedule.ClassRoom);
+                scheduleResDtos.Add(resDto);
+            }
+
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = scheduleResDtos,
+                Success = true
+            };
+        }
+
+        public Task<Response> GetDayOfWeekAsync()
+        {
+            var dayOfWeeks = Enum.GetValues(typeof(DayOfWeek))
+                           .Cast<DayOfWeek>()
+                           .Select(type => new KeyValuePair<string, int>(type.ToString(), (int)type))
+                           .ToList();
+
+            return Task.FromResult(new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = dayOfWeeks,
                 Success = true
             });
         }
@@ -442,8 +545,18 @@ namespace EnglishCenter.Business.Services.Classes
                             Topic = ""
                         };
 
-                        var createRes = await _lessonService.CreateAsync(lessonDto);
-                        if (!createRes.Success) return createRes;
+                        var isExistLesson = _unit.Lessons.Find(s => s.ClassId == lessonDto.ClassId &&
+                                                                    s.Date == current &&
+                                                                    s.StartPeriod == lessonDto.StartPeriod &&
+                                                                    s.EndPeriod == lessonDto.EndPeriod)
+                                                                    .Any();
+
+                        if (!isExistLesson)
+                        {
+                            var createRes = await _lessonService.CreateAsync(lessonDto);
+                            if (!createRes.Success) return createRes;
+                        }
+
                     }
                 }
 

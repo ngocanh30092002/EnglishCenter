@@ -496,6 +496,18 @@ namespace EnglishCenter.Business.Services.Classes
 
         }
 
+        public Task<Response> GetByClassAsync(string classId)
+        {
+            var lessonModels = _unit.Lessons.Find(l => l.ClassId == classId).ToList();
+
+            return Task.FromResult(new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = _mapper.Map<List<LessonDto>>(lessonModels),
+                Success = true
+            });
+        }
+
         public async Task<Response> UpdateAsync(long id, LessonDto lessonModel)
         {
             var lessonEntity = _unit.Lessons.GetById(id);

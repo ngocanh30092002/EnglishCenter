@@ -62,9 +62,10 @@ namespace EnglishCenter.Presentation.Controllers.AdminPage
 
         [Authorize(Roles = AppRole.ADMIN)]
         [HttpPost("users/{userId}")]
-        public async Task<bool> AddUserRoleAsync([FromRoute] string userId, [FromBody] string roleName)
+        public async Task<IActionResult> AddUserRoleAsync([FromRoute] string userId, [FromBody] string roleName)
         {
-            return await _roleService.AddUserRoleAsync(userId, roleName);
+            var response = await _roleService.AddUserRoleAsync(userId, roleName);
+            return await response.ChangeActionAsync();
         }
 
         [Authorize(Roles = AppRole.ADMIN)]
@@ -76,9 +77,10 @@ namespace EnglishCenter.Presentation.Controllers.AdminPage
 
         [Authorize(Roles = AppRole.ADMIN)]
         [HttpDelete("users/{userId}")]
-        public async Task<bool> DeleteUserRolesAsync([FromRoute] string userId, [FromBody] string roleName)
+        public async Task<IActionResult> DeleteUserRolesAsync([FromRoute] string userId, [FromQuery] string roleName)
         {
-            return await _roleService.DeleteUserRolesAsync(userId, roleName);
+            var response = await _roleService.DeleteUserRolesAsync(userId, roleName);
+            return await response.ChangeActionAsync();
         }
     }
 }

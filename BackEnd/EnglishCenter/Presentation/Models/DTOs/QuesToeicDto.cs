@@ -18,5 +18,6 @@ namespace EnglishCenter.Presentation.Models.DTOs
         public List<SubToeicDto>? SubToeicDtos { get; set; }
 
         public string? SubToeicDtoJson { set; get; }
+        public int? Level { set; get; } = 1;
     }
 }

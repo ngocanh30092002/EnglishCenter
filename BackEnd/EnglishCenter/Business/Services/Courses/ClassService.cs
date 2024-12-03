@@ -308,6 +308,16 @@ namespace EnglishCenter.Business.Services.Courses
                 };
             }
 
+            if (!model.StartDate.HasValue || !model.EndDate.HasValue)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Start Date , End Date is required",
+                    Success = false
+                };
+            }
+
             if (model.StartDate.HasValue && model.EndDate.HasValue)
             {
                 if (model.StartDate.Value > model.EndDate.Value)
@@ -339,9 +349,25 @@ namespace EnglishCenter.Business.Services.Courses
                 classModel.Image = Path.Combine(_imageBase, fileName);
             }
 
+            var currentDate = DateOnly.FromDateTime(DateTime.Now);
+
+            if (model.StartDate.Value >= currentDate)
+            {
+                classModel.Status = (int)ClassEnum.Waiting;
+            }
+            if (model.StartDate.Value <= currentDate && currentDate <= model.EndDate.Value)
+            {
+                classModel.Status = (int)ClassEnum.Opening;
+            }
+
+            if (model.EndDate.Value <= currentDate)
+            {
+                classModel.Status = (int)ClassEnum.End;
+            }
+
             _unit.Classes.Add(classModel);
 
-            var isAddClaimSuccess = await _claimService.AddClaimToUserAsync(model.ClassId, new ClaimDto()
+            var isAddClaimSuccess = await _claimService.AddClaimToUserAsync(model.TeacherId, new ClaimDto()
             {
                 ClaimName = GlobalClaimNames.CLASS,
                 ClaimValue = model.ClassId
@@ -375,6 +401,17 @@ namespace EnglishCenter.Business.Services.Courses
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
                     Message = "Can't find any classes",
+                    Success = false
+                };
+            }
+
+            var isValidStatus = classModel.Status != (int)ClassEnum.Opening;
+            if (!isValidStatus)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Class is opening so can't delete it",
                     Success = false
                 };
             }
@@ -416,16 +453,16 @@ namespace EnglishCenter.Business.Services.Courses
             };
         }
 
-        public async Task<Response> GetAllAsync()
+        public Task<Response> GetAllAsync()
         {
-            var classes = await _unit.Classes.Include(c => c.Teacher).ToListAsync();
+            var classes = _unit.Classes.GetAll().ToList();
 
-            return new Response()
+            return Task.FromResult(new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
                 Message = _mapper.Map<List<ClassResDto>>(classes),
                 Success = true
-            };
+            });
         }
 
         public async Task<Response> GetClassesWithCourseAsync(string courseId)

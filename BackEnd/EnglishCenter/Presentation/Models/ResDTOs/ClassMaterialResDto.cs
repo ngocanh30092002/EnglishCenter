@@ -10,5 +10,7 @@
         public string? ClassId { set; get; }
         public LessonResDto? LessonInfo { set; get; }
         public string? FileSize { set; get; }
+        public string? Type { set; get; }
+        public string? LessonDate { set; get; }
     }
 }

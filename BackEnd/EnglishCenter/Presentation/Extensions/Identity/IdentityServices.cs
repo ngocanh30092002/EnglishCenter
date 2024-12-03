@@ -2,7 +2,6 @@
 using EnglishCenter.DataAccess.Database;
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.Presentation.Global;
-using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
@@ -70,7 +69,6 @@ namespace EnglishCenter.Presentation.Extensions.Identity
                     {
                         return context.User.IsInRole(AppRole.ADMIN) ||
                                context.User.IsInRole(AppRole.STUDENT) ||
-                               context.User.IsInRole(AppRole.MANAGER) ||
                                context.User.IsInRole(AppRole.TEACHER);
                     });
                 });

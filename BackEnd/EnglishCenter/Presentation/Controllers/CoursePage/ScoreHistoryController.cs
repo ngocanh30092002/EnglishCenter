@@ -1,6 +1,5 @@
 ﻿using EnglishCenter.Business.IServices;
 using EnglishCenter.Presentation.Models.DTOs;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EnglishCenter.Presentation.Controllers.CoursePage
@@ -11,7 +10,7 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
     {
         private readonly IScoreHistoryService _scoreHisService;
 
-        public ScoreHistoryController(IScoreHistoryService scoreHisService) 
+        public ScoreHistoryController(IScoreHistoryService scoreHisService)
         {
             _scoreHisService = scoreHisService;
         }
@@ -27,6 +26,13 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
         public async Task<IActionResult> GetAsync([FromRoute] long scoreId)
         {
             var response = await _scoreHisService.GetAsync(scoreId);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("classes/{classId}")]
+        public async Task<IActionResult> GetAsync([FromRoute] string classId)
+        {
+            var response = await _scoreHisService.GetByClassAsync(classId);
             return await response.ChangeActionAsync();
         }
 
@@ -57,7 +63,7 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
         public async Task<IActionResult> ChangeEntrancePointAsync([FromRoute] long scoreId, [FromBody] int score)
         {
             var response = await _scoreHisService.ChangeEntrancePointAsync(scoreId, score);
-            return await response.ChangeActionAsync();  
+            return await response.ChangeActionAsync();
         }
 
         [HttpPatch("{scoreId}/final-point")]

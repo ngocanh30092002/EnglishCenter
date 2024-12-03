@@ -222,7 +222,7 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
                 };
             }
 
-            var isCorrectAnswer = await _unit.HomeQues.IsCorrectAnswerAsync(homeQueModel, model.SelectedAnswer, model.HwSubQuesId);
+            var isCorrectAnswer = await _unit.HomeQues.IsCorrectAnswerAsync(homeQueModel, model.SelectedAnswer ?? "", model.HwSubQuesId);
 
             var existRecords = _unit.HwSubRecords
                                     .Find(a => a.SubmissionId == model.SubmissionId &&
@@ -422,7 +422,7 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
                     if (!changeResponse.Success) return changeResponse;
                 }
 
-                if (subModel.SelectedAnswer != model.SelectedAnswer)
+                if (!string.IsNullOrEmpty(model.SelectedAnswer) && subModel.SelectedAnswer != model.SelectedAnswer)
                 {
                     var changeResponse = await ChangeSelectedAnswerAsync(id, model.SelectedAnswer);
                     if (!changeResponse.Success) return changeResponse;

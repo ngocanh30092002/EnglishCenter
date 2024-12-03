@@ -13,6 +13,5 @@ namespace EnglishCenter.DataAccess.IRepositories
         public Task<bool> ChangeEndTimeAsync(Homework homeModel, DateTime endTime);
         public Task<bool> ChangeLateSubmitDaysAsync(Homework homeModel, int days);
         public Task<bool> IsInChargeAsync(Homework homework, string userId);
-
     }
 }

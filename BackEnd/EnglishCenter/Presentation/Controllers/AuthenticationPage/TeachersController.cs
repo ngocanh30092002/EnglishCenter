@@ -27,6 +27,13 @@ namespace EnglishCenter.Presentation.Controllers.AuthenticationPage
             return await response.ChangeActionAsync();
         }
 
+        [HttpGet()]
+        public async Task<IActionResult> GetAllAsync()
+        {
+            var response = await _teacherService.GetAllAsync();
+            return await response.ChangeActionAsync();
+        }
+
         [HttpGet("{userId}")]
         public async Task<IActionResult> GetAsync([FromRoute] string userId)
         {

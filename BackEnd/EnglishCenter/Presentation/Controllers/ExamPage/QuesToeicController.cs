@@ -230,6 +230,14 @@ namespace EnglishCenter.Presentation.Controllers.ExamPage
             return await response.ChangeActionAsync();
         }
 
+        [HttpPatch("{id}/level")]
+        [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
+        public async Task<IActionResult> ChangeLevelAsync([FromRoute] long id, [FromQuery] int level)
+        {
+            var response = await _quesService.ChangeLevelAsync(id, level);
+            return await response.ChangeActionAsync();
+        }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAsync([FromRoute] long id)
         {

@@ -4,7 +4,6 @@ using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.UnitOfWork;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
-using Org.BouncyCastle.Crypto.Fpe;
 
 namespace EnglishCenter.Business.Services.Authorization
 {
@@ -116,13 +115,14 @@ namespace EnglishCenter.Business.Services.Authorization
 
         public async Task<Response> GetEventsWithDateAsync(string userId, DateOnly date)
         {
-            if (!_unit.Students.IsExist(x => x.UserId == userId))
+            bool isValidStudent = _unit.Students.IsExist(x => x.UserId == userId);
+            if (!isValidStudent)
             {
                 return new Response()
                 {
                     Success = false,
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Can't find any students"
+                    Message = "Can't find any users"
                 };
             }
 

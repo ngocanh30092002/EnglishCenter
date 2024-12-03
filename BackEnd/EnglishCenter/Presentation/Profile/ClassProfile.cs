@@ -44,6 +44,7 @@ namespace EnglishCenter.Presentation
                     .ReverseMap();
 
             CreateMap<ClassRoomDto, ClassRoom>()
+                    .ForMember(des => des.ClassRoomId, opt => opt.MapFrom(src => src.Id))
                     .ForMember(des => des.ClassRoomName, opt => opt.MapFrom(src => src.ClassRoomName))
                     .ForMember(des => des.Capacity, opt => opt.MapFrom(src => src.Capacity))
                     .ForMember(des => des.Location, opt => opt.MapFrom(src => src.Location))
@@ -55,8 +56,16 @@ namespace EnglishCenter.Presentation
                     .ForMember(des => des.StartPeriod, opt => opt.MapFrom(src => src.StartPeriod))
                     .ForMember(des => des.EndPeriod, opt => opt.MapFrom(src => src.EndPeriod))
                     .ForMember(des => des.Topic, opt => opt.MapFrom(src => src.Topic))
+                    .ForMember(des => des.ClassRoomId, opt => opt.MapFrom(src => src.ClassRoomId));
+
+            CreateMap<Lesson, LessonDto>()
+                    .ForMember(des => des.ClassId, opt => opt.MapFrom(src => src.ClassId))
+                    .ForMember(des => des.Date, opt => opt.MapFrom(src => src.Date))
+                    .ForMember(des => des.StartPeriod, opt => opt.MapFrom(src => src.StartPeriod))
+                    .ForMember(des => des.EndPeriod, opt => opt.MapFrom(src => src.EndPeriod))
+                    .ForMember(des => des.Topic, opt => opt.MapFrom(src => src.Topic))
                     .ForMember(des => des.ClassRoomId, opt => opt.MapFrom(src => src.ClassRoomId))
-                    .ReverseMap();
+                    .ForMember(des => des.LessonId, opt => opt.MapFrom(src => src.LessonId));
 
             CreateMap<Lesson, LessonResDto>()
                     .ForMember(des => des.ClassId, opt => opt.MapFrom(src => src.ClassId))
@@ -74,7 +83,10 @@ namespace EnglishCenter.Presentation
                     .ForMember(des => des.UploadAt, opt => opt.MapFrom(src => src.UploadAt.ToString("HH:mm:ss dd-MM-yyyy")))
                     .ForMember(des => des.UploadBy, opt => opt.MapFrom(src => src.UploadBy))
                     .ForMember(des => des.ClassId, opt => opt.MapFrom(src => src.ClassId))
-                    .ForMember(des => des.LessonInfo, opt => opt.MapFrom(src => src.Lesson));
+                    .ForMember(des => des.LessonInfo, opt => opt.MapFrom(src => src.Lesson))
+                    .ForMember(des => des.Type, opt => opt.MapFrom(src => src.ClassId != null ? "Class" : "Lesson"))
+                    .ForMember(des => des.LessonDate, opt => opt.MapFrom(src => src.Lesson == null ? null : src.Lesson.Date.ToString()))
+                    ;
 
             CreateMap<SubmissionFile, SubmissionFileResDto>()
                     .ForMember(des => des.FilePath, opt => opt.MapFrom(src => src.FilePath == null ? null : src.FilePath.Replace("\\", "/")))

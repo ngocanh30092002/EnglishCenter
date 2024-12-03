@@ -8,8 +8,8 @@ namespace EnglishCenter.Business.IServices
         public Task<bool> IsExistRoleAsync(string roleName);
         public Task<bool> DeleteRoleAsync(string roleName);
         public Task<Response> GetRolesAsync();
-        public Task<bool> AddUserRoleAsync(string userId, string roleName);
+        public Task<Response> AddUserRoleAsync(string userId, string roleName);
         public Task<Response> GetUserRolesAsync(string userId);
-        public Task<bool> DeleteUserRolesAsync(string userId, string roleName);
+        public Task<Response> DeleteUserRolesAsync(string userId, string roleName);
     }
 }

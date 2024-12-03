@@ -120,5 +120,17 @@ namespace EnglishCenter.Business.Services
                 Message = ""
             };
         }
+
+        public Task<Response> GetAllAsync()
+        {
+            var teacherModels = _unit.Teachers.Include(t => t.User).ToList();
+
+            return Task.FromResult(new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = _mapper.Map<List<TeacherResDto>>(teacherModels),
+                Success = true
+            });
+        }
     }
 }

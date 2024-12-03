@@ -10,6 +10,7 @@ namespace EnglishCenter.Business.IServices
         public Task<Response> GetByToeicAsync(long toeicId);
         public Task<Response> GetTotalNumberSentences(long toeicId);
         public Task<Response> ChangeNoNumAsync(long id, int noNum);
+        public Task<Response> ChangeLevelAsync(long id, int level);
         public Task<Response> ChangeAudioAsync(long id, IFormFile? audioFile);
         public Task<Response> ChangeImage1Async(long id, IFormFile? imageFile);
         public Task<Response> ChangeImage2Async(long id, IFormFile? imageFile);

@@ -991,6 +991,9 @@ namespace EnglishCenter.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
                     b.HasKey("HomeworkId");
 
                     b.HasIndex("LessonId");
@@ -1489,6 +1492,9 @@ namespace EnglishCenter.Migrations
 
                     b.Property<bool>("IsGroup")
                         .HasColumnType("bit");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("int");
 
                     b.Property<int>("NoNum")
                         .HasColumnType("int");

@@ -8,8 +8,9 @@ namespace EnglishCenter.Business.IServices
         public Task<Response> GetAsync(long id);
         public Task<Response> GetAllAsync();
         public Task<Response> GetByHomeworkAsync(long homeworkId);
-        public Task<Response> GetNumberByHomeworkAsync(long homeworkId); 
+        public Task<Response> GetNumberByHomeworkAsync(long homeworkId);
         public Task<Response> GetHomeQuesByNoNumAsync(long homeworkId, int noNum);
+        public Task<Response> GetTypeQuesAsync();
         public Task<Response> ChangeHomeworkIdAsync(long id, long homeworkId);
         public Task<Response> ChangeNoNumAsync(long id, int noNum);
         public Task<Response> ChangeQuesAsync(long id, int type, long quesId);

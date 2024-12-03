@@ -38,5 +38,7 @@ namespace EnglishCenter.DataAccess.Entities
         public virtual Lesson Lesson { set; get; } = null!;
 
         public string? Image { set; get; }
+
+        public int Type { set; get; } = 1;
     }
 }

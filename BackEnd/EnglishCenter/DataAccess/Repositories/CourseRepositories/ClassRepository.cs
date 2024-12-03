@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using EnglishCenter.Business.IServices;
+﻿using EnglishCenter.Business.IServices;
 using EnglishCenter.DataAccess.Database;
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.IRepositories;
@@ -12,17 +11,22 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
 {
-    public class ClassRepository : GenericRepository<Class> ,IClassRepository
+    public class ClassRepository : GenericRepository<Class>, IClassRepository
     {
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly IClaimService _claimService;
 
-        public ClassRepository(EnglishCenterContext context,  IWebHostEnvironment webHostEnvironment, IClaimService claimService): base(context)
+        public ClassRepository(EnglishCenterContext context, IWebHostEnvironment webHostEnvironment, IClaimService claimService) : base(context)
         {
             _webHostEnvironment = webHostEnvironment;
             _claimService = claimService;
         }
 
+        public override IEnumerable<Class> GetAll()
+        {
+            var listClasses = context.Classes.Include(c => c.Teacher).ThenInclude(t => t.User).ToList();
+            return listClasses;
+        }
         public async Task<List<Class>?> GetClassesWithTeacherAsync(string teacherId)
         {
             if (teacherId == null) return null;
@@ -36,7 +40,7 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
 
         public async Task<bool> ChangeCourseAsync(Class model, string courseId)
         {
-            if(model == null) return false;
+            if (model == null) return false;
 
             var course = await context.Courses.FindAsync(courseId);
             if (course == null) return false;
@@ -69,7 +73,7 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
             var oldPathImage = Path.Combine(_webHostEnvironment.WebRootPath, model.Image ?? "");
             var uploadFolder = Path.Combine(_webHostEnvironment.WebRootPath, "classes", "images");
             var fileName = $"{DateTime.Now.Ticks}_{image.FileName}";
-            
+
             var result = await UploadHelper.UploadFileAsync(image, uploadFolder, fileName);
             if (!string.IsNullOrEmpty(result)) return false;
 
@@ -129,7 +133,7 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
 
             var claimDto = new ClaimDto() { ClaimName = GlobalClaimNames.CLASS, ClaimValue = model.ClassId };
             var isSuccess = false;
-            if(model.Status != (int)ClassEnum.End)
+            if (model.Status != (int)ClassEnum.End)
             {
                 isSuccess = await _claimService.DeleteClaimInUserAsync(model.TeacherId, claimDto);
                 if (!isSuccess) return false;
@@ -153,21 +157,6 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
                     Message = "Can't find any classes",
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
                 };
-            }
-
-            if (classModel.CourseId != model.CourseId)
-            {
-                var isExistCourse = context.Courses.Any(c => c.CourseId == model.CourseId);
-                if (!isExistCourse)
-                {
-                    return new Response()
-                    {
-                        Message = "Can't find any courses",
-                        StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    };
-                }
-
-                classModel.CourseId = model.CourseId;
             }
 
             if (classModel.TeacherId != model.TeacherId)
@@ -199,6 +188,15 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
                 }
             }
 
+            if (!model.StartDate.HasValue || !model.EndDate.HasValue)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Start and End is required"
+                };
+            }
+
             if (model.StartDate.HasValue && model.EndDate.HasValue)
             {
                 if (model.StartDate.Value > model.EndDate.Value)
@@ -209,6 +207,22 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
                         Message = "Start time must be less than end time"
                     };
                 }
+            }
+
+            var currentDate = DateOnly.FromDateTime(DateTime.Now);
+
+            if (model.StartDate.Value >= currentDate)
+            {
+                classModel.Status = (int)ClassEnum.Waiting;
+            }
+            if (model.StartDate.Value <= currentDate && currentDate <= model.EndDate.Value)
+            {
+                classModel.Status = (int)ClassEnum.Opening;
+            }
+
+            if (model.EndDate.Value <= currentDate)
+            {
+                classModel.Status = (int)ClassEnum.End;
             }
 
             classModel.StartDate = model.StartDate;
@@ -227,7 +241,7 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
 
         public async Task<bool> ChangeStatusAsync(Class model, ClassEnum status)
         {
-            if(status == ClassEnum.End)
+            if (status == ClassEnum.End)
             {
                 var isSuccess = await _claimService.DeleteClaimInUserAsync(model.TeacherId ?? "", new ClaimDto()
                 {

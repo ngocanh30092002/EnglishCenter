@@ -1,6 +1,6 @@
 ﻿namespace EnglishCenter.Presentation.Models.ResDTOs
 {
-    public class StudentResDto
+    public class UserInfoResDto
     {
         public string? FirstName { get; set; }
         public string? LastName { get; set; }

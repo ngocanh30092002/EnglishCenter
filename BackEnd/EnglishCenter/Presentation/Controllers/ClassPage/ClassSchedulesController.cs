@@ -32,6 +32,20 @@ namespace EnglishCenter.Presentation.Controllers.ClassPage
             return await response.ChangeActionAsync();
         }
 
+        [HttpGet("classes/{classId}")]
+        public async Task<IActionResult> GetByClassAsync([FromRoute] string classId)
+        {
+            var response = await _scheduleService.GetByClassAsync(classId);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("day-of-week")]
+        public async Task<IActionResult> GetDayOfWeekAsync()
+        {
+            var response = await _scheduleService.GetDayOfWeekAsync();
+            return await response.ChangeActionAsync();
+        }
+
         [HttpPost]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> CreateAsync([FromForm] ClassScheduleDto model)

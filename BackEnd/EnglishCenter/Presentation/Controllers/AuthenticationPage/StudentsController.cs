@@ -53,55 +53,14 @@ namespace EnglishCenter.Presentation.Controllers.AuthenticationPage
             return await response.ChangeActionAsync();
         }
 
-        [HttpPost("user-info")]
-        public async Task<IActionResult> ChangeUserInfoAsync([FromForm] StudentInfoDto model)
-        {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
-
-            var response = await _studentService.ChangeStudentInfoAsync(userId, model);
-
-            return await response.ChangeActionAsync();
-        }
-
         [HttpPost("user-background")]
-        public async Task<IActionResult> ChangeUserBackgroundAsync([FromForm] StudentBackgroundDto model)
+        public async Task<IActionResult> ChangeUserBackgroundAsync([FromForm] UserBackgroundDto model)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
 
             var response = await _studentService.ChangeStudentBackgroundAsync(userId, model);
 
             return await response.ChangeActionAsync();
-        }
-
-        [HttpGet("user-info")]
-        public async Task<IActionResult> GetUserInforAsync()
-        {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
-
-            var response = await _studentService.GetStudentInfoAsync(userId);
-
-            return await response.ChangeActionAsync();
-        }
-
-        [HttpGet("user-background-info")]
-        public async Task<IActionResult> GetUserBackgroundInfoAsync()
-        {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
-
-            var response = await _studentService.GetStudentBackgroundAsync(userId);
-
-            return await response.ChangeActionAsync();
-        }
-
-        [HttpGet("full-info")]
-        public async Task<IActionResult> GetUserFullInfoAsync()
-        {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
-
-            var response = await _studentService.GetFullInfoAsync(userId);
-
-            return await response.ChangeActionAsync();
-
         }
 
         [HttpGet("roles")]

@@ -415,6 +415,17 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
                     Success = false
                 };
             }
+
+            if (model.Type.HasValue && model.Type.Value > 2)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Type is invalid",
+                    Success = false
+                };
+            }
+
             var homeModel = new Homework();
             homeModel.LessonId = model.LessonId;
             homeModel.Title = model.Title;
@@ -423,6 +434,7 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
             homeModel.ExpectedTime = TimeOnly.MinValue;
             homeModel.StartTime = startTime;
             homeModel.EndTime = endTime;
+            homeModel.Type = model.Type ?? 1;
             homeModel.LateSubmitDays = model.LateSubmitDays.HasValue ? model.LateSubmitDays.Value : 0;
             homeModel.Image = Path.Combine("homework_imgs", fileName);
 

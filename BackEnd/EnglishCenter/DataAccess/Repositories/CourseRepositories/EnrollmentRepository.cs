@@ -39,7 +39,12 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
 
         public async Task<List<Enrollment>> GetAsync(string classId, EnrollEnum status)
         {
-            var enrollments = await context.Enrollments.Where(e => e.ClassId == classId && e.StatusId == (int)status).ToListAsync();
+            var enrollments = await context.Enrollments
+                                           .Include(e => e.User)
+                                           .ThenInclude(u => u.User)
+                                           .Include(e => e.Status)
+                                           .Where(e => e.ClassId == classId && e.StatusId == (int)status)
+                                           .ToListAsync();
 
             return enrollments;
         }
@@ -269,6 +274,12 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
                 {
                     return false;
                 }
+            }
+
+            var classSchedules = context.ClassSchedules.Where(c => c.ClassId == classId);
+            foreach (var classSchedule in classSchedules)
+            {
+                classSchedule.IsActive = false;
             }
 
             return true;

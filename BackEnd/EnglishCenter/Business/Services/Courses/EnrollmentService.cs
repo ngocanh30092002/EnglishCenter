@@ -212,6 +212,23 @@ namespace EnglishCenter.Business.Services.Courses
             };
         }
 
+        public async Task<Response> GetByClassAsync(string classId)
+        {
+            var enrollments = await _unit.Enrollment
+                                        .Include(e => e.Status)
+                                        .Include(e => e.User)
+                                        .ThenInclude(s => s.User)
+                                        .Where(e => e.ClassId == classId && e.StatusId == (int)EnrollEnum.Ongoing)
+                                        .ToListAsync();
+
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = _mapper.Map<List<EnrollResDto>>(enrollments),
+                Success = true
+            };
+        }
+
         public async Task<Response> GetAsync(string classId, int statusId)
         {
             if (!Enum.IsDefined(typeof(EnrollEnum), statusId))
@@ -229,7 +246,7 @@ namespace EnglishCenter.Business.Services.Courses
             return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Message = _mapper.Map<List<EnrollmentDto>>(enrollments),
+                Message = _mapper.Map<List<EnrollResDto>>(enrollments),
                 Success = true
             };
         }
@@ -595,7 +612,7 @@ namespace EnglishCenter.Business.Services.Courses
                 _unit.ScoreHis.Remove(scoreHisModel);
             }
 
-            _unit.Enrollment.Remove(enrollModel);
+            enrollModel.StatusId = (int)EnrollEnum.Rejected;
 
             var classModel = _unit.Classes.GetById(enrollModel.ClassId);
             if (classModel == null)

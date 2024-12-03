@@ -18,5 +18,6 @@ namespace EnglishCenter.Presentation.Models.DTOs
         public long ClassRoomId { set; get; }
 
         public string? Topic { set; get; }
+        public long? LessonId { set; get; }
     }
 }

@@ -35,6 +35,7 @@ namespace EnglishCenter.Presentation
                     return 2;
                 }))
                 .ForMember(des => des.Image, opt => opt.MapFrom(src => src.Image == null ? null : src.Image.Replace("\\", "/")))
+                .ForMember(des => des.Type, opt => opt.MapFrom(src => src.Type))
                 ;
 
 

@@ -12,8 +12,6 @@ namespace EnglishCenter.Presentation.Models.DTOs
 
         public long? HwSubQuesId { set; get; }
 
-        [Required]
-        [RegularExpression("^[A-Da-d]+$", ErrorMessage = "Only A, B, C, D are accepted")]
-        public string SelectedAnswer { set; get; } = null!;
+        public string? SelectedAnswer { set; get; }
     }
 }

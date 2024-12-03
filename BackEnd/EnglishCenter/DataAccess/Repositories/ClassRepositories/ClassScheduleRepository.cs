@@ -49,9 +49,14 @@ namespace EnglishCenter.DataAccess.Repositories.ClassRepositories
                 schedule.ClassRoomId = classRoomId;
                 return true;
             }
+            var classModel = await context.Classes.FindAsync(schedule.ClassId);
 
             bool isDuplicate = await IsDuplicateAsync(schedule.DayOfWeek, classRoomId, schedule.StartPeriod, schedule.EndPeriod);
+            bool isDuplicateTeacher = await IsDuplicateTeacherAsync(schedule.DayOfWeek, schedule.StartPeriod, schedule.EndPeriod, classModel!.TeacherId);
+
             if (isDuplicate) return false;
+            if (isDuplicateTeacher) return false;
+
             schedule.ClassRoomId = classRoomId;
             return true;
         }
@@ -68,11 +73,16 @@ namespace EnglishCenter.DataAccess.Repositories.ClassRepositories
                 return true;
             }
 
+            var classModel = await context.Classes.FindAsync(schedule.ClassId);
+
             var isExist = context.ClassSchedules.Where(s => s.ClassId == schedule.ClassId && s.DayOfWeek == dayOfWeek && s.IsActive == true).Any();
             if (isExist) return false;
 
             bool isDuplicate = await IsDuplicateAsync(dayOfWeek, schedule.ClassRoomId, schedule.StartPeriod, schedule.EndPeriod);
+            bool isDuplicateTeacher = await IsDuplicateTeacherAsync(schedule.DayOfWeek, schedule.StartPeriod, schedule.EndPeriod, classModel!.TeacherId);
+
             if (isDuplicate) return false;
+            if (isDuplicateTeacher) return false;
 
             schedule.DayOfWeek = dayOfWeek;
 
@@ -95,6 +105,12 @@ namespace EnglishCenter.DataAccess.Repositories.ClassRepositories
             bool isDuplicate = await IsDuplicateAsync(schedule.DayOfWeek, schedule.ClassRoomId, schedule.StartPeriod, end, schedule.ScheduleId);
             if (isDuplicate) return false;
 
+            var classModel = await context.Classes.FindAsync(schedule.ClassId);
+
+            bool isDuplicateTeacher = await IsDuplicateTeacherAsync(schedule.DayOfWeek, schedule.StartPeriod, end, classModel!.TeacherId, schedule.ScheduleId); ;
+            if (isDuplicate) return false;
+            if (isDuplicateTeacher) return false;
+
             schedule.EndPeriod = end;
 
             return true;
@@ -113,8 +129,15 @@ namespace EnglishCenter.DataAccess.Repositories.ClassRepositories
                 return true;
             }
 
+            var classModel = await context.Classes.FindAsync(schedule.ClassId);
+
+
             bool isDuplicate = await IsDuplicateAsync(schedule.DayOfWeek, schedule.ClassRoomId, start, schedule.EndPeriod, schedule.ScheduleId);
             if (isDuplicate) return false;
+
+            bool isDuplicateTeacher = await IsDuplicateTeacherAsync(schedule.DayOfWeek, start, schedule.EndPeriod, classModel!.TeacherId, schedule.ScheduleId); ;
+            if (isDuplicate) return false;
+            if (isDuplicateTeacher) return false;
 
             schedule.StartPeriod = start;
 
@@ -144,6 +167,46 @@ namespace EnglishCenter.DataAccess.Repositories.ClassRepositories
             }
 
             if (start > end) return true;
+
+            foreach (var schedule in schedules)
+            {
+                if (schedule.StartPeriod <= start && start <= schedule.EndPeriod)
+                {
+                    return true;
+                }
+                if (schedule.StartPeriod <= end && end <= schedule.EndPeriod)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public async Task<bool> IsDuplicateTeacherAsync(int dayOfWeek, int start, int end, string teacherId, long? scheduleId = null)
+        {
+            var teacherModel = await context.Teachers
+                                            .Include(t => t.Classes)
+                                            .FirstOrDefaultAsync(t => t.UserId == teacherId);
+            if (teacherModel == null) return true;
+
+            var schedules = new List<ClassSchedule>();
+            var classIds = teacherModel.Classes.Where(c => c.Status == (int)ClassEnum.Opening).Select(c => c.ClassId).ToList();
+
+            if (scheduleId.HasValue)
+            {
+                schedules = context.ClassSchedules
+                                 .Where(c => classIds.Contains(c.ClassId) && c.ScheduleId != scheduleId.Value && c.IsActive == true)
+                                 .ToList();
+            }
+            else
+            {
+
+                schedules = context.ClassSchedules
+                                   .Where(c => classIds.Contains(c.ClassId) && c.IsActive == true)
+                                   .ToList();
+
+            }
 
             foreach (var schedule in schedules)
             {

@@ -26,7 +26,7 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
         public async Task<Response> ChangeHomeworkIdAsync(long id, long homeworkId)
         {
             var homeQueModel = _unit.HomeQues.GetById(id);
-            if(homeQueModel == null)
+            if (homeQueModel == null)
             {
                 return new Response()
                 {
@@ -104,7 +104,7 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
         public async Task<Response> ChangeQuesAsync(long id, int type, long quesId)
         {
             var homeQueModel = _unit.HomeQues.GetById(id);
-            if(homeQueModel == null)
+            if (homeQueModel == null)
             {
                 return new Response()
                 {
@@ -114,7 +114,7 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
                 };
             }
 
-            if(!Enum.IsDefined(typeof(QuesTypeEnum), type))
+            if (!Enum.IsDefined(typeof(QuesTypeEnum), type))
             {
                 return new Response()
                 {
@@ -124,7 +124,7 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
                 };
             }
 
-            var isChangeSuccess = await _unit.HomeQues.ChangeQuesAsync(homeQueModel, (QuesTypeEnum) type, quesId);
+            var isChangeSuccess = await _unit.HomeQues.ChangeQuesAsync(homeQueModel, (QuesTypeEnum)type, quesId);
             if (!isChangeSuccess)
             {
                 return new Response()
@@ -151,7 +151,7 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
                                     .Include(a => a.HomeQues)
                                     .FirstOrDefault(a => a.HomeworkId == model.HomeworkId);
 
-            if(homeworkModel == null)
+            if (homeworkModel == null)
             {
                 return new Response()
                 {
@@ -194,7 +194,7 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
 
             var homeQueModel = _mapper.Map<HomeQue>(model);
             var currentMaxNum = homeworkModel.HomeQues.Count > 0 ? homeworkModel.HomeQues.Max(c => c.NoNum) : 0;
-            
+
             homeQueModel.NoNum = currentMaxNum + 1;
 
             _unit.HomeQues.Add(homeQueModel);
@@ -261,7 +261,7 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
                     Success = true
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 await _unit.RollBackTransAsync();
 
@@ -278,7 +278,7 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
         {
             var models = _unit.HomeQues.GetAll();
 
-            foreach(var model in models)
+            foreach (var model in models)
             {
                 var isSuccess = await _unit.HomeQues.LoadQuestionAsync(model);
                 if (!isSuccess)
@@ -316,8 +316,8 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
         public async Task<Response> GetByHomeworkAsync(long homeworkId)
         {
             var models = _unit.HomeQues.Find(h => h.HomeworkId == homeworkId);
-            
-            foreach(var model in models)
+
+            foreach (var model in models)
             {
                 var isSuccess = await _unit.HomeQues.LoadQuestionAsync(model);
                 if (!isSuccess)
@@ -331,11 +331,19 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
                 }
             }
 
+            if (models != null && models.Count() != 0)
+            {
+                models = models.GroupBy(model => model.Type)
+                               .Select(group => group.OrderBy(x => Guid.NewGuid()).ToList())
+                               .SelectMany(group => group)
+                               .OrderBy(a => a.Type)
+                               .ToList();
+            }
 
             return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Message = _mapper.Map<List<HomeQueResDto>>(models.OrderBy(m => m.NoNum)),
+                Message = _mapper.Map<List<HomeQueResDto>>(models),
                 Success = true
             };
         }
@@ -382,6 +390,22 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
                 Message = number,
                 Success = true
             };
+        }
+
+        public Task<Response> GetTypeQuesAsync()
+        {
+            var typeQues = Enum.GetValues(typeof(QuesTypeEnum))
+                           .Cast<QuesTypeEnum>()
+                           .Select(type => new KeyValuePair<string, int>(type.ToString(), (int)type))
+                           .ToList();
+
+            return Task.FromResult(new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = typeQues,
+                Success = true
+            });
+
         }
 
         public async Task<Response> UpdateAsync(long id, HomeQueDto model)

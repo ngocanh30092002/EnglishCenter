@@ -13,7 +13,7 @@ namespace EnglishCenter.Presentation.Controllers.HomeworkPage
     {
         private readonly IHomeQuesService _homeService;
 
-        public HomeQuesController(IHomeQuesService homeService) 
+        public HomeQuesController(IHomeQuesService homeService)
         {
             _homeService = homeService;
         }
@@ -29,6 +29,13 @@ namespace EnglishCenter.Presentation.Controllers.HomeworkPage
         public async Task<IActionResult> GetAsync(long id)
         {
             var response = await _homeService.GetAsync(id);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("types")]
+        public async Task<IActionResult> GetTypeQuesAsync()
+        {
+            var response = await _homeService.GetTypeQuesAsync();
             return await response.ChangeActionAsync();
         }
 

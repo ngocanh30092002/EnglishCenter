@@ -4,7 +4,7 @@ using EnglishCenter.Presentation.Attribute;
 
 namespace EnglishCenter.Presentation.Models.DTOs
 {
-    public class StudentInfoDto
+    public class UserInfoDto
     {
         [Required]
         public string FirstName { get; set; }

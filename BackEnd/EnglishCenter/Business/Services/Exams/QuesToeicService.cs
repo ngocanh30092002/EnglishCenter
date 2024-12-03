@@ -399,6 +399,16 @@ namespace EnglishCenter.Business.Services.Exams
                 };
             }
 
+            if (model.Level.HasValue && (model.Level < 1 || model.Level > 4))
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Level is invalid",
+                    Success = false
+                };
+            }
+
             var isFull = await IsFullQuesAsync(toeicModel, model.Part);
             if (isFull)
             {
@@ -414,6 +424,7 @@ namespace EnglishCenter.Business.Services.Exams
             queModel.ToeicId = model.ToeicId;
             queModel.Part = model.Part;
             queModel.IsGroup = model.IsGroup;
+            queModel.Level = model.Level ?? 1;
             queModel.NoNum = await NextNoNumAsync(model.ToeicId, model.Part);
 
             await _unit.BeginTransAsync();
@@ -554,6 +565,23 @@ namespace EnglishCenter.Business.Services.Exams
                 await _unit.QuesToeic.LoadSubQuesAsync(que);
             }
 
+            //var ranges = new (int start, int end)[]
+            //{
+            //    (7, 31),
+            //    (32, 44),
+            //    (45, 54),
+            //    (55, 84),
+            //    (85, 88),
+            //    (89, 103)
+            //};
+
+            //var newResDtoModels = queModels.GroupBy(model => ranges.FirstOrDefault(r => model.NoNum >= r.start && model.NoNum <= r.end))
+            //                               .Select(group => group.OrderBy(x => Guid.NewGuid()).ToList())
+            //                               .SelectMany(group => group)
+            //                               .ToArray();
+
+            //var resDtoModels = _mapper.Map<List<QuesToeicResDto>>(newResDtoModels);
+
             return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
@@ -616,6 +644,8 @@ namespace EnglishCenter.Business.Services.Exams
 
                 response = await ChangeImage3Async(id, model.Image_3);
                 if (!response.Success) return response;
+
+                response = await ChangeLevelAsync(id, model.Level!.Value);
 
                 if (queModel.IsGroup != model.IsGroup)
                 {
@@ -737,6 +767,49 @@ namespace EnglishCenter.Business.Services.Exams
             }
 
             return Task.FromResult(result);
+        }
+
+        public async Task<Response> ChangeLevelAsync(long id, int level)
+        {
+            var queModel = _unit.QuesToeic.GetById(id);
+            if (queModel == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any toeic questions",
+                    Success = false
+                };
+            }
+
+            if (level < 1 || level > 4)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Level is invalid",
+                    Success = false
+                };
+            }
+
+            var isChangeSuccess = await _unit.QuesToeic.ChangeLevelAsync(queModel, level);
+            if (!isChangeSuccess)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Change group failed",
+                    Success = false
+                };
+            }
+
+            await _unit.CompleteAsync();
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = "",
+                Success = true
+            };
         }
     }
 }

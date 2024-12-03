@@ -90,6 +90,14 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
         }
 
         [HttpGet("class/{classId}")]
+        [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
+        public async Task<IActionResult> GetByClassAsync([FromRoute] string classId)
+        {
+            var response = await _enrollService.GetByClassAsync(classId);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("class/{classId}/status")]
         [Authorize(Roles = AppRole.ADMIN)]
         public async Task<IActionResult> GetByClassWithStatusAsync([FromRoute] string classId, [FromQuery] int statusId)
         {

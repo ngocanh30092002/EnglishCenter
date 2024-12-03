@@ -7,6 +7,8 @@ namespace EnglishCenter.Business.IServices
     {
         public Task<Response> GetAllAsync();
         public Task<Response> GetAsync(long id);
+        public Task<Response> GetByClassAsync(string classId);
+        public Task<Response> GetDayOfWeekAsync();
         public Task<Response> ChangeStartPeriodAsync(long id, int start);
         public Task<Response> ChangeEndPeriodAsync(long id, int end);
         public Task<Response> ChangeDayOfWeekAsync(long id, int dayOfWeek);

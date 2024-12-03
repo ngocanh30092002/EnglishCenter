@@ -13,5 +13,6 @@
         public string? Title { set; get; }
         public int Status { set; get; }
         public string Image { set; get; }
+        public int Type { set; get; }
     }
 }

@@ -313,9 +313,13 @@ namespace EnglishCenter.Business.Services.Assignments
 
             var assignQues = await _unit.AssignQues.GetByAssignmentAsync(assignmentId);
 
-            if (assignQues != null)
+            if (assignQues != null && assignQues.Count != 0)
             {
-                assignQues.OrderBy(a => a.NoNum);
+                assignQues = assignQues.GroupBy(model => model.Type)
+                                       .Select(group => group.OrderBy(x => Guid.NewGuid()).ToList())
+                                       .SelectMany(group => group)
+                                       .OrderBy(a => a.Type)
+                                       .ToList();
             }
 
             return new Response()
