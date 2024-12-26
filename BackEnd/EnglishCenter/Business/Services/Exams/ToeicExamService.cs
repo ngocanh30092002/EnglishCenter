@@ -13,11 +13,13 @@ namespace EnglishCenter.Business.Services.Exams
     {
         private readonly IUnitOfWork _unit;
         private readonly IMapper _mapper;
+        private readonly IQuesToeicService _queService;
 
-        public ToeicExamService(IUnitOfWork unit, IMapper mapper)
+        public ToeicExamService(IUnitOfWork unit, IMapper mapper, IQuesToeicService queService)
         {
             _unit = unit;
             _mapper = mapper;
+            _queService = queService;
         }
 
         public async Task<Response> ChangeCodeAsync(long id, int code)
@@ -260,6 +262,17 @@ namespace EnglishCenter.Business.Services.Exams
 
         public async Task<Response> CreateAsync(ToeicExamDto model)
         {
+            var isExistCode = _unit.ToeicExams.IsExist(t => t.Code == model.Code && t.Year == model.Year);
+            if (isExistCode)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't add same code in same year",
+                    Success = false
+                };
+            }
+
             var toeicModel = _mapper.Map<ToeicExam>(model);
             toeicModel.DirectionId = 1;
 
@@ -287,35 +300,68 @@ namespace EnglishCenter.Business.Services.Exams
                 };
             }
 
-            _unit.ToeicExams.Remove(toeicExam);
+            var queIds = _unit.QuesToeic
+                              .Find(q => q.ToeicId == id)
+                              .Select(q => q.QuesId)
+                              .ToList();
+            await _unit.BeginTransAsync();
 
-            await _unit.CompleteAsync();
-            return new Response()
+            try
             {
-                StatusCode = System.Net.HttpStatusCode.OK,
-                Message = "",
-                Success = true
-            };
+                foreach (var queId in queIds)
+                {
+                    var deleteRes = await _queService.DeleteAsync(queId);
+                    if (!deleteRes.Success) return deleteRes;
+                }
+
+                _unit.ToeicExams.Remove(toeicExam);
+
+                await _unit.CompleteAsync();
+                await _unit.CommitTransAsync();
+
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Message = "",
+                    Success = true
+                };
+            }
+            catch (Exception ex)
+            {
+                await _unit.RollBackTransAsync();
+
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = ex.Message,
+                    Success = false
+                };
+            }
         }
 
-        public Task<Response> GetAllAsync()
+        public async Task<Response> GetAllAsync()
         {
             var toeicExams = _unit.ToeicExams.GetAll().OrderByDescending(e => e.Year);
 
-            // Todo: Change to resdto
-            return Task.FromResult(new Response()
+            var resDtos = _mapper.Map<List<ToeicExamResDto>>(toeicExams);
+
+            foreach (var resDto in resDtos)
+            {
+                resDto.IsFull = await _queService.IsFullAsync(resDto.ToeicId!.Value);
+            }
+
+            return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Message = _mapper.Map<List<ToeicExamResDto>>(toeicExams),
+                Message = resDtos,
                 Success = true
-            });
+            };
         }
 
         public Task<Response> GetAsync(long id)
         {
             var toeicExam = _unit.ToeicExams.GetById(id);
 
-            // Todo: Change to resdto
             return Task.FromResult(new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,

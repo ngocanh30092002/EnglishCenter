@@ -226,6 +226,34 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
             return await models.ToListAsync();
         }
 
+        public async Task<List<AssignQue>?> GetByProcessAsync(long processId)
+        {
+            var models = context.AssignmentRecords
+                                .Include(a => a.AssignQue)
+                                .Where(a => a.LearningProcessId == processId)
+                                .OrderBy(a => a.RecordId)
+                                .AsEnumerable()
+                                .DistinctBy(a => a.AssignQuesId)
+                                .Select(a => a.AssignQue)
+                                .ToList();
+
+            if (models != null && models.Count != 0)
+            {
+                foreach (var model in models)
+                {
+                    if (model != null)
+                    {
+                        var isLoadSuccess = await LoadQuestionWithoutAnswerAsync(model);
+                        if (!isLoadSuccess) return null;
+                    }
+                }
+
+                return models;
+            }
+
+            return null;
+        }
+
         public async Task<bool> IsExistQuesIdAsync(QuesTypeEnum type, long quesId)
         {
             bool isExist = false;

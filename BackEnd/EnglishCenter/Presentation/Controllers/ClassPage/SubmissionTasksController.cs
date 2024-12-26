@@ -30,6 +30,21 @@ namespace EnglishCenter.Presentation.Controllers.ClassPage
             return await response.ChangeActionAsync();
         }
 
+        [HttpGet("lessons/{lessonId}")]
+        public async Task<IActionResult> GetByLessonAsync([FromRoute] long lessonId)
+        {
+            var response = await _taskService.GetByLessonAsync(lessonId);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("lessons/{lessonId}/all")]
+        public async Task<IActionResult> GetByLessonAllAsync([FromRoute] long lessonId)
+        {
+            var response = await _taskService.GetByLessonAllAsync(lessonId);
+            return await response.ChangeActionAsync();
+        }
+
+
         [HttpGet("classes/{classId}")]
         public async Task<IActionResult> GetCurrentByClassAsync([FromRoute] string classId)
         {

@@ -16,13 +16,21 @@ namespace EnglishCenter.Business.Services.Assignments
         private readonly IMapper _mapper;
         private readonly IAssignmentRecordService _assignmentRecordService;
         private readonly IToeicRecordService _toeicRecordService;
+        private readonly IUserService _userService;
 
-        public LearningProcessService(IUnitOfWork unit, IMapper mapper, IAssignmentRecordService assignmentRecordService, IToeicRecordService toeicRecordService)
+        public LearningProcessService(
+                IUnitOfWork unit,
+                IMapper mapper,
+                IAssignmentRecordService assignmentRecordService,
+                IToeicRecordService toeicRecordService,
+                IUserService userService
+            )
         {
             _unit = unit;
             _mapper = mapper;
             _assignmentRecordService = assignmentRecordService;
             _toeicRecordService = toeicRecordService;
+            _userService = userService;
         }
 
         public async Task<Response> ChangeEndTimeAsync(long id, string dateTime)
@@ -367,7 +375,6 @@ namespace EnglishCenter.Business.Services.Assignments
         {
             var processes = _unit.LearningProcesses.GetAll();
 
-            // Todo: change to resdto
             return Task.FromResult(new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
@@ -380,7 +387,6 @@ namespace EnglishCenter.Business.Services.Assignments
         {
             var process = _unit.LearningProcesses.GetById(id);
 
-            // Todo: change to resdto
             return Task.FromResult(new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
@@ -674,6 +680,119 @@ namespace EnglishCenter.Business.Services.Assignments
                     Success = true
                 };
             }
+        }
+
+        public async Task<Response> GetScoreByClassAsync(string classId)
+        {
+            var processes = await _unit.LearningProcesses
+                               .Include(p => p.Enrollment)
+                               .Include(p => p.Assignment)
+                               .Include(p => p.Examination)
+                               .Where(p => p.Enrollment.ClassId == classId)
+                               .ToListAsync();
+
+            var resDtos = new List<ProcessResDto>();
+
+            foreach (var model in processes)
+            {
+                var dtoModel = new ProcessResDto();
+                var userInfoRes = await _userService.GetUserFullInfoAsync(model.Enrollment.UserId);
+
+                var scoreAnswer = await ScoreAnswerAsync(model.ProcessId);
+
+                dtoModel.UserInfo = userInfoRes.Message as UserInfoResDto;
+                dtoModel.ProcessID = model.ProcessId;
+                dtoModel.Status = ((ProcessStatusEnum)model.Status).ToString();
+                TimeSpan diffTime = TimeSpan.Zero;
+
+                if (model.EndTime.HasValue)
+                {
+                    diffTime = (TimeSpan)(model.EndTime - model.StartTime);
+                }
+
+                if (diffTime >= TimeOnly.MaxValue.ToTimeSpan())
+                {
+                    dtoModel.Time = TimeOnly.FromTimeSpan(TimeOnly.MaxValue.ToTimeSpan()).ToString("HH:mm:ss");
+                }
+                else
+                {
+                    dtoModel.Time = TimeOnly.FromTimeSpan(diffTime).ToString("HH:mm:ss");
+                }
+
+                dtoModel.CorrectNumber = scoreAnswer.correctNum;
+                dtoModel.TotalNumber = scoreAnswer.totalNum;
+                dtoModel.CurrentRate = Math.Ceiling(dtoModel.CorrectNumber * 100.0 * 100.0 / dtoModel.TotalNumber) / 100;
+
+                if (double.IsNaN(dtoModel.CurrentRate))
+                {
+                    dtoModel.CurrentRate = 0;
+                }
+                if (model.AssignmentId.HasValue)
+                {
+                    dtoModel.Title = model.Assignment!.Title ?? "";
+                    dtoModel.AssignmentInfo = _mapper.Map<AssignmentResDto>(model.Assignment);
+                }
+                else
+                {
+                    dtoModel.Title = model.Examination!.Title;
+                    dtoModel.ExamInfo = _mapper.Map<ExaminationDto>(model.Examination);
+                }
+
+                resDtos.Add(dtoModel);
+            }
+
+
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = resDtos,
+                Success = true
+            };
+        }
+
+        public async Task<Response> GetExamInfoAsync(long enrollId, string classId)
+        {
+            var learningProcessIds = await _unit.LearningProcesses.GetExamsProcessAsync(enrollId, classId);
+            var result = new List<ExamInfoResDto>();
+
+            var learningProcessRes = _unit.LearningProcesses
+                                          .Include(p => p.Examination)
+                                          .Where(p => learningProcessIds.Contains(p.ProcessId))
+                                          .ToList();
+
+            foreach (var process in learningProcessRes)
+            {
+                var examInfo = new ExamInfoResDto();
+
+                var res = new ToeicScoreResDto()
+                {
+                    Part1 = await _unit.ToeicRecords.GetNumCorrectRecordsWithPartAsync(process.ProcessId, (int)PartEnum.Part1),
+                    Part2 = await _unit.ToeicRecords.GetNumCorrectRecordsWithPartAsync(process.ProcessId, (int)PartEnum.Part2),
+                    Part3 = await _unit.ToeicRecords.GetNumCorrectRecordsWithPartAsync(process.ProcessId, (int)PartEnum.Part3),
+                    Part4 = await _unit.ToeicRecords.GetNumCorrectRecordsWithPartAsync(process.ProcessId, (int)PartEnum.Part4),
+                    Part5 = await _unit.ToeicRecords.GetNumCorrectRecordsWithPartAsync(process.ProcessId, (int)PartEnum.Part5),
+                    Part6 = await _unit.ToeicRecords.GetNumCorrectRecordsWithPartAsync(process.ProcessId, (int)PartEnum.Part6),
+                    Part7 = await _unit.ToeicRecords.GetNumCorrectRecordsWithPartAsync(process.ProcessId, (int)PartEnum.Part7),
+                };
+                var listeningCon = await _unit.ToeicConversion.GetByNumberCorrectAsync(res.Part1 + res.Part2 + res.Part3 + res.Part4, ToeicEnum.Listening);
+                var readingCon = await _unit.ToeicConversion.GetByNumberCorrectAsync(res.Part5 + res.Part6 + res.Part7, ToeicEnum.Reading);
+
+                res.Listening = listeningCon == null ? 0 : listeningCon.EstimatedScore;
+                res.Reading = readingCon == null ? 0 : readingCon.EstimatedScore;
+
+                examInfo.ToeicScore = res;
+                examInfo.Examination = _mapper.Map<ExaminationDto>(process.Examination);
+                examInfo.ProcessId = process.ProcessId;
+
+                result.Add(examInfo);
+            }
+
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = result,
+                Success = true
+            };
         }
 
         public async Task<Response> HandleSubmitProcessAsync(long id, LearningProcessDto model)
@@ -1176,8 +1295,19 @@ namespace EnglishCenter.Business.Services.Assignments
 
                 bool isQualified = (correctNum * 100.0 / numQues) > processModel.Assignment!.AchievedPercentage;
 
+                var assignmentModel = _unit.Assignments.GetById(processModel.AssignmentId.Value);
+                var endTime = processModel.StartTime.Add(assignmentModel.Time.ToTimeSpan());
+
+                if (endTime <= DateTime.Now)
+                {
+                    processModel.EndTime = endTime;
+                }
+                else
+                {
+                    processModel.EndTime = DateTime.Now;
+                }
+
                 processModel.Status = isQualified ? (int)ProcessStatusEnum.Completed : (int)ProcessStatusEnum.NotAchieved;
-                processModel.EndTime = DateTime.Now;
 
                 await _unit.CompleteAsync();
                 return new Response()
@@ -1272,8 +1402,10 @@ namespace EnglishCenter.Business.Services.Assignments
                     scoreHisModel.FinalPoint = totalPoint;
                 }
 
+                var endTime = processModel.StartTime.AddHours(2);
+
                 processModel.Status = (int)ProcessStatusEnum.Completed;
-                processModel.EndTime = DateTime.Now;
+                processModel.EndTime = DateTime.Now < endTime ? DateTime.Now : endTime;
 
                 await _unit.CompleteAsync();
 
@@ -1385,6 +1517,13 @@ namespace EnglishCenter.Business.Services.Assignments
             if (isExist) return ExerciseStatusEnum.Open;
 
             return ExerciseStatusEnum.Locked;
+        }
+
+        private Task<(int correctNum, int totalNum)> ScoreAnswerAsync(long processId)
+        {
+            var correctNumber = _unit.AssignmentRecords.Find(a => a.LearningProcessId == processId && a.IsCorrect == true).Count();
+            var totalNum = _unit.AssignmentRecords.Find(a => a.LearningProcessId == processId).Count();
+            return Task.FromResult((correctNumber, totalNum));
         }
     }
 }

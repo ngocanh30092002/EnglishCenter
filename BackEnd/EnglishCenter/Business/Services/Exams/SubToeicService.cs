@@ -304,7 +304,7 @@ namespace EnglishCenter.Business.Services.Exams
                 };
             }
 
-            var nextQueNo = await NextQueNoAsync(queModel);
+            var nextQueNo = await NextQueNoAsync(queModel.QuesId);
             if (nextQueNo == -1)
             {
                 return new Response()
@@ -561,33 +561,20 @@ namespace EnglishCenter.Business.Services.Exams
             }
         }
 
-        private async Task<int> NextQueNoAsync(QuesToeic queModel)
+        public async Task<int> NextQueNoAsync(long quesId)
         {
+            var queModel = _unit.QuesToeic.Include(q => q.SubToeicList).FirstOrDefault(q => q.QuesId == quesId);
+            if (queModel == null) return -1;
+
             int startNum = 0;
             int endNum = 0;
-            var numbers = new List<int>();
 
-            switch (queModel.Part)
-            {
-                case (int)PartEnum.Part1:
-                case (int)PartEnum.Part2:
-                case (int)PartEnum.Part5:
-                    numbers = await _unit.SubToeic
-                                            .Include(s => s.QuesToeic)
-                                            .Where(s => s.QuesToeic.ToeicId == queModel.ToeicId && s.QuesToeic.Part == queModel.Part)
-                                            .OrderBy(s => s.QuesNo)
-                                            .Select(s => s.QuesNo)
-                                            .ToListAsync();
-                    break;
-                default:
-                    numbers = _unit.SubToeic
-                                    .Find(s => s.QuesId == queModel.QuesId)
-                                    .OrderBy(s => s.QuesNo)
-                                    .Select(s => s.QuesNo)
-                                    .ToList();
-                    break;
-            }
-
+            var numbers = await _unit.SubToeic
+                                        .Include(s => s.QuesToeic)
+                                        .Where(s => s.QuesToeic.ToeicId == queModel.ToeicId && s.QuesToeic.Part == queModel.Part)
+                                        .OrderBy(s => s.QuesNo)
+                                        .Select(s => s.QuesNo)
+                                        .ToListAsync();
 
             switch (queModel.Part)
             {
@@ -635,9 +622,6 @@ namespace EnglishCenter.Business.Services.Exams
                                                .Where(s => s.QuesToeic.ToeicId == queModel.ToeicId && s.QuesToeic.Part == queModel.Part)
                                                .Select(s => (int?)s.QuesNo)
                                                .Max();
-                        var test = _unit.SubToeic
-                                               .Include(s => s.QuesToeic)
-                                               .Where(s => s.QuesToeic.ToeicId == queModel.ToeicId && s.QuesToeic.Part == queModel.Part);
                         return currentNum.HasValue ? currentNum.Value + 1 : startNum;
                 }
             }

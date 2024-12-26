@@ -31,6 +31,9 @@ namespace EnglishCenter.DataAccess.Entities
         [InverseProperty("Homework")]
         public virtual ICollection<HomeQue> HomeQues { set; get; } = new List<HomeQue>();
 
+        [InverseProperty("Homework")]
+        public virtual ICollection<RandomQuesToeic> RandomQues { set; get; } = new List<RandomQuesToeic>();
+
         public long LessonId { set; get; }
 
         [ForeignKey("LessonId")]

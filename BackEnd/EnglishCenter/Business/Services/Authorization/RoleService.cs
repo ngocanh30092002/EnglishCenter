@@ -149,7 +149,7 @@ namespace EnglishCenter.Business.Services.Authorization
                 };
             }
 
-            if (roleName == AppRole.TEACHER || roleName == AppRole.ADMIN)
+            if (roleName == AppRole.TEACHER)
             {
                 var teacherModel = await _unit.Teachers
                                               .Include(t => t.Classes)

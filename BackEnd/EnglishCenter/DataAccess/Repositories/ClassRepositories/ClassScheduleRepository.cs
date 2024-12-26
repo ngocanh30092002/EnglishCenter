@@ -196,14 +196,19 @@ namespace EnglishCenter.DataAccess.Repositories.ClassRepositories
             if (scheduleId.HasValue)
             {
                 schedules = context.ClassSchedules
-                                 .Where(c => classIds.Contains(c.ClassId) && c.ScheduleId != scheduleId.Value && c.IsActive == true)
+                                 .Where(c => classIds.Contains(c.ClassId) &&
+                                             c.ScheduleId != scheduleId.Value &&
+                                             c.IsActive == true &&
+                                             c.DayOfWeek == dayOfWeek)
                                  .ToList();
             }
             else
             {
 
                 schedules = context.ClassSchedules
-                                   .Where(c => classIds.Contains(c.ClassId) && c.IsActive == true)
+                                   .Where(c => classIds.Contains(c.ClassId) &&
+                                               c.IsActive == true &&
+                                               c.DayOfWeek == dayOfWeek)
                                    .ToList();
 
             }

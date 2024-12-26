@@ -3,8 +3,8 @@ using EnglishCenter.Presentation.Global;
 using EnglishCenter.Presentation.Helpers;
 using EnglishCenter.Presentation.Models.DTOs;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace EnglishCenter.Presentation.Controllers.AssignmentPage
 {
@@ -17,7 +17,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
         private readonly IAnswerLcConService _answerService;
         private readonly ISubLcConService _subLcConService;
 
-        public LcConController(IQuesLcConService queLcConService, IAnswerLcConService answerService, ISubLcConService subLcConService) 
+        public LcConController(IQuesLcConService queLcConService, IAnswerLcConService answerService, ISubLcConService subLcConService)
         {
             _queLcConService = queLcConService;
             _answerService = answerService;
@@ -33,6 +33,20 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
             return await response.ChangeActionAsync();
         }
 
+        [HttpGet("assignments/{id}/other")]
+        public async Task<IActionResult> GetOtherQuestionByAssignmentAsync([FromRoute] long id)
+        {
+            var response = await _queLcConService.GetOtherQuestionByAssignmentAsync(id);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("homework/{id}/other")]
+        public async Task<IActionResult> GetOtherQuestionByHomeworkAsync([FromRoute] long id)
+        {
+            var response = await _queLcConService.GetOtherQuestionByHomeworkAsync(id);
+            return await response.ChangeActionAsync();
+        }
+
         [HttpGet("{quesId}")]
         public async Task<IActionResult> GetQuesConversationAsync([FromRoute] long quesId)
         {
@@ -44,7 +58,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> CreateAsync([FromForm] QuesLcConDto queModel)
         {
-            if(queModel.Image != null)
+            if (queModel.Image != null)
             {
                 var isImageFile = await UploadHelper.IsImageAsync(queModel.Image);
                 if (!isImageFile)
@@ -53,7 +67,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
                 }
             }
 
-            if(queModel.Audio != null)
+            if (queModel.Audio != null)
             {
                 var isAudioFile = await UploadHelper.IsAudioAsync(queModel.Audio);
                 if (!isAudioFile)
@@ -61,6 +75,12 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
                     return BadRequest(new { message = "The audio file is invalid. Only MP3, WAV and OGG are allowed. ", success = false });
                 }
             }
+
+            if (!string.IsNullOrEmpty(queModel.SubLcConsJson))
+            {
+                queModel.SubLcCons = JsonConvert.DeserializeObject<List<SubLcConDto>>(queModel.SubLcConsJson);
+            }
+
 
             var response = await _queLcConService.CreateAsync(queModel);
             return await response.ChangeActionAsync();
@@ -146,7 +166,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
         }
 
         [HttpGet("subs/{subId}")]
-        public async Task<IActionResult> GetSubAsync([FromRoute]long subId)
+        public async Task<IActionResult> GetSubAsync([FromRoute] long subId)
         {
             var response = await _subLcConService.GetAsync(subId);
             return await response.ChangeActionAsync();

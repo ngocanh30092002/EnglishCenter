@@ -14,6 +14,7 @@ namespace EnglishCenter.Business.IServices
         public Task<Response> ChangeAnswerAsync(long id, long answerId);
         public Task<Response> ChangeQuesNoAsync(long id, int queNo);
         public Task<Response> ChangeQuestionAsync(long id, string question);
+        public Task<int> NextQueNoAsync(long quesId);
         public Task<Response> CreateAsync(SubToeicDto model);
         public Task<Response> UpdateAsync(long id, SubToeicDto model);
         public Task<Response> DeleteAsync(long id);

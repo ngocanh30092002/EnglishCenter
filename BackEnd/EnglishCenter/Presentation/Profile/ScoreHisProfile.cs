@@ -22,6 +22,7 @@ namespace EnglishCenter.Presentation
                .ForMember(des => des.ScoreHisId, opt => opt.MapFrom(src => src.ScoreHisId))
                .ForMember(des => des.Entrance_Point, opt => opt.MapFrom(src => src.EntrancePoint))
                .ForMember(des => des.Midterm_Point, opt => opt.MapFrom(src => src.MidtermPoint))
+               .ForMember(des => des.EnrollId, opt => opt.MapFrom(src => src.Enrollment.EnrollId))
                .ForMember(des => des.Final_Point, opt => opt.MapFrom(src => src.FinalPoint));
         }
     }

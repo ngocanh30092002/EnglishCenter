@@ -7,6 +7,7 @@ namespace EnglishCenter.Business.IServices
     {
         public Task<Response> GetAllAsync();
         public Task<Response> GetAsync(long id);
+        public Task<Response> GetByLessonAsync(long lessonId);
         public Task<Response> GetCurrentByClassAsync(string classId);
         public Task<bool> IsInChargeClass(string userId, long homeId);
         public Task<Response> ChangeLessonAsync(long id, long lessonId);

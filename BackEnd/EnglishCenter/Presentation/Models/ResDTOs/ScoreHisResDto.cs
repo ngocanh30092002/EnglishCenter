@@ -10,5 +10,6 @@ namespace EnglishCenter.Presentation.Models.ResDTOs
         public int Entrance_Point { set; get; }
         public int Midterm_Point { set; get; }
         public int Final_Point { set; get; }
+        public long EnrollId { set; get; }
     }
 }

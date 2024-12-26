@@ -31,14 +31,49 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
                 };
             }
 
+            if (!model.Priority.HasValue && model.EntryPoint != 0)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Course with priority won't have an entry point",
+                    Success = false
+                };
+            }
+
+            if (model.Priority.HasValue && model.Priority.Value == 1 && model.EntryPoint != 0)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "First course won't have an entry point",
+                    Success = false
+                };
+            }
+
             course.Name = model.Name;
             course.Description = model.Description;
             course.EntryPoint = model.EntryPoint;
             course.StandardPoint = model.StandardPoint;
+            course.IsSequential = model.IsSequential;
 
             if (model.Priority.HasValue && course.Priority != model.Priority)
             {
                 var isSuccess = await this.ChangePriorityAsync(course, model.Priority.Value);
+
+                if (!isSuccess)
+                {
+                    return new Response()
+                    {
+                        StatusCode = System.Net.HttpStatusCode.BadRequest,
+                        Message = "Can't change priority",
+                        Success = false
+                    };
+                }
+            }
+            if (!model.Priority.HasValue)
+            {
+                var isSuccess = await this.ChangePriorityAsync(course, null);
 
                 if (!isSuccess)
                 {
@@ -129,66 +164,59 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
             return true;
         }
 
-        public async Task<bool> ChangePriorityAsync(Course courseModel, int priority)
+        public async Task<bool> ChangePriorityAsync(Course courseModel, int? priority)
         {
             if (courseModel == null) return false;
 
             var maxNum = context.Courses.Max(c => c.Priority);
-            if (priority > maxNum) return false;
 
-            var isExist = context.Courses.Any(c => c.Priority == priority);
-            if (!isExist)
-            {
-                courseModel.Priority = priority;
-                return true;
-            }
+            if (priority.HasValue && priority > maxNum + 1) return false;
 
-            List<Course> courses;
+            courseModel.Priority = priority;
 
-            if (courseModel.Priority < priority)
+            var otherCourses = new List<Course>();
+
+            if (priority.HasValue)
             {
-                courses = await context.Courses.Where(c => c.Priority > courseModel.Priority)
-                                                   .OrderBy(c => c.Priority)
-                                                   .ToListAsync();
-            }
-            else if (courseModel.Priority > priority)
-            {
-                courses = await context.Courses.Where(c => c.Priority < courseModel.Priority)
-                                                   .OrderByDescending(c => c.Priority)
-                                                   .ToListAsync();
+                otherCourses = context.Courses
+                                          .Where(c => c.CourseId != courseModel.CourseId && c.Priority.HasValue)
+                                          .OrderBy(c => c.Priority)
+                                          .ToList();
+                otherCourses.Add(courseModel);
             }
             else
             {
-                return true;
+                otherCourses = context.Courses
+                                          .Where(c => c.Priority.HasValue && c.CourseId != courseModel.CourseId)
+                                          .OrderBy(c => c.Priority)
+                                          .ToList();
             }
 
-            int currentPriority = courseModel.Priority ?? 0;
+            var sortedCourses = otherCourses.OrderBy(c => c.Priority).ToList();
 
-            foreach (var course in courses)
+            int currentPriority = 1;
+            for (int i = 0; i < sortedCourses.Count; i++)
             {
-                int coursePriority = course.Priority ?? 0;
-                course.Priority = currentPriority;
-                currentPriority = coursePriority;
-
-                if (coursePriority == priority)
+                if (i > 0 && sortedCourses[i].Priority != sortedCourses[i - 1].Priority)
                 {
-                    courseModel.Priority = priority;
-                    break;
+                    currentPriority++;
                 }
+
+                sortedCourses[i].Priority = currentPriority;
             }
 
             return true;
+
         }
 
-        public async Task<Course?> GetPreviousAsync(Course courseModel)
+        public async Task<List<Course>?> GetPreviousAsync(Course courseModel)
         {
             if (courseModel == null) return null;
             if (!courseModel.Priority.HasValue) return null;
 
-            var previousCourse = await context.Courses.FirstOrDefaultAsync(c => c.Priority == courseModel.Priority - 1);
-            if (previousCourse == null) return null;
+            var previousCourses = await context.Courses.Where(c => c.Priority == courseModel.Priority - 1).ToListAsync();
 
-            return previousCourse;
+            return previousCourses;
         }
     }
 }

@@ -8,7 +8,9 @@
         public string? Status { set; get; }
         public string? UploadAt { set; get; }
         public string? UploadBy { set; get; }
-
+        public long? EnrollId { set; get; }
         public string? FileSize { set; get; }
+        public string UserImage { set; get; }
+        public string UserName { set; get; }
     }
 }

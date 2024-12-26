@@ -4,6 +4,7 @@ using EnglishCenter.Business.IServices;
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.UnitOfWork;
 using EnglishCenter.Presentation.Global;
+using EnglishCenter.Presentation.Global.Enum;
 using EnglishCenter.Presentation.Helpers;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
@@ -19,6 +20,7 @@ namespace EnglishCenter.Business.Services.Authorization
         private readonly UserManager<User> _userManager;
         private readonly IMapper _mapper;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly ISubmissionFileService _submissionFileService;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
         public UserService(
@@ -26,12 +28,14 @@ namespace EnglishCenter.Business.Services.Authorization
             , IMapper mapper
             , RoleManager<IdentityRole> roleManager
             , IUnitOfWork unit
-            , IWebHostEnvironment webHostEnvironment)
+            , IWebHostEnvironment webHostEnvironment
+            , ISubmissionFileService submissionFileService)
         {
             _unit = unit;
             _userManager = userManager;
             _mapper = mapper;
             _roleManager = roleManager;
+            _submissionFileService = submissionFileService;
             _webHostEnvironment = webHostEnvironment;
         }
 
@@ -354,6 +358,17 @@ namespace EnglishCenter.Business.Services.Authorization
             }
 
 
+            var enrollIds = _unit.Enrollment
+                                   .Find(e => e.UserId == userModel.Id)
+                                   .Select(e => e.EnrollId)
+                                   .ToList();
+
+            foreach (var enrollId in enrollIds)
+            {
+                var deleteRes = await DeleteEnrollAsync(enrollId);
+                if (!deleteRes.Success) return deleteRes;
+            }
+
             var deleteSuccess = await _userManager.DeleteAsync(userModel);
 
             if (deleteSuccess.Succeeded)
@@ -366,7 +381,6 @@ namespace EnglishCenter.Business.Services.Authorization
                     Success = true
                 };
             }
-
 
             return new Response()
             {
@@ -653,6 +667,76 @@ namespace EnglishCenter.Business.Services.Authorization
                     Success = false
                 };
             }
+
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = "",
+                Success = true
+            };
+        }
+
+        private async Task<Response> DeleteEnrollAsync(long enrollmentId)
+        {
+            var enrollmentModel = _unit.Enrollment.GetById(enrollmentId);
+
+            if (enrollmentModel == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any enrollments"
+                };
+            }
+
+            if (enrollmentModel.ScoreHisId.HasValue)
+            {
+                var scoreHisModel = _unit.ScoreHis.GetById(enrollmentModel.ScoreHisId.Value);
+
+                _unit.ScoreHis.Remove(scoreHisModel);
+            }
+
+            var classModel = _unit.Classes.GetById(enrollmentModel.ClassId);
+
+            if (enrollmentModel.StatusId == (int)EnrollEnum.Pending)
+            {
+                classModel.RegisteringNum--;
+            }
+            else if (enrollmentModel.StatusId != (int)EnrollEnum.Rejected)
+            {
+                classModel.RegisteredNum--;
+            }
+
+            var attendances = _unit.Attendances.Find(s => s.EnrollId == enrollmentId).ToList();
+            var hwSubmission = _unit.HwSubmissions.Find(s => s.EnrollId == enrollmentId).ToList();
+
+            _unit.Attendances.RemoveRange(attendances);
+            _unit.HwSubmissions.RemoveRange(hwSubmission);
+
+            var submissionFileIds = _unit.SubmissionFiles
+                                         .Find(s => s.EnrollId == enrollmentId)
+                                         .Select(s => s.SubmissionFileId)
+                                         .ToList();
+
+            foreach (var submissionId in submissionFileIds)
+            {
+                var deleteRes = await _submissionFileService.DeleteAsync(submissionId);
+                if (!deleteRes.Success) return deleteRes;
+            }
+
+            _unit.Enrollment.Remove(enrollmentModel);
+
+
+            await _unit.CompleteAsync();
+
+            await _unit.Notifications.SendNotificationToUser(enrollmentModel.UserId, classModel.ClassId, new NotiDto()
+            {
+                Title = "Class message",
+                Description = $"You have been removed from class {classModel.ClassId} by the teacher or admin",
+                Image = classModel.Image,
+                IsRead = false,
+                Time = DateTime.Now,
+            });
 
             return new Response()
             {

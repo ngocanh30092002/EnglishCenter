@@ -32,6 +32,13 @@ namespace EnglishCenter.Presentation.Controllers.ExamPage
             return await response.ChangeActionAsync();
         }
 
+        [HttpGet("contents/{id}")]
+        public async Task<IActionResult> GetByCouseContentAsync([FromRoute] long id)
+        {
+            var response = await _examService.GetByCouseContentAsync(id);
+            return await response.ChangeActionAsync();
+        }
+
         [HttpPost]
         [Authorize(Roles = AppRole.ADMIN)]
         public async Task<IActionResult> CreateAsync([FromForm] ExaminationDto model)

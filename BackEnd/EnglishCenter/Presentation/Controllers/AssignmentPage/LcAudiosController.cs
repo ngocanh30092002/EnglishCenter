@@ -3,7 +3,6 @@ using EnglishCenter.Presentation.Global;
 using EnglishCenter.Presentation.Helpers;
 using EnglishCenter.Presentation.Models.DTOs;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EnglishCenter.Presentation.Controllers.AssignmentPage
@@ -37,11 +36,25 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
             return await response.ChangeActionAsync();
         }
 
+        [HttpGet("assignments/{id}/other")]
+        public async Task<IActionResult> GetOtherQuestionByAssignmentAsync([FromRoute] long id)
+        {
+            var response = await _audioService.GetOtherQuestionByAssignmentAsync(id);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("homework/{id}/other")]
+        public async Task<IActionResult> GetOtherQuestionByHomeworkAsync([FromRoute] long id)
+        {
+            var response = await _audioService.GetOtherQuestionByHomeworkAsync(id);
+            return await response.ChangeActionAsync();
+        }
+
         [HttpPost]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> CreateAsync([FromForm] QuesLcAudioDto queModel)
         {
-            if(queModel.Audio != null)
+            if (queModel.Audio != null)
             {
                 var isAudioFile = await UploadHelper.IsAudioAsync(queModel.Audio);
                 if (!isAudioFile)
@@ -81,7 +94,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
 
         [HttpPatch("{quesId}/answerA")]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
-        public async Task<IActionResult> ChangeQuesAnswerAAsync([FromRoute] long quesId, [FromBody]string newAnswer)
+        public async Task<IActionResult> ChangeQuesAnswerAAsync([FromRoute] long quesId, [FromBody] string newAnswer)
         {
             var response = await _audioService.ChangeAnswerAAsync(quesId, newAnswer);
             return await response.ChangeActionAsync();
@@ -120,7 +133,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
             {
                 return BadRequest(new { message = "The audio file is invalid. Only MP3, WAV and OGG are allowed. ", success = false });
             }
-            
+
             var response = await _audioService.ChangeAudioAsync(quesId, audioFile);
             return await response.ChangeActionAsync();
         }

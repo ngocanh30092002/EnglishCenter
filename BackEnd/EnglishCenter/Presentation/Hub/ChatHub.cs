@@ -45,6 +45,10 @@ namespace EnglishCenter.Presentation.Hub
         public async Task SendMessage(ChatMessageDto message)
         {
             var userId = _connections.FirstOrDefault(x => x.Value == Context.ConnectionId).Key;
+            if (string.IsNullOrEmpty(userId))
+            {
+                userId = Context.User!.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
+            }
 
             message.SenderId = userId;
 

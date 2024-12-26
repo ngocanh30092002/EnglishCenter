@@ -47,8 +47,8 @@ namespace EnglishCenter.DataAccess.UnitOfWork
         ISubToeicRepository SubToeic { get; }
         IAnswerToeicRepository AnswerToeic { get; }
         IToeicDirectionRepository ToeicDirections { get; }
-        IToeicPracticeRecordRepository ToeicPracticeRecords { get; }
-        IToeicAttemptRepository ToeicAttempts { get; }
+        IAttemptRecordRepository AttemptRecords { get; }
+        IUserAttemptRepository UserAttempts { get; }
         IChatFileRepository ChatFiles { get; }
         IChatMessageRepository ChatMessages { get; }
         IPeriodRepository Periods { get; }
@@ -59,7 +59,13 @@ namespace EnglishCenter.DataAccess.UnitOfWork
         ISubmissionTaskRepository SubmissionTasks { get; }
         ISubmissionFileRepository SubmissionFiles { get; }
         IUserWordRepository UserWords { get; }
-
+        IRoadMapRepository RoadMaps { get; }
+        IRoadMapExamRepository RoadMapExams { get; }
+        IRandomQueToeicRepository RandomQues { get; }
+        IAttendanceRepository Attendances { get; }
+        INotificationRepository Notifications { get; }
+        IIssueReportRepository IssueReports { get; }
+        IIssueResponseRepository IssueResponses { get; }
         public Task<int> CompleteAsync();
         public Task BeginTransAsync();
         public Task CommitTransAsync();

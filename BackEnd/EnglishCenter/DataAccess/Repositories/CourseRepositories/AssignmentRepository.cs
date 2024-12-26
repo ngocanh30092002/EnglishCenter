@@ -1,11 +1,8 @@
-﻿using AutoMapper;
-using EnglishCenter.DataAccess.Database;
+﻿using EnglishCenter.DataAccess.Database;
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.IRepositories;
-using EnglishCenter.Presentation.Global.Enum;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
@@ -14,13 +11,13 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
     {
         public AssignmentRepository(EnglishCenterContext context) : base(context)
         {
-            
+
         }
 
         public override Assignment GetById(long id)
         {
             var model = context.Assignments.Include(a => a.AssignQues).FirstOrDefault(a => a.AssignmentId == id);
-            
+
             return model;
         }
 
@@ -41,16 +38,16 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
 
             if (assignmentModel == null) return null;
 
-            if(assignmentModel.NoNum == 1 && assignmentModel.CourseContent.NoNum == 1)
+            if (assignmentModel.NoNum == 1 && assignmentModel.CourseContent.NoNum == 1)
             {
                 return null;
             }
-            else if(assignmentModel.NoNum == 1 && assignmentModel.CourseContent.NoNum != 1)
+            else if (assignmentModel.NoNum == 1 && assignmentModel.CourseContent.NoNum != 1)
             {
                 return context.Assignments
                             .Include(a => a.CourseContent)
                             .OrderByDescending(a => a.NoNum)
-                            .FirstOrDefault(a => a.CourseContent.NoNum == assignmentModel.CourseContent.NoNum - 1 
+                            .FirstOrDefault(a => a.CourseContent.NoNum == assignmentModel.CourseContent.NoNum - 1
                                                 && a.CourseContent.CourseId == assignmentModel.CourseContent.CourseId);
             }
             else
@@ -65,7 +62,7 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
         {
             if (assignmentModel == null) return false;
 
-            var courseContentModel = await context.CourseContents.Include(c => c.Assignments).FirstOrDefaultAsync(c=> c.ContentId == contentId);
+            var courseContentModel = await context.CourseContents.Include(c => c.Assignments).FirstOrDefaultAsync(c => c.ContentId == contentId);
             if (courseContentModel == null) return false;
             if (courseContentModel.Type != 1) return false;
 
@@ -75,7 +72,7 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
                                                         .ToListAsync();
 
             var currentNum = assignmentModel.NoNum;
-            foreach(var item in currentAssigns)
+            foreach (var item in currentAssigns)
             {
                 int itemNum = item.NoNum;
                 item.NoNum = currentNum;
@@ -83,17 +80,17 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
             }
 
             assignmentModel.CourseContentId = contentId;
-            
+
             var newCourseContentAssigns = await context.Assignments
                                                         .Where(a => a.CourseContentId == assignmentModel.CourseContentId && a.NoNum >= assignmentModel.NoNum)
                                                         .OrderBy(a => a.NoNum)
                                                         .ToListAsync();
-            if(newCourseContentAssigns == null || newCourseContentAssigns.Count == 0)
+            if (newCourseContentAssigns == null || newCourseContentAssigns.Count == 0)
             {
                 var num = context.Assignments.Where(a => a.CourseContentId == assignmentModel.CourseContentId)
                                                 .Count();
 
-                if(num != assignmentModel.NoNum - 1)
+                if (num != assignmentModel.NoNum - 1)
                 {
                     assignmentModel.NoNum = num + 1;
                 }
@@ -102,7 +99,7 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
             {
                 int current = assignmentModel.NoNum + 1;
 
-                foreach(var item in newCourseContentAssigns)
+                foreach (var item in newCourseContentAssigns)
                 {
                     item.NoNum = current;
                     current++;
@@ -219,10 +216,10 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
         public async Task<int> GetNumberByCourseAsync(string courseId)
         {
             var assignments = await (from ct in context.CourseContents
-                                    join a in context.Assignments
-                                    on ct.ContentId equals a.CourseContentId
-                                    where ct.CourseId == courseId
-                                    select a).ToListAsync();
+                                     join a in context.Assignments
+                                     on ct.ContentId equals a.CourseContentId
+                                     where ct.CourseId == courseId
+                                     select a).ToListAsync();
 
             return assignments.Count;
 
@@ -231,12 +228,12 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
         public async Task<string> GetTotalTimeByCourseAsync(string courseId)
         {
             var assignments = await (from c in context.Courses
-                                    join ct in context.CourseContents
-                                       on c.CourseId equals ct.CourseId
-                                    join a in context.Assignments
-                                       on ct.ContentId equals a.CourseContentId
-                                    where c.CourseId == courseId
-                                    select a).ToListAsync();
+                                     join ct in context.CourseContents
+                                        on c.CourseId equals ct.CourseId
+                                     join a in context.Assignments
+                                        on ct.ContentId equals a.CourseContentId
+                                     where c.CourseId == courseId
+                                     select a).ToListAsync();
 
             var totalTime = TimeSpan.Zero;
 
@@ -304,7 +301,7 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
                 };
             }
 
-            if(assignment.AchievedPercentage != model.Achieved_Percentage)
+            if (assignment.AchievedPercentage != model.Achieved_Percentage)
             {
                 var isSuccess = await ChangePercentageAsync(assignment, model.Achieved_Percentage);
 
@@ -320,6 +317,7 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
             }
 
             assignment.Title = model.Title;
+            assignment.CanViewResult = model.CanViewResult;
 
             return new Response()
             {

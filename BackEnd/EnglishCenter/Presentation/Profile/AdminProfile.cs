@@ -37,9 +37,6 @@ namespace EnglishCenter.Presentation
                     if (src.Student != null) return src.Student.Address;
                     return null;
                 }));
-
-
-            // Todo: Teacher update background => add role to update background
         }
     }
 }

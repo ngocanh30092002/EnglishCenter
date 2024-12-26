@@ -49,4 +49,8 @@ public class Enrollment
 
     [InverseProperty("Enrollment")]
     public virtual ICollection<SubmissionFile> SubmissionFiles { set; get; } = new List<SubmissionFile>();
+
+    [InverseProperty("Enrollment")]
+    public virtual ICollection<Attendance> Attendances { set; get; } = new List<Attendance>();
+
 }

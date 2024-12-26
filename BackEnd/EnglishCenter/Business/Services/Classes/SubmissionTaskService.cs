@@ -292,6 +292,16 @@ namespace EnglishCenter.Business.Services.Classes
 
             _unit.SubmissionTasks.Add(taskModel);
 
+            await _unit.Notifications.SendNotificationToGroup(lessonModel.ClassId, new NotiDto()
+            {
+                Title = "Automatic Message",
+                Description = $"You have a submission task. Please complete it before {endTime.ToString("MMMM dd")}",
+                Image = "/notifications/images/automatic.svg",
+                IsRead = false,
+                Time = DateTime.Now,
+            });
+
+
             await _unit.CompleteAsync();
             return new Response()
             {
@@ -319,38 +329,23 @@ namespace EnglishCenter.Business.Services.Classes
                                   .Select(s => s.SubmissionFileId)
                                   .ToList();
 
-            await _unit.BeginTransAsync();
-
-            try
+            foreach (var fileId in fileIds)
             {
-                foreach (var fileId in fileIds)
-                {
-                    var res = await _fileService.DeleteAsync(fileId);
-                    if (!res.Success) return res;
-                }
-
-                _unit.SubmissionTasks.Remove(taskModel);
-
-                await _unit.CompleteAsync();
-                await _unit.CommitTransAsync();
-
-                return new Response()
-                {
-                    StatusCode = System.Net.HttpStatusCode.OK,
-                    Message = "",
-                    Success = true
-                };
+                var res = await _fileService.DeleteAsync(fileId);
+                if (!res.Success) return res;
             }
-            catch (Exception ex)
+
+            _unit.SubmissionTasks.Remove(taskModel);
+
+            await _unit.CompleteAsync();
+
+            return new Response()
             {
-                await _unit.RollBackTransAsync();
-                return new Response()
-                {
-                    StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = ex.Message,
-                    Success = false
-                };
-            }
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = "",
+                Success = true
+            };
+
         }
 
         public Task<Response> GetAllAsync()
@@ -377,12 +372,46 @@ namespace EnglishCenter.Business.Services.Classes
             });
         }
 
+        public async Task<Response> GetByLessonAllAsync(long lessonId)
+        {
+            var tasks = await _unit.SubmissionTasks
+                             .Include(s => s.Lesson)
+                             .Where(s => s.LessonId == lessonId)
+                             .OrderByDescending(s => s.EndTime)
+                             .ToListAsync();
+
+
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = _mapper.Map<List<SubmissionTaskResDto>>(tasks),
+                Success = true
+            };
+        }
+
+        public async Task<Response> GetByLessonAsync(long lessonId)
+        {
+            var tasks = await _unit.SubmissionTasks
+                              .Include(s => s.Lesson)
+                              .Where(s => s.LessonId == lessonId && s.EndTime >= DateTime.Now)
+                              .OrderByDescending(s => s.EndTime)
+                              .ToListAsync();
+
+
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = _mapper.Map<List<SubmissionTaskResDto>>(tasks),
+                Success = true
+            };
+        }
+
         public async Task<Response> GetCurrentByClassAsync(string classId)
         {
             var tasks = await _unit.SubmissionTasks
                              .Include(s => s.Lesson)
                              .Where(s => s.Lesson.ClassId == classId && s.EndTime >= DateTime.Now)
-                             .OrderBy(s => s.StartTime)
+                             .OrderByDescending(s => s.EndTime)
                              .ToListAsync();
 
 

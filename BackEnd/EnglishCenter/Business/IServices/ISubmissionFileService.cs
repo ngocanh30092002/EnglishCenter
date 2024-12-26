@@ -7,6 +7,7 @@ namespace EnglishCenter.Business.IServices
     {
         public Task<Response> GetAllAsync();
         public Task<Response> GetAsync(long id);
+        public Task<Response> GetBySubmissionAsync(long submissionId);
         public Task<Response> GetByEnrollAndIdAsync(long enrollId, long submissionTaskId);
         public Task<Response> ChangeFilePathAsync(long id, IFormFile file);
         public Task<Response> ChangeLinkUrlAsync(long id, string newLinkUrl);

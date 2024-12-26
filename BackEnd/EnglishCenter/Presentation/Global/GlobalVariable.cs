@@ -5,6 +5,7 @@
         public const string DATABASE = "EnglishCenter";
         public const string CLIENT_URL = "https://localhost:5173/";
 
+        public const string SYSTEM = "SYSTEM";
 
         // Identity
         public const int MAX_FAILED_ACCESS = 5;
@@ -21,5 +22,6 @@
 
         // Toeic
         public const int TOEIC_NUM = 200;
+
     }
 }

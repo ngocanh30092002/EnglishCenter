@@ -26,5 +26,6 @@ namespace EnglishCenter.DataAccess.Entities
         [InverseProperty("ScheduleEvents")]
         public virtual Student Student { get; set; } = null!;
 
+        public bool IsSend { set; get; } = false;
     }
 }

@@ -1,8 +1,8 @@
-﻿using System;
-using AutoMapper;
+﻿using AutoMapper;
 using EnglishCenter.Business.IServices;
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.UnitOfWork;
+using EnglishCenter.Presentation.Global.Enum;
 using EnglishCenter.Presentation.Helpers;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
@@ -29,7 +29,7 @@ namespace EnglishCenter.Business.Services.Assignments
         public async Task<Response> ChangeAnswerAAsync(long quesId, string newAnswer)
         {
             var queModel = _unit.QuesLcAudios.GetById(quesId);
-            if(queModel == null)
+            if (queModel == null)
             {
                 return new Response()
                 {
@@ -185,7 +185,7 @@ namespace EnglishCenter.Business.Services.Assignments
             var folderPath = Path.Combine(_webHostEnvironment.WebRootPath, _audioBasePath);
             var fileAudio = $"audio_{DateTime.Now.Ticks}{Path.GetExtension(audioFile.FileName)}";
             var previousPath = Path.Combine(_webHostEnvironment.WebRootPath, queModel.Audio);
-            
+
             var isChangeSuccess = await _unit.QuesLcAudios.ChangeAudioAsync(queModel, Path.Combine(_audioBasePath, fileAudio));
             if (!isChangeSuccess)
             {
@@ -221,6 +221,39 @@ namespace EnglishCenter.Business.Services.Assignments
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Success = false
+                };
+            }
+
+            await _unit.CompleteAsync();
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = "",
+                Success = true
+            };
+        }
+
+        public async Task<Response> ChangeLevelAsync(long quesId, int level)
+        {
+            var queModel = _unit.QuesLcAudios.GetById(quesId);
+            if (queModel == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any questions",
+                    Success = false
+                };
+            }
+
+            var isChangeSuccess = await _unit.QuesLcAudios.ChangeLevelAsync(queModel, level);
+            if (!isChangeSuccess)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't change level",
                     Success = false
                 };
             }
@@ -315,7 +348,7 @@ namespace EnglishCenter.Business.Services.Assignments
                     };
                 }
 
-                if(answerModel.SubRcSingle != null)
+                if (answerModel.SubRcSingle != null)
                 {
                     return new Response()
                     {
@@ -414,6 +447,46 @@ namespace EnglishCenter.Business.Services.Assignments
             });
         }
 
+        public async Task<Response> GetOtherQuestionByAssignmentAsync(long assignmentId)
+        {
+            var assignQues = _unit.AssignQues
+                                  .Find(a => a.AssignmentId == assignmentId && a.Type == (int)QuesTypeEnum.Audio)
+                                  .Select(a => a.AudioQuesId)
+                                  .ToList();
+
+            var queModels = await _unit.QuesLcAudios
+                                .Include(q => q.Answer)
+                                .Where(q => !assignQues.Contains(q.QuesId))
+                                .ToListAsync();
+
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = _mapper.Map<List<QuesLcAudioResDto>>(queModels),
+                Success = true
+            };
+        }
+
+        public async Task<Response> GetOtherQuestionByHomeworkAsync(long homeworkId)
+        {
+            var homeQues = _unit.HomeQues
+                                  .Find(a => a.HomeworkId == homeworkId && a.Type == (int)QuesTypeEnum.Audio)
+                                  .Select(a => a.AudioQuesId)
+                                  .ToList();
+
+            var queModels = await _unit.QuesLcAudios
+                                .Include(q => q.Answer)
+                                .Where(q => !homeQues.Contains(q.QuesId))
+                                .ToListAsync();
+
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = _mapper.Map<List<QuesLcAudioResDto>>(queModels),
+                Success = true
+            };
+        }
+
         public async Task<Response> UpdateAsync(long quesId, QuesLcAudioDto queModel)
         {
             var queEntity = _unit.QuesLcAudios.GetById(quesId);
@@ -443,7 +516,13 @@ namespace EnglishCenter.Business.Services.Assignments
                     if (!response.Success) return response;
                 }
 
-                if(queModel.Question != queEntity.Question)
+                if (queModel.Level.HasValue && queModel.Level != queEntity.Level)
+                {
+                    var response = await ChangeLevelAsync(quesId, queModel.Level.Value);
+                    if (!response.Success) return response;
+                }
+
+                if (queModel.Question != queEntity.Question)
                 {
                     queEntity.Question = queModel.Question;
                 }

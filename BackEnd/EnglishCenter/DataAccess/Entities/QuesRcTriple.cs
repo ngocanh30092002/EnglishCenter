@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.DataAccess.Entities;
 
@@ -28,9 +25,11 @@ public class QuesRcTriple
 
     public TimeOnly Time { set; get; } = TimeOnly.MinValue;
 
+    public int Level { set; get; } = 1;
+
     [InverseProperty("QuesTriple")]
     public virtual ICollection<AssignQue> AssignQues { get; set; } = new List<AssignQue>();
-    
+
     [InverseProperty("QuesTriple")]
     public virtual ICollection<HomeQue> HomeQues { set; get; } = new List<HomeQue>();
 

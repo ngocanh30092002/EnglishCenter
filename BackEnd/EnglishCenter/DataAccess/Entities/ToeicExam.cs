@@ -34,6 +34,6 @@ namespace EnglishCenter.DataAccess.Entities
         public virtual ICollection<QuesToeic> QuesToeic { set; get; } = new List<QuesToeic>();
 
         [InverseProperty("ToeicExam")]
-        public virtual ICollection<ToeicAttempt> ToeicAttempts { set; get; } = new List<ToeicAttempt>();
+        public virtual ICollection<UserAttempt> UserAttempts { set; get; } = new List<UserAttempt>();
     }
 }

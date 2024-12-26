@@ -14,12 +14,18 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
         private readonly IUnitOfWork _unit;
         private readonly IMapper _mapper;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IHwSubmissionService _subService;
+        private readonly IHomeQuesService _homeQueService;
+        private readonly IRandomQueToeicService _ranQuesService;
 
-        public HomeworkService(IUnitOfWork unit, IMapper mapper, IWebHostEnvironment webHostEnvironment)
+        public HomeworkService(IUnitOfWork unit, IMapper mapper, IWebHostEnvironment webHostEnvironment, IHwSubmissionService subService, IHomeQuesService homeQueService, IRandomQueToeicService ranQuesService)
         {
             _unit = unit;
             _mapper = mapper;
             _webHostEnvironment = webHostEnvironment;
+            _subService = subService;
+            _homeQueService = homeQueService;
+            _ranQuesService = ranQuesService;
         }
 
         public async Task<bool> IsInChargeClass(string userId, long homeId)
@@ -373,22 +379,15 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
                 };
             }
 
-            if (!TimeOnly.TryParse(model.Time, out TimeOnly timeOnly))
+            var timeOnly = TimeOnly.MinValue;
+
+
+            if (!string.IsNullOrEmpty(model.Time) && !TimeOnly.TryParse(model.Time, out timeOnly))
             {
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
                     Message = "Time is not in correct format",
-                    Success = false
-                };
-            }
-
-            if (timeOnly == TimeOnly.MinValue)
-            {
-                return new Response()
-                {
-                    StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "You need to set a time for your homework.",
                     Success = false
                 };
             }
@@ -440,11 +439,20 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
 
             _unit.Homework.Add(homeModel);
 
+            await _unit.Notifications.SendNotificationToGroup(lessonModel.ClassId, new NotiDto()
+            {
+                Title = "Automatic Message",
+                Description = $"You have this homework. Please complete before {endTime.ToString("MMMM dd")}",
+                Image = "/notifications/images/automatic.svg",
+                IsRead = false,
+                Time = DateTime.Now,
+            });
+
             await _unit.CompleteAsync();
             return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Message = "",
+                Message = homeModel.HomeworkId,
                 Success = true
             };
         }
@@ -466,6 +474,32 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
             if (File.Exists(previousPath))
             {
                 File.Delete(previousPath);
+            }
+
+            var submissionIds = _unit.HwSubmissions.Find(s => s.HomeworkId == homeModel.LessonId).Select(s => s.SubmissionId).ToList();
+            foreach (var subId in submissionIds)
+            {
+                var deleteRes = await _subService.DeleteAsync(subId);
+                if (!deleteRes.Success) return deleteRes;
+            }
+
+            if (homeModel.Type == 1)
+            {
+                var homeQuesId = _unit.HomeQues.Find(q => q.HomeworkId == homeModel.HomeworkId).Select(q => q.HomeQuesId).ToList();
+                foreach (var homeId in homeQuesId)
+                {
+                    var deleteRes = await _homeQueService.DeleteAsync(homeId);
+                    if (!deleteRes.Success) return deleteRes;
+                }
+            }
+            else
+            {
+                var ranQuesId = _unit.RandomQues.Find(q => q.HomeworkId == homeModel.HomeworkId).Select(q => q.Id).ToList();
+                foreach (var ranId in ranQuesId)
+                {
+                    var deleteRes = await _ranQuesService.DeleteAsync(ranId);
+                    if (!deleteRes.Success) return deleteRes;
+                }
             }
 
             _unit.Homework.Remove(homeModel);
@@ -508,7 +542,7 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
             var homeworkModels = _unit.Homework
                                       .Include(h => h.Lesson)
                                       .Where(h => h.Lesson.ClassId == classId)
-                                      .OrderBy(h => h.StartTime)
+                                      .OrderByDescending(h => h.EndTime)
                                       .ToList();
 
             return Task.FromResult(new Response()
@@ -631,6 +665,21 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
                 Message = "",
                 Success = true
             };
+        }
+
+        public Task<Response> GetByLessonAsync(long lessonId)
+        {
+            var homeworkModels = _unit.Homework
+                                      .Find(h => h.LessonId == lessonId)
+                                      .OrderByDescending(h => h.EndTime)
+                                      .ToList();
+
+            return Task.FromResult(new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = _mapper.Map<List<HomeworkResDto>>(homeworkModels),
+                Success = true
+            });
         }
     }
 }

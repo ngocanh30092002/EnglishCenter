@@ -35,6 +35,7 @@ namespace EnglishCenter.Presentation
                 .ForMember(d => d.AnswerC, opt => opt.MapFrom(src => src.AnswerC))
                 .ForMember(d => d.AnswerD, opt => opt.MapFrom(src => src.AnswerD))
                 .ForMember(d => d.Time, opt => opt.MapFrom(src => src.Time))
+                .ForMember(d => d.Level, opt => opt.MapFrom(src => src.Level))
                 .ForMember(d => d.AnswerInfo, opt => opt.MapFrom(src => src.Answer));
         }
     }

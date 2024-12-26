@@ -21,8 +21,20 @@ namespace EnglishCenter.Business.Services.Courses
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly UserManager<User> _userManager;
         private string _imageBase;
+        private readonly IEnrollmentService _enrollService;
+        private readonly IClassScheduleService _classScheduleService;
+        private readonly IClassMaterialService _classMaterialService;
 
-        public ClassService(IMapper mapper, IUnitOfWork unit, IWebHostEnvironment webHostEnvironment, IClaimService claimService, UserManager<User> userManager)
+        public ClassService(
+            IMapper mapper,
+            IUnitOfWork unit,
+            IWebHostEnvironment webHostEnvironment,
+            IClaimService claimService,
+            UserManager<User> userManager,
+            IEnrollmentService enrollService,
+            IClassScheduleService classScheduleService,
+            IClassMaterialService classMaterialService
+            )
         {
             _unit = unit;
             _mapper = mapper;
@@ -30,6 +42,9 @@ namespace EnglishCenter.Business.Services.Courses
             _webHostEnvironment = webHostEnvironment;
             _userManager = userManager;
             _imageBase = Path.Combine("classes", "images");
+            _enrollService = enrollService;
+            _classScheduleService = classScheduleService;
+            _classMaterialService = classMaterialService;
         }
 
         public async Task<Response> ChangeDescriptionAsync(string classId, string newDes)
@@ -383,6 +398,7 @@ namespace EnglishCenter.Business.Services.Courses
                 };
             }
 
+            await _unit.Notifications.CreateGroupAsync(classModel.ClassId);
             await _unit.CompleteAsync();
             return new Response()
             {
@@ -394,7 +410,9 @@ namespace EnglishCenter.Business.Services.Courses
 
         public async Task<Response> DeleteAsync(string classId)
         {
-            var classModel = _unit.Classes.GetById(classId);
+            var classModel = await _unit.Classes
+                                        .Include(c => c.Enrollments)
+                                        .FirstOrDefaultAsync(c => c.ClassId == classId);
             if (classModel == null)
             {
                 return new Response()
@@ -425,32 +443,95 @@ namespace EnglishCenter.Business.Services.Courses
                 }
             }
 
-            _unit.Classes.Remove(classModel);
-
-            var isDeleteSuccess = await _claimService.DeleteClaimInUserAsync(classModel.TeacherId, new ClaimDto()
-            {
-                ClaimName = GlobalClaimNames.CLASS,
-                ClaimValue = classModel.ClassId
-            });
-
-            if (!isDeleteSuccess)
+            var isAnyStudentOngoing = classModel.Enrollments.Any(e => e.StatusId == (int)EnrollEnum.Ongoing);
+            if (isAnyStudentOngoing)
             {
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Can't delete claim of user",
+                    Message = "There are still students currently studying so the class can't be deleted.",
                     Success = false
                 };
             }
 
-            await _unit.CompleteAsync();
+            await _unit.BeginTransAsync();
 
-            return new Response()
+            try
             {
-                Success = true,
-                StatusCode = System.Net.HttpStatusCode.OK,
-                Message = ""
-            };
+                var enrollIds = classModel.Enrollments.Select(e => e.EnrollId).ToList();
+
+
+                foreach (var enrollId in enrollIds)
+                {
+                    var res = await _enrollService.DeleteAsync(enrollId);
+                    if (!res.Success) return res;
+                }
+
+                var classMaterialIds = _unit.ClassMaterials
+                                       .Find(e => e.ClassId == classModel.ClassId)
+                                       .Select(s => s.ClassMaterialId)
+                                       .ToList();
+
+                foreach (var id in classMaterialIds)
+                {
+                    var res = await _classMaterialService.DeleteAsync(id);
+                    if (!res.Success) return res;
+                }
+
+
+                var classScheduleIds = _unit.ClassSchedules
+                                            .Find(e => e.ClassId == classModel.ClassId)
+                                            .Select(s => s.ScheduleId)
+                                            .ToList();
+
+                foreach (var id in classScheduleIds)
+                {
+                    var res = await _classScheduleService.DeleteAsync(id);
+                    if (!res.Success) return res;
+                }
+
+                _unit.Classes.Remove(classModel);
+
+                var isDeleteSuccess = await _claimService.DeleteClaimInUserAsync(classModel.TeacherId, new ClaimDto()
+                {
+                    ClaimName = GlobalClaimNames.CLASS,
+                    ClaimValue = classModel.ClassId
+                });
+
+                if (!isDeleteSuccess)
+                {
+                    return new Response()
+                    {
+                        StatusCode = System.Net.HttpStatusCode.BadRequest,
+                        Message = "Can't delete claim of user",
+                        Success = false
+                    };
+                }
+
+
+
+
+
+                await _unit.CompleteAsync();
+                await _unit.CommitTransAsync();
+
+                return new Response()
+                {
+                    Success = true,
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Message = ""
+                };
+            }
+            catch (Exception ex)
+            {
+                await _unit.RollBackTransAsync();
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = ex.Message,
+                    Success = false
+                };
+            }
         }
 
         public Task<Response> GetAllAsync()
@@ -548,14 +629,110 @@ namespace EnglishCenter.Business.Services.Courses
 
         public async Task<Response> UpdateAsync(string classId, ClassDto model)
         {
-            var response = await _unit.Classes.UpdateAsync(classId, model);
+            var classModel = _unit.Classes.GetById(classId);
 
-            if (response.Success)
+            if (classModel == null)
             {
-                await _unit.CompleteAsync();
+                return new Response()
+                {
+                    Message = "Can't find any classes",
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                };
             }
 
-            return response;
+            if (classModel.TeacherId != model.TeacherId)
+            {
+                var isChangeSuccess = await _unit.Classes.ChangeTeacherAsync(classModel, model.TeacherId);
+                if (!isChangeSuccess)
+                {
+                    return new Response()
+                    {
+                        StatusCode = System.Net.HttpStatusCode.BadRequest,
+                        Message = "Can't find any teachers",
+                        Success = false
+                    };
+                }
+            }
+
+            if (model.Image != null)
+            {
+                var isChangeSuccess = await _unit.Classes.ChangeImageAsync(classModel, model.Image);
+
+                if (!isChangeSuccess)
+                {
+                    return new Response()
+                    {
+                        StatusCode = System.Net.HttpStatusCode.BadRequest,
+                        Message = "Change image failed",
+                        Success = false
+                    };
+                }
+            }
+
+            if (!model.StartDate.HasValue || !model.EndDate.HasValue)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Start and End is required"
+                };
+            }
+
+            if (model.StartDate.HasValue && model.EndDate.HasValue)
+            {
+                if (model.StartDate.Value > model.EndDate.Value)
+                {
+                    return new Response()
+                    {
+                        StatusCode = System.Net.HttpStatusCode.BadRequest,
+                        Message = "Start time must be less than end time"
+                    };
+                }
+            }
+
+            var currentDate = DateOnly.FromDateTime(DateTime.Now);
+
+            if (model.StartDate.Value >= currentDate)
+            {
+                classModel.Status = (int)ClassEnum.Waiting;
+            }
+            if (model.StartDate.Value <= currentDate && currentDate <= model.EndDate.Value)
+            {
+                classModel.Status = (int)ClassEnum.Opening;
+            }
+
+            if (model.EndDate.Value < currentDate)
+            {
+                classModel.Status = (int)ClassEnum.End;
+            }
+
+            classModel.StartDate = model.StartDate;
+            classModel.EndDate = model.EndDate;
+            classModel.RegisteredNum = model.RegisteredNum ?? 0;
+            classModel.MaxNum = model.MaxNum ?? 0;
+            classModel.Description = model.Description ?? classModel.Description;
+
+            await _unit.CompleteAsync();
+
+            if (classModel.Status == (int)ClassEnum.Opening)
+            {
+                var response = await _enrollService.HandleStartClassAsync(classId);
+                if (!response.Success) return response;
+            }
+
+            if (classModel.Status == (int)ClassEnum.End)
+            {
+                var response = await _enrollService.HandleEndClassAsync(classId);
+                if (!response.Success) return response;
+            }
+
+
+            return new Response()
+            {
+                Success = true,
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = ""
+            };
         }
 
         public Task<bool> IsClassOfTeacherAsync(string userId, string classId)

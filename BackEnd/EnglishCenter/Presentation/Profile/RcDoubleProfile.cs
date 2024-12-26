@@ -11,6 +11,7 @@ namespace EnglishCenter.Presentation
         {
             CreateMap<QuesRcDouble, QuesRcDoubleResDto>()
                .ForMember(des => des.Id, opt => opt.MapFrom(src => src.QuesId))
+               .ForMember(des => des.Level, opt => opt.MapFrom(src => src.Level))
                .ForMember(des => des.ImageUrl_1, opt => opt.MapFrom(src => src.Image1.Replace("\\", "/")))
                .ForMember(des => des.ImageUrl_2, opt => opt.MapFrom(src => src.Image2.Replace("\\", "/")))
                .ForMember(des => des.Time, opt => opt.MapFrom(src => src.Time))

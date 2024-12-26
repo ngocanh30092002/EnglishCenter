@@ -48,7 +48,7 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
 
             model.Quantity = quantity;
 
-            return Task.FromResult(true); 
+            return Task.FromResult(true);
         }
 
         public Task<bool> ChangeTimeAsync(QuesRcSingle model, TimeOnly time)
@@ -56,6 +56,17 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
             if (model == null) return Task.FromResult(false);
 
             model.Time = time;
+
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> ChangeLevelAsync(QuesRcSingle model, int level)
+        {
+            if (model == null) return Task.FromResult(false);
+
+            if (level <= 0 || level > 4) return Task.FromResult(false);
+
+            model.Level = level;
 
             return Task.FromResult(true);
         }

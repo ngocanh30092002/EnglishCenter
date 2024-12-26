@@ -17,12 +17,14 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
         private readonly IUnitOfWork _unit;
         private readonly IMapper _mapper;
         private readonly IHwSubRecordService _subRecordService;
+        private readonly IUserService _userService;
 
-        public HwSubmissionService(IUnitOfWork unit, IMapper mapper, IHwSubRecordService subRecordService)
+        public HwSubmissionService(IUnitOfWork unit, IMapper mapper, IHwSubRecordService subRecordService, IUserService userService)
         {
             _unit = unit;
             _mapper = mapper;
             _subRecordService = subRecordService;
+            _userService = userService;
         }
 
         public async Task<Response> ChangeDateAsync(long hwSubId, string dateTime)
@@ -397,7 +399,6 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
 
         public Task<Response> GetAllAsync()
         {
-            // Todo: change resdto
             var submitModels = _unit.HwSubmissions.GetAll();
 
             return Task.FromResult(new Response()
@@ -410,8 +411,6 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
 
         public Task<Response> GetAsync(long hwSubId)
         {
-            // Todo: change resdto
-
             var submitModel = _unit.HwSubmissions.GetById(hwSubId);
 
             return Task.FromResult(new Response()
@@ -730,25 +729,55 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
                 };
             }
 
-            var correctNumber = _unit.HwSubRecords.Find(r => r.SubmissionId == submissionModel.SubmissionId && r.IsCorrect).Count();
-            var totalNumber = await _unit.HomeQues.GetNumberByHomeworkAsync(submissionModel.HomeworkId);
-            var achievedPercentage = submissionModel.Homework.AchievedPercentage;
-            var currentPercentage = Math.Ceiling(correctNumber * 100.0 * 100.0 / totalNumber) / 100;
-
-            return new Response()
+            if (submissionModel.Homework.Type == 1)
             {
-                StatusCode = System.Net.HttpStatusCode.OK,
-                Success = true,
-                Message = new AssignmentScoreResDto()
+                var correctNumber = _unit.HwSubRecords.Find(r => r.SubmissionId == submissionModel.SubmissionId && r.IsCorrect).Count();
+                var totalNumber = await _unit.HomeQues.GetNumberByHomeworkAsync(submissionModel.HomeworkId);
+                var achievedPercentage = submissionModel.Homework.AchievedPercentage;
+                var currentPercentage = Math.Ceiling(correctNumber * 100.0 * 100.0 / totalNumber) / 100;
+
+                return new Response()
                 {
-                    Correct = correctNumber,
-                    InCorrect = totalNumber - correctNumber,
-                    Total = totalNumber,
-                    Achieve_Percentage = achievedPercentage,
-                    Current_Percentage = currentPercentage,
-                    IsPass = currentPercentage >= achievedPercentage
-                }
-            };
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Success = true,
+                    Message = new AssignmentScoreResDto()
+                    {
+                        Correct = correctNumber,
+                        InCorrect = totalNumber - correctNumber,
+                        Total = totalNumber,
+                        Achieve_Percentage = achievedPercentage,
+                        Current_Percentage = currentPercentage,
+                        IsPass = currentPercentage >= achievedPercentage
+                    }
+                };
+            }
+            else
+            {
+                var res = new ToeicScoreResDto()
+                {
+                    Part1 = await _unit.HwSubRecords.GetNumCorrectWithPartAsync(hwSubId, (int)PartEnum.Part1),
+                    Part2 = await _unit.HwSubRecords.GetNumCorrectWithPartAsync(hwSubId, (int)PartEnum.Part2),
+                    Part3 = await _unit.HwSubRecords.GetNumCorrectWithPartAsync(hwSubId, (int)PartEnum.Part3),
+                    Part4 = await _unit.HwSubRecords.GetNumCorrectWithPartAsync(hwSubId, (int)PartEnum.Part4),
+                    Part5 = await _unit.HwSubRecords.GetNumCorrectWithPartAsync(hwSubId, (int)PartEnum.Part5),
+                    Part6 = await _unit.HwSubRecords.GetNumCorrectWithPartAsync(hwSubId, (int)PartEnum.Part6),
+                    Part7 = await _unit.HwSubRecords.GetNumCorrectWithPartAsync(hwSubId, (int)PartEnum.Part7),
+                };
+
+                var listeningCon = await _unit.ToeicConversion.GetByNumberCorrectAsync(res.Part1 + res.Part2 + res.Part3 + res.Part4, ToeicEnum.Listening);
+                var readingCon = await _unit.ToeicConversion.GetByNumberCorrectAsync(res.Part5 + res.Part6 + res.Part7, ToeicEnum.Reading);
+
+                res.Listening = listeningCon == null ? 0 : listeningCon.EstimatedScore;
+                res.Reading = readingCon == null ? 0 : readingCon.EstimatedScore;
+
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Message = res,
+                    Success = true
+                };
+            }
+
         }
 
         public async Task<Response> GetResultAsync(long id)
@@ -802,6 +831,80 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
                 Message = hwRecordResDtos,
+                Success = true
+            };
+        }
+
+        public async Task<Response> GetByEnrollHistoryAsync(long enrollId)
+        {
+            var submissionModels = await _unit.HwSubmissions
+                                        .Include(s => s.Homework)
+                                        .Include(s => s.SubRecords)
+                                        .Where(s => s.EnrollId == enrollId && s.SubmitStatus != (int)SubmitStatusEnum.Ongoing)
+                                        .ToListAsync();
+
+            var resDtos = new List<HwSubmissionResDto>();
+
+            foreach (var item in submissionModels)
+            {
+                var totalNum = item.SubRecords.Count;
+                var correctNum = item.SubRecords.Where(s => s.IsCorrect == true).Count();
+                var percentage = item.Homework.AchievedPercentage;
+                var currentPercentage = Math.Ceiling(correctNum * 100.0 * 100.0 / totalNum) / 100;
+
+                var scoreResDto = new HomeworkScoreResDto()
+                {
+                    Correct = correctNum,
+                    InCorrect = totalNum - correctNum,
+                    Total = totalNum,
+                    Achieve_Percentage = percentage,
+                    Current_Percentage = currentPercentage,
+                    IsPass = item.IsPass
+                };
+
+                var resDto = _mapper.Map<HwSubmissionResDto>(item);
+                resDto.Score = scoreResDto;
+
+                resDtos.Add(resDto);
+            }
+
+
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = resDtos,
+                Success = true
+            };
+        }
+
+        public async Task<Response> GetByHomeworkAsync(long homeworkId)
+        {
+            var hwSubmissions = _unit.HwSubmissions
+                                     .Include(s => s.Enrollment)
+                                     .Include(s => s.Homework)
+                                     .Where(s => s.HomeworkId == homeworkId)
+                                     .ToList();
+
+            var hwSubResDtos = new List<HwSubmissionResDto>();
+
+            foreach (var submission in hwSubmissions)
+            {
+                var subResDto = _mapper.Map<HwSubmissionResDto>(submission);
+                var hwScoreModel = await _unit.HwSubRecords.GetScoreBySubmissionAsync(subResDto.SubmissionId);
+                var fullInfoRes = await _userService.GetUserFullInfoAsync(submission.Enrollment.UserId);
+                var fullInfo = fullInfoRes.Message as UserInfoResDto;
+                subResDto.Score = hwScoreModel;
+                subResDto.UserName = fullInfo!.FirstName + " " + fullInfo!.LastName;
+                subResDto.Email = fullInfo!.Email;
+                subResDto.ImageUrl = fullInfo.Image == null ? null : fullInfo.Image.Replace("\\", "/");
+
+                hwSubResDtos.Add(subResDto);
+            }
+
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = hwSubResDtos,
                 Success = true
             };
         }

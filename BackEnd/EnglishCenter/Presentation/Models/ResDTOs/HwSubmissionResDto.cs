@@ -9,5 +9,9 @@
         public string? FeedBack { set; get; }
         public bool IsPass { set; get; }
         public HomeworkScoreResDto? Score { set; get; }
+        public long? EnrollId { set; get; }
+        public string? UserName { set; get; }
+        public string? Email { set; get; }
+        public string? ImageUrl { set; get; }
     }
 }

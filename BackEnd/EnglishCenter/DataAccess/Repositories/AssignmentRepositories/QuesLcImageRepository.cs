@@ -1,7 +1,6 @@
 ﻿using EnglishCenter.DataAccess.Database;
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.IRepositories;
-using EnglishCenter.Presentation.Models.DTOs;
 using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
@@ -41,6 +40,17 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
             if (queModel == null) return Task.FromResult(false);
 
             queModel.Image = imagePath ?? "";
+
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> ChangeLevelAsync(QuesLcImage model, int level)
+        {
+            if (model == null) return Task.FromResult(false);
+
+            if (level <= 0 || level > 4) return Task.FromResult(false);
+
+            model.Level = level;
 
             return Task.FromResult(true);
         }

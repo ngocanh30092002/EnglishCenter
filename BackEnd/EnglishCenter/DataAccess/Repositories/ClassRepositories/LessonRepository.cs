@@ -42,20 +42,17 @@ namespace EnglishCenter.DataAccess.Repositories.ClassRepositories
         {
             if (lesson == null) return false;
 
+            var classModel = await context.Classes.FindAsync(lesson.ClassId);
+            if (classModel == null) return false;
+
             var classRoomModel = await context.ClassRooms.FindAsync(classRoomId);
             if (classRoomModel == null) return false;
-
-            var isExistClass = context.Lessons
-                                    .Where(s => s.ClassId == lesson.ClassId &&
-                                                s.Date == lesson.Date &&
-                                                s.StartPeriod == lesson.StartPeriod &&
-                                                s.EndPeriod == lesson.EndPeriod)
-                                    .Any();
-
-            if (isExistClass) return false;
+            if (classModel.RegisteredNum > classRoomModel.Capacity) return false;
 
             var isDuplicate = await IsDuplicateAsync(lesson.Date, classRoomId, lesson.StartPeriod, lesson.EndPeriod);
             if (isDuplicate) return false;
+            var isDuplicateTeacher = await IsDuplicateTeacherAsync(lesson.Date, lesson.StartPeriod, lesson.EndPeriod, classModel.TeacherId, lesson.LessonId);
+            if (isDuplicateTeacher) return false;
 
             lesson.ClassRoomId = classRoomId;
             return true;
@@ -65,8 +62,14 @@ namespace EnglishCenter.DataAccess.Repositories.ClassRepositories
         {
             if (lesson == null) return false;
 
+            var classModel = await context.Classes.FindAsync(lesson.ClassId);
+            if (classModel == null) return false;
+
             var isDuplicate = await IsDuplicateAsync(dateOnly, lesson.ClassRoomId, lesson.StartPeriod, lesson.EndPeriod);
             if (isDuplicate) return false;
+
+            var isDuplicateTeacher = await IsDuplicateTeacherAsync(dateOnly, lesson.StartPeriod, lesson.EndPeriod, classModel.TeacherId);
+            if (isDuplicateTeacher) return false;
 
             lesson.Date = dateOnly;
 
@@ -79,8 +82,15 @@ namespace EnglishCenter.DataAccess.Repositories.ClassRepositories
             if (endPeriod < 0 || endPeriod > 13) return false;
             if (lesson.StartPeriod > endPeriod) return false;
 
+
+            var classModel = await context.Classes.FindAsync(lesson.ClassId);
+            if (classModel == null) return false;
+
             var isDuplicate = await IsDuplicateAsync(lesson.Date, lesson.ClassRoomId, lesson.StartPeriod, endPeriod, lesson.LessonId);
             if (isDuplicate) return false;
+
+            var isDuplicateTeacher = await IsDuplicateTeacherAsync(lesson.Date, lesson.StartPeriod, endPeriod, classModel.TeacherId, lesson.LessonId);
+            if (isDuplicateTeacher) return false;
 
             lesson.EndPeriod = endPeriod;
 
@@ -93,8 +103,14 @@ namespace EnglishCenter.DataAccess.Repositories.ClassRepositories
             if (startPeriod < 0 || startPeriod > 13) return false;
             if (lesson.EndPeriod < startPeriod) return false;
 
+            var classModel = await context.Classes.FindAsync(lesson.ClassId);
+            if (classModel == null) return false;
+
             var isDuplicate = await IsDuplicateAsync(lesson.Date, lesson.ClassRoomId, startPeriod, lesson.EndPeriod, lesson.LessonId);
             if (isDuplicate) return false;
+
+            var isDuplicateTeacher = await IsDuplicateTeacherAsync(lesson.Date, startPeriod, lesson.EndPeriod, classModel.TeacherId, lesson.LessonId);
+            if (isDuplicateTeacher) return false;
 
             lesson.StartPeriod = startPeriod;
 
@@ -128,6 +144,43 @@ namespace EnglishCenter.DataAccess.Repositories.ClassRepositories
             }
 
             foreach (var lesson in lessonInDate)
+            {
+                if (lesson.StartPeriod <= start && start <= lesson.EndPeriod)
+                {
+                    return true;
+                }
+                if (lesson.StartPeriod <= end && end <= lesson.EndPeriod)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public async Task<bool> IsDuplicateTeacherAsync(DateOnly date, int start, int end, string teacherId, long? lessonId = null)
+        {
+            var teacherModel = await context.Teachers
+                                            .Include(t => t.Classes)
+                                            .FirstOrDefaultAsync(t => t.UserId == teacherId);
+            if (teacherModel == null) return true;
+            var lessonModels = new List<Lesson>();
+            var classIds = teacherModel.Classes.Where(c => c.Status == (int)ClassEnum.Opening).Select(c => c.ClassId).ToList();
+
+            if (lessonId.HasValue)
+            {
+                lessonModels = await context.Lessons
+                                           .Where(l => classIds.Contains(l.ClassId) && l.Date == date && l.LessonId != lessonId.Value)
+                                           .ToListAsync();
+            }
+            else
+            {
+                lessonModels = await context.Lessons
+                                            .Where(l => classIds.Contains(l.ClassId) && l.Date == date)
+                                            .ToListAsync();
+            }
+
+            foreach (var lesson in lessonModels)
             {
                 if (lesson.StartPeriod <= start && start <= lesson.EndPeriod)
                 {

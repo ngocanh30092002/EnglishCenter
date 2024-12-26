@@ -66,13 +66,16 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
         public async Task<IActionResult> GetEnrollmentByStudentAsync([FromRoute] long enrollId)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
+            var teacher = User.IsInRole(AppRole.TEACHER);
+            var admin = User.IsInRole(AppRole.ADMIN);
+            var isStudent = !(teacher || admin);
 
             if (string.IsNullOrEmpty(userId))
             {
                 return BadRequest();
             }
 
-            var response = await _enrollService.GetAsync(userId, enrollId);
+            var response = await _enrollService.GetAsync(userId, enrollId, isStudent);
             return await response.ChangeActionAsync();
         }
 
@@ -98,7 +101,7 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
         }
 
         [HttpGet("class/{classId}/status")]
-        [Authorize(Roles = AppRole.ADMIN)]
+        [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> GetByClassWithStatusAsync([FromRoute] string classId, [FromQuery] int statusId)
         {
             if (!Enum.IsDefined(typeof(EnrollEnum), statusId))
@@ -243,8 +246,18 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
             return await response.ChangeActionAsync();
         }
 
+        [HttpDelete("{enrollmentId}/remove")]
+        public async Task<IActionResult> DeleteByOwnAsync([FromRoute] long enrollmentId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
+            if (string.IsNullOrEmpty(userId)) return BadRequest();
+
+            var response = await _enrollService.DeleteByOwnAsync(enrollmentId, userId);
+            return await response.ChangeActionAsync();
+        }
+
         [HttpDelete("{enrollmentId}")]
-        [Authorize(Roles = AppRole.ADMIN)]
+        [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> DeleteAsync([FromRoute] long enrollmentId)
         {
             var response = await _enrollService.DeleteAsync(enrollmentId);
@@ -370,7 +383,7 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
         [Authorize(Policy = GlobalVariable.ADMIN_STUDENT)]
         public async Task<IActionResult> HandleRejectAsync(long enrollmentId)
         {
-            var isStudent = User.IsInRole(AppRole.STUDENT);
+            var isStudent = !(User.IsInRole(AppRole.TEACHER) || User.IsInRole(AppRole.ADMIN));
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
 
             if (isStudent)

@@ -223,6 +223,16 @@ namespace EnglishCenter.Business.Services.Classes
                 };
             }
 
+            if (submissionTask.StartTime > DateTime.Now)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Submission Task hasn't started yet.",
+                    Success = false
+                };
+            }
+
             var enrollModel = _unit.Enrollment.GetById(model.EnrollId);
             if (enrollModel == null)
             {
@@ -484,6 +494,49 @@ namespace EnglishCenter.Business.Services.Classes
                     Success = false
                 };
             }
+        }
+
+        public Task<Response> GetBySubmissionAsync(long submissionId)
+        {
+            var files = _unit.SubmissionFiles
+                             .Find(f => f.SubmissionTaskId == submissionId)
+                             .ToList()
+                             .OrderByDescending(f => f.UploadAt);
+
+            var resDtos = _mapper.Map<List<SubmissionFileResDto>>(files);
+
+            foreach (var resDto in resDtos)
+            {
+                var enrollInfo = _unit.Enrollment
+                                      .Include(e => e.User)
+                                      .FirstOrDefault(e => e.EnrollId == resDto.EnrollId!.Value);
+
+                if (enrollInfo != null)
+                {
+                    resDto.UserImage = enrollInfo.User.Image == null ? "" : enrollInfo.User.Image.Replace("\\", "/");
+                    resDto.UserName = enrollInfo.User.FirstName + " " + enrollInfo.User.LastName;
+                }
+
+                var filePath = Path.Combine(_webHostEnvironment.WebRootPath, resDto.FilePath ?? "");
+
+                if (File.Exists(filePath))
+                {
+                    FileInfo fileInfo = new FileInfo(filePath);
+                    long fileSizeInBytes = fileInfo.Length;
+
+                    double fileSizeInKB = fileSizeInBytes / 1024.0;
+                    double fileSizeInMB = fileSizeInKB / 1024.0;
+
+                    resDto.FileSize = $"{Math.Round(fileSizeInMB, 2)} MB";
+                }
+            }
+
+            return Task.FromResult(new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = resDtos,
+                Success = true
+            });
         }
     }
 }

@@ -32,8 +32,29 @@ namespace EnglishCenter.Presentation.Controllers.ExamPage
             return await response.ChangeActionAsync();
         }
 
+        [HttpGet("parts/ques-id")]
+        public async Task<IActionResult> GetQuesIdWithParts()
+        {
+            var response = await _quesService.GetQuesIdWithParts();
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("roadmaps/{id}/other-ques")]
+        public async Task<IActionResult> GetOtherQuesIdByRoadMapAsync([FromRoute] long id)
+        {
+            var response = await _quesService.GetOtherQuesIdByRoadMapAsync(id);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("homework/{id}/other-ques")]
+        public async Task<IActionResult> GetOtherQuesIdByHomeworkAsync([FromRoute] long id)
+        {
+            var response = await _quesService.GetOtherQuesIdByHomeworkAsync(id);
+            return await response.ChangeActionAsync();
+        }
+
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetQuesToeicAsync([FromRoute] long id)
+        public async Task<IActionResult> GetAsync([FromRoute] long id)
         {
             var response = await _quesService.GetAsync(id);
             return await response.ChangeActionAsync();
@@ -43,6 +64,35 @@ namespace EnglishCenter.Presentation.Controllers.ExamPage
         public async Task<IActionResult> GetByToeicAsync([FromRoute] long id)
         {
             var response = await _quesService.GetByToeicAsync(id);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("toeic/{id}/next-ques")]
+        public async Task<IActionResult> GetIdByToeicAsync([FromRoute] long id, [FromQuery] int part)
+        {
+            var response = await _quesService.NextNoNumAsync(id, part);
+            return Ok(response);
+        }
+
+        [HttpGet("toeic/{id}/next-ques-no")]
+        public async Task<IActionResult> GetQuesNoByToeicAsync([FromRoute] long id, [FromQuery] int part)
+        {
+            var response = await _quesService.GetQuesNoByToeicAsync(id, part);
+            return Ok(response);
+        }
+
+        [HttpGet("toeic/{id}/ques-id")]
+        public async Task<IActionResult> GetIdByToeicAsync([FromRoute] long id)
+        {
+            var response = await _quesService.GetIdByToeicAsync(id);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("toeic/{id}/result")]
+        [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
+        public async Task<IActionResult> GetByToeicResultAsync([FromRoute] long id)
+        {
+            var response = await _quesService.GetByToeicResultAsync(id);
             return await response.ChangeActionAsync();
         }
 

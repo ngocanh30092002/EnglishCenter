@@ -37,5 +37,8 @@ namespace EnglishCenter.DataAccess.Entities
 
         [InverseProperty("QuesToeic")]
         public virtual ICollection<SubToeic> SubToeicList { set; get; } = new List<SubToeic>();
+
+        [InverseProperty("QuesToeic")]
+        public virtual ICollection<RandomQuesToeic> RandomQues { set; get; } = new List<RandomQuesToeic>();
     }
 }

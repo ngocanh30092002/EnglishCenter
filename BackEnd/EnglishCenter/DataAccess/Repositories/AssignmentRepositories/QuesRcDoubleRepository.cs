@@ -34,7 +34,7 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
 
         public Task<bool> ChangeImage1Async(QuesRcDouble model, string imageUrl)
         {
-            if(model == null) return Task.FromResult(false);
+            if (model == null) return Task.FromResult(false);
 
             model.Image1 = imageUrl;
 
@@ -55,7 +55,7 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
             if (model == null) return Task.FromResult(false);
             if (quantity <= 0) return Task.FromResult(false);
             if (model.SubRcDoubles.Count > quantity) return Task.FromResult(false);
-            
+
             model.Quantity = quantity;
 
             return Task.FromResult(true);
@@ -69,6 +69,17 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
 
             return Task.FromResult(true);
 
+        }
+
+        public Task<bool> ChangeLevelAsync(QuesRcDouble model, int level)
+        {
+            if (model == null) return Task.FromResult(false);
+
+            if (level <= 0 || level > 4) return Task.FromResult(false);
+
+            model.Level = level;
+
+            return Task.FromResult(true);
         }
     }
 }

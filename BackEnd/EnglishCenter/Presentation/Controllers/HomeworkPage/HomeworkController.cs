@@ -36,6 +36,13 @@ namespace EnglishCenter.Presentation.Controllers.HomeworkPage
             return await response.ChangeActionAsync();
         }
 
+        [HttpGet("lessons/{lessonId}")]
+        public async Task<IActionResult> GetByLessonAsync([FromRoute] long lessonId)
+        {
+            var response = await _homeService.GetByLessonAsync(lessonId);
+            return await response.ChangeActionAsync();
+        }
+
         [HttpGet("classes/{classId}")]
         public async Task<IActionResult> GetCurrentByClassAsync([FromRoute] string classId)
         {

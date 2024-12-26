@@ -5,7 +5,6 @@ using EnglishCenter.DataAccess.IRepositories;
 using EnglishCenter.Presentation.Global;
 using EnglishCenter.Presentation.Global.Enum;
 using EnglishCenter.Presentation.Helpers;
-using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,7 +15,10 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly IClaimService _claimService;
 
-        public ClassRepository(EnglishCenterContext context, IWebHostEnvironment webHostEnvironment, IClaimService claimService) : base(context)
+        public ClassRepository(
+            EnglishCenterContext context,
+            IWebHostEnvironment webHostEnvironment,
+            IClaimService claimService) : base(context)
         {
             _webHostEnvironment = webHostEnvironment;
             _claimService = claimService;
@@ -31,9 +33,12 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
         {
             if (teacherId == null) return null;
 
+            var currentDate = DateOnly.FromDateTime(DateTime.Now);
             var classes = await context.Classes
                                     .Include(c => c.Teacher)
-                                    .Where(c => c.TeacherId == teacherId)
+                                    .Where(c => c.TeacherId == teacherId &&
+                                                c.Status != (int)ClassEnum.End &&
+                                                c.StartDate <= currentDate && currentDate <= c.EndDate)
                                     .ToListAsync();
             return classes;
         }
@@ -144,99 +149,6 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
 
             model.TeacherId = teacherId;
             return true;
-        }
-
-        public async Task<Response> UpdateAsync(string classId, ClassDto model)
-        {
-            var classModel = await context.Classes.FindAsync(classId);
-
-            if (classModel == null)
-            {
-                return new Response()
-                {
-                    Message = "Can't find any classes",
-                    StatusCode = System.Net.HttpStatusCode.BadRequest,
-                };
-            }
-
-            if (classModel.TeacherId != model.TeacherId)
-            {
-                var isChangeSuccess = await ChangeTeacherAsync(classModel, model.TeacherId);
-                if (!isChangeSuccess)
-                {
-                    return new Response()
-                    {
-                        StatusCode = System.Net.HttpStatusCode.BadRequest,
-                        Message = "Can't find any teachers",
-                        Success = false
-                    };
-                }
-            }
-
-            if (model.Image != null)
-            {
-                var isChangeSuccess = await ChangeImageAsync(classModel, model.Image);
-
-                if (!isChangeSuccess)
-                {
-                    return new Response()
-                    {
-                        StatusCode = System.Net.HttpStatusCode.BadRequest,
-                        Message = "Change image failed",
-                        Success = false
-                    };
-                }
-            }
-
-            if (!model.StartDate.HasValue || !model.EndDate.HasValue)
-            {
-                return new Response()
-                {
-                    StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "Start and End is required"
-                };
-            }
-
-            if (model.StartDate.HasValue && model.EndDate.HasValue)
-            {
-                if (model.StartDate.Value > model.EndDate.Value)
-                {
-                    return new Response()
-                    {
-                        StatusCode = System.Net.HttpStatusCode.BadRequest,
-                        Message = "Start time must be less than end time"
-                    };
-                }
-            }
-
-            var currentDate = DateOnly.FromDateTime(DateTime.Now);
-
-            if (model.StartDate.Value >= currentDate)
-            {
-                classModel.Status = (int)ClassEnum.Waiting;
-            }
-            if (model.StartDate.Value <= currentDate && currentDate <= model.EndDate.Value)
-            {
-                classModel.Status = (int)ClassEnum.Opening;
-            }
-
-            if (model.EndDate.Value <= currentDate)
-            {
-                classModel.Status = (int)ClassEnum.End;
-            }
-
-            classModel.StartDate = model.StartDate;
-            classModel.EndDate = model.EndDate;
-            classModel.RegisteredNum = model.RegisteredNum ?? 0;
-            classModel.MaxNum = model.MaxNum ?? 0;
-            classModel.Description = model.Description ?? classModel.Description;
-
-            return new Response()
-            {
-                Success = true,
-                StatusCode = System.Net.HttpStatusCode.OK,
-                Message = ""
-            };
         }
 
         public async Task<bool> ChangeStatusAsync(Class model, ClassEnum status)

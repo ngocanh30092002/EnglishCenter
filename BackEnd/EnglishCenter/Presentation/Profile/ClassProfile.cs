@@ -92,6 +92,7 @@ namespace EnglishCenter.Presentation
                     .ForMember(des => des.FilePath, opt => opt.MapFrom(src => src.FilePath == null ? null : src.FilePath.Replace("\\", "/")))
                     .ForMember(des => des.LinkUrl, opt => opt.MapFrom(src => src.LinkUrl == null ? null : src.LinkUrl.Replace("\\", "/")))
                     .ForMember(des => des.Status, opt => opt.MapFrom(src => ((SubmissionFileEnum)src.Status).ToString()))
+                    .ForMember(des => des.EnrollId, opt => opt.MapFrom(src => src.EnrollId))
                     .ForMember(des => des.UploadAt, opt => opt.MapFrom(src => src.UploadAt.ToString("HH:mm:ss dd-MM-yyyy")))
                     .ForMember(des => des.UploadBy, opt => opt.MapFrom(src => src.UploadBy));
 
@@ -101,12 +102,31 @@ namespace EnglishCenter.Presentation
                     .ForMember(des => des.Description, opt => opt.MapFrom(src => src.Description))
                     .ForMember(des => des.StartTime, opt => opt.MapFrom(src => src.StartTime.ToString("HH:mm:ss dd-MM-yyyy")))
                     .ForMember(des => des.EndTime, opt => opt.MapFrom(src => src.EndTime.ToString("HH:mm:ss dd-MM-yyyy")))
-                    .ForMember(des => des.LessonId, opt => opt.MapFrom(src => src.LessonId));
+                    .ForMember(des => des.LessonId, opt => opt.MapFrom(src => src.LessonId))
+                    .ForMember(des => des.Lesson, opt => opt.MapFrom(src => src.Lesson));
 
             CreateMap<Period, PeriodResDto>()
+                    .ForMember(des => des.PeriodId, opt => opt.MapFrom(src => src.PeriodId))
                     .ForMember(des => des.StartTime, opt => opt.MapFrom(src => src.StartTime))
                     .ForMember(des => des.EndTime, opt => opt.MapFrom(src => src.EndTime));
 
+            CreateMap<AttendanceDto, Attendance>()
+                    .ForMember(des => des.LessonId, opt => opt.MapFrom(src => src.LessonId))
+                    .ForMember(des => des.EnrollId, opt => opt.MapFrom(src => src.EnrollId))
+                    .ForMember(des => des.IsAttended, opt => opt.MapFrom(src => src.IsAttended))
+                    .ForMember(des => des.IsPermitted, opt => opt.MapFrom(src => src.IsPermitted))
+                    .ForMember(des => des.IsLate, opt => opt.MapFrom(src => src.IsLate))
+                    .ForMember(des => des.IsLeaved, opt => opt.MapFrom(src => src.IsLeaved))
+                    .ReverseMap();
+
+            CreateMap<Attendance, AttendanceResDto>()
+                   .ForMember(des => des.AttendId, opt => opt.MapFrom(src => src.AttendanceId))
+                   .ForMember(des => des.LessonId, opt => opt.MapFrom(src => src.LessonId))
+                   .ForMember(des => des.EnrollId, opt => opt.MapFrom(src => src.EnrollId))
+                   .ForMember(des => des.IsAttended, opt => opt.MapFrom(src => src.IsAttended))
+                   .ForMember(des => des.IsPermitted, opt => opt.MapFrom(src => src.IsPermitted))
+                   .ForMember(des => des.IsLate, opt => opt.MapFrom(src => src.IsLate))
+                   .ForMember(des => des.IsLeaved, opt => opt.MapFrom(src => src.IsLeaved));
         }
     }
 }

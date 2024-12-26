@@ -55,17 +55,19 @@ namespace EnglishCenter.Presentation
                .ForMember(des => des.IsCorrect, opt => opt.MapFrom(src => src.IsCorrect))
                .ForMember(des => des.AnswerInfo, opt => opt.MapFrom(src => src.SubToeic.Answer));
 
-            CreateMap<ToeicPracticeRecord, ToeicPracticeRecordResDto>()
+            CreateMap<AttemptRecord, AttemptRecordResDto>()
                .ForMember(des => des.SubQueId, opt => opt.MapFrom(src => src.SubQueId))
                .ForMember(des => des.SelectedAnswer, opt => opt.MapFrom(src => src.SelectedAnswer))
                .ForMember(des => des.IsCorrect, opt => opt.MapFrom(src => src.IsCorrect))
                .ForMember(des => des.AnswerInfo, opt => opt.MapFrom(src => src.SubToeic.Answer));
 
-            CreateMap<ToeicAttempt, ToeicAttemptResDto>()
+            CreateMap<UserAttempt, UserAttemptResDto>()
                .ForMember(des => des.AttemptId, opt => opt.MapFrom(src => src.AttemptId))
                .ForMember(des => des.UserId, opt => opt.MapFrom(src => src.UserId))
                .ForMember(des => des.ToeicExam, opt => opt.MapFrom(src => src.ToeicExam))
+               .ForMember(des => des.RoadMapExam, opt => opt.MapFrom(src => src.RoadMapExam))
                .ForMember(des => des.ToeicId, opt => opt.MapFrom(src => src.ToeicId))
+               .ForMember(des => des.RoadMapExamId, opt => opt.MapFrom(src => src.RoadMapExamId))
                .ForMember(des => des.Listening_Score, opt => opt.MapFrom(src => src.ListeningScore))
                .ForMember(des => des.Reading_Score, opt => opt.MapFrom(src => src.ReadingScore))
                .ForMember(des => des.Date, opt => opt.MapFrom(src => src.Date));

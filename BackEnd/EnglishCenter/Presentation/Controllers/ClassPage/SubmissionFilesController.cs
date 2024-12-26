@@ -32,6 +32,13 @@ namespace EnglishCenter.Presentation.Controllers.ClassPage
             return await response.ChangeActionAsync();
         }
 
+        [HttpGet("submissions/{submissionId}")]
+        public async Task<IActionResult> GetBySubmissionAsync([FromRoute] long submissionId)
+        {
+            var response = await _fileService.GetBySubmissionAsync(submissionId);
+            return await response.ChangeActionAsync();
+        }
+
         [HttpGet("tasks/{taskId}")]
         public async Task<IActionResult> GetByEnrollAndIdAsync([FromRoute] long taskId, [FromQuery] long enrollId)
         {

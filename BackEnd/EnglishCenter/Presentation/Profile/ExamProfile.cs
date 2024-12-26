@@ -55,6 +55,7 @@ namespace EnglishCenter.Presentation
                .ForMember(des => des.ToeicId, opt => opt.MapFrom(src => src.ToeicId))
                .ForMember(des => des.IsGroup, opt => opt.MapFrom(src => src.IsGroup))
                .ForMember(des => des.Part, opt => opt.MapFrom(src => src.Part))
+               .ForMember(des => des.Level, opt => opt.MapFrom(src => src.Level))
                .ForMember(des => des.Part_Name, opt => opt.MapFrom(src => ((PartEnum)src.Part).ToString()))
                .ForMember(des => des.Audio, opt => opt.MapFrom(src => string.IsNullOrEmpty(src.Audio) ? "" : src.Audio.Replace("\\", "/")))
                .ForMember(des => des.Image_1, opt => opt.MapFrom(src => string.IsNullOrEmpty(src.Image_1) ? "" : src.Image_1.Replace("\\", "/")))
@@ -130,6 +131,40 @@ namespace EnglishCenter.Presentation
                .ForMember(des => des.Audio3, opt => opt.MapFrom(src => src.Audio3 == null ? "" : src.Audio3.Replace("\\", "/")))
                .ForMember(des => des.Audio4, opt => opt.MapFrom(src => src.Audio4 == null ? "" : src.Audio4.Replace("\\", "/")))
                .ForMember(des => des.Image, opt => opt.MapFrom(src => src.Image == null ? "" : src.Image.Replace("\\", "/")));
+
+
+            CreateMap<RoadMapDto, RoadMap>()
+               .ForMember(des => des.RoadMapId, opt => opt.MapFrom(src => src.RoadMapId))
+               .ForMember(des => des.CourseId, opt => opt.MapFrom(src => src.CourseId))
+               .ForMember(des => des.Name, opt => opt.MapFrom(src => src.Name))
+               .ReverseMap();
+
+            CreateMap<RoadMap, RoadMapResDto>()
+              .ForMember(des => des.RoadMapId, opt => opt.MapFrom(src => src.RoadMapId))
+              .ForMember(des => des.CourseId, opt => opt.MapFrom(src => src.CourseId))
+              .ForMember(des => des.RoadMapName, opt => opt.MapFrom(src => src.Name))
+              .ForMember(des => des.RoadMapExams, opt => opt.MapFrom(src => src.RoadMapExams));
+
+            CreateMap<RoadMapExamDto, RoadMapExam>()
+               .ForMember(des => des.Name, opt => opt.MapFrom(src => src.Name))
+               .ForMember(des => des.Point, opt => opt.MapFrom(src => src.Point))
+               .ForMember(des => des.TimeMinutes, opt => opt.MapFrom(src => src.TimeMinutes))
+               .ForMember(des => des.RoadMapId, opt => opt.MapFrom(src => src.RoadMapId));
+
+            CreateMap<RoadMapExam, RoadMapExamResDto>()
+               .ForMember(des => des.Id, opt => opt.MapFrom(src => src.RoadMapExamId))
+               .ForMember(des => des.Name, opt => opt.MapFrom(src => src.Name))
+               .ForMember(des => des.DirectionId, opt => opt.MapFrom(src => src.DirectionId))
+               .ForMember(des => des.Point, opt => opt.MapFrom(src => src.Point))
+               .ForMember(des => des.Time_Minutes, opt => opt.MapFrom(src => src.TimeMinutes))
+               .ForMember(des => des.Completed_Num, opt => opt.MapFrom(src => src.CompletedNum))
+               .ForMember(des => des.RoadMapId, opt => opt.MapFrom(src => src.RoadMapId));
+
+            CreateMap<RandomQuesToeicDto, RandomQuesToeic>()
+              .ForMember(des => des.RoadMapExamId, opt => opt.MapFrom(src => src.RoadMapExamId))
+              .ForMember(des => des.HomeworkId, opt => opt.MapFrom(src => src.HomeworkId))
+              .ForMember(des => des.QuesToeicId, opt => opt.MapFrom(src => src.QuesToeicId))
+              .ReverseMap();
         }
     }
 }

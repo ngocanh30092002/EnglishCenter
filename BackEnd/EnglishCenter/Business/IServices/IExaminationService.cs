@@ -7,6 +7,7 @@ namespace EnglishCenter.Business.IServices
     {
         public Task<Response> GetAllAsync();
         public Task<Response> GetAsync(long id);
+        public Task<Response> GetByCouseContentAsync(long courseContentId);
         public Task<Response> ChangeCourseContentAsync(long id, long contentId);
         public Task<Response> ChangeToeicAsync(long id, long toeicId);
         public Task<Response> ChangeTitleAsync(long id, string title);

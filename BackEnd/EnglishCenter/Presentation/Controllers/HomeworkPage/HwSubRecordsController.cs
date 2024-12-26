@@ -46,6 +46,13 @@ namespace EnglishCenter.Presentation.Controllers.HomeworkPage
             return await response.ChangeActionAsync();
         }
 
+        [HttpGet("submission/{hwSubId}/ques")]
+        public async Task<IActionResult> GetByHwQuesAsync([FromRoute] long hwSubId)
+        {
+            var response = await _subRecordService.GetByHwQuesAsync(hwSubId);
+            return await response.ChangeActionAsync();
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreateAsync([FromForm] HwSubRecordDto model)
         {

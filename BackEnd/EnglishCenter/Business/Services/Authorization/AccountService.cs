@@ -118,6 +118,16 @@ namespace EnglishCenter.Business.Services.Authorization
                 };
             }
 
+            if (!user.EmailConfirmed)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "You have not confirmed your email address.",
+                    Success = false
+                };
+            }
+
             var accessToken = await _jwtService.GenerateUserTokenAsync(user, DateTime.UtcNow.AddMinutes(GlobalVariable.TOKEN_EXPIRED));
             var refreshToken = await _jwtService.GetRefreshTokenFromUser(user);
 

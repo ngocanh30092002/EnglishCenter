@@ -17,9 +17,12 @@ public class QuesRcSingle
 
     public TimeOnly Time { set; get; } = TimeOnly.MinValue;
 
+    public int Level { set; get; } = 1;
+
+
     [InverseProperty("QuesSingle")]
     public virtual ICollection<AssignQue> AssignQues { get; set; } = new List<AssignQue>();
-    
+
     [InverseProperty("QuesSingle")]
     public virtual ICollection<HomeQue> HomeQues { set; get; } = new List<HomeQue>();
 

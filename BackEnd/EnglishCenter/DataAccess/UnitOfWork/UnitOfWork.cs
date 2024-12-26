@@ -54,8 +54,8 @@ namespace EnglishCenter.DataAccess.UnitOfWork
             ISubToeicRepository subToeicRepo,
             IAnswerToeicRepository answerToeicRepo,
             IToeicDirectionRepository toeicDirectionRepo,
-            IToeicPracticeRecordRepository toeicPracticeRecordRepo,
-            IToeicAttemptRepository toeicAttemptRepo,
+            IAttemptRecordRepository attemptRecordRepo,
+            IUserAttemptRepository userAttemptRepo,
             IChatMessageRepository chatMessageRepo,
             IChatFileRepository chatFileRepo,
             IPeriodRepository periodRepo,
@@ -65,7 +65,14 @@ namespace EnglishCenter.DataAccess.UnitOfWork
             IClassMaterialRepository classMaterialRepo,
             ISubmissionTaskRepository submissionTaskRepo,
             ISubmissionFileRepository submissionFileRepo,
-            IUserWordRepository userWordRepo
+            IUserWordRepository userWordRepo,
+            IRoadMapRepository roadMapRepo,
+            IRoadMapExamRepository roadMapExamRepo,
+            IRandomQueToeicRepository randomQueRepo,
+            IAttendanceRepository attendRepo,
+            INotificationRepository notiRepo,
+            IIssueReportRepository issueRepo,
+            IIssueResponseRepository issueResRepo
             )
         {
             _context = context;
@@ -112,8 +119,8 @@ namespace EnglishCenter.DataAccess.UnitOfWork
             SubToeic = subToeicRepo;
             AnswerToeic = answerToeicRepo;
             ToeicDirections = toeicDirectionRepo;
-            ToeicPracticeRecords = toeicPracticeRecordRepo;
-            ToeicAttempts = toeicAttemptRepo;
+            AttemptRecords = attemptRecordRepo;
+            UserAttempts = userAttemptRepo;
             ChatFiles = chatFileRepo;
             ChatMessages = chatMessageRepo;
             Periods = periodRepo;
@@ -124,6 +131,13 @@ namespace EnglishCenter.DataAccess.UnitOfWork
             SubmissionTasks = submissionTaskRepo;
             SubmissionFiles = submissionFileRepo;
             UserWords = userWordRepo;
+            RoadMaps = roadMapRepo;
+            RoadMapExams = roadMapExamRepo;
+            RandomQues = randomQueRepo;
+            Attendances = attendRepo;
+            Notifications = notiRepo;
+            IssueReports = issueRepo;
+            IssueResponses = issueResRepo;
         }
 
         public IEventRepository Events { get; private set; }
@@ -169,8 +183,8 @@ namespace EnglishCenter.DataAccess.UnitOfWork
         public ISubToeicRepository SubToeic { get; private set; }
         public IAnswerToeicRepository AnswerToeic { get; private set; }
         public IToeicDirectionRepository ToeicDirections { get; private set; }
-        public IToeicPracticeRecordRepository ToeicPracticeRecords { get; private set; }
-        public IToeicAttemptRepository ToeicAttempts { get; private set; }
+        public IAttemptRecordRepository AttemptRecords { get; private set; }
+        public IUserAttemptRepository UserAttempts { get; private set; }
         public IChatFileRepository ChatFiles { get; private set; }
         public IChatMessageRepository ChatMessages { get; private set; }
         public IPeriodRepository Periods { get; private set; }
@@ -181,6 +195,13 @@ namespace EnglishCenter.DataAccess.UnitOfWork
         public ISubmissionTaskRepository SubmissionTasks { get; private set; }
         public ISubmissionFileRepository SubmissionFiles { get; private set; }
         public IUserWordRepository UserWords { get; private set; }
+        public IRoadMapRepository RoadMaps { get; private set; }
+        public IRoadMapExamRepository RoadMapExams { get; private set; }
+        public IRandomQueToeicRepository RandomQues { get; private set; }
+        public IAttendanceRepository Attendances { get; private set; }
+        public INotificationRepository Notifications { get; private set; }
+        public IIssueReportRepository IssueReports { get; private set; }
+        public IIssueResponseRepository IssueResponses { get; private set; }
 
         public async Task BeginTransAsync()
         {

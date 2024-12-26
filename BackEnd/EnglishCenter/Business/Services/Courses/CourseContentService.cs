@@ -169,27 +169,73 @@ namespace EnglishCenter.Business.Services.Courses
                 };
             }
 
-            var currentNum = courseModel.CourseContents.Select(c => (int?)c.NoNum).Max();
+            await _unit.BeginTransAsync();
 
-            var courseContentModel = _mapper.Map<CourseContent>(courseContentDto);
-            courseContentModel.NoNum = currentNum.HasValue ? currentNum.Value + 1 : 1;
-
-            _unit.CourseContents.Add(courseContentModel);
-
-            courseModel.NumLesson++;
-            await _unit.CompleteAsync();
-
-            return new Response()
+            try
             {
-                StatusCode = System.Net.HttpStatusCode.OK,
-                Success = true,
-                Message = ""
-            };
+                var currentNum = courseModel.CourseContents.Select(c => (int?)c.NoNum).Max();
+                var courseContentModel = _mapper.Map<CourseContent>(courseContentDto);
+
+                if (!courseContentDto.NoNum.HasValue)
+                {
+                    courseContentModel.NoNum = currentNum.HasValue ? currentNum.Value + 1 : 1;
+                }
+                else
+                {
+                    var maxNum = currentNum == null ? 1 : currentNum.Value + 1;
+                    if (courseContentDto.NoNum.Value > maxNum || courseContentDto.NoNum <= 0)
+                    {
+                        return new Response()
+                        {
+                            StatusCode = System.Net.HttpStatusCode.BadRequest,
+                            Message = "No Num is invalid",
+                            Success = false
+                        };
+                    }
+
+                    var greaterModel = _unit.CourseContents
+                                            .Find(c => c.CourseId == courseContentDto.CourseId && c.NoNum >= courseContentDto.NoNum.Value)
+                                            .OrderBy(c => c.NoNum)
+                                            .ToList();
+
+                    foreach (var model in greaterModel)
+                    {
+                        model.NoNum = model.NoNum + 1;
+                    }
+
+                    courseContentModel.NoNum = courseContentDto.NoNum.Value;
+                }
+
+                _unit.CourseContents.Add(courseContentModel);
+
+                courseModel.NumLesson++;
+                await _unit.CompleteAsync();
+                await _unit.CommitTransAsync();
+
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Success = true,
+                    Message = ""
+                };
+            }
+            catch (Exception ex)
+            {
+                await _unit.RollBackTransAsync();
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = ex.Message,
+                    Success = false
+                };
+            }
         }
 
         public async Task<Response> DeleteAsync(long contentId)
         {
-            var courseContentModel = _unit.CourseContents.GetById(contentId);
+            var courseContentModel = await _unit.CourseContents
+                                                .Include(c => c.Course)
+                                                .FirstOrDefaultAsync(c => c.ContentId == contentId);
 
             if (courseContentModel == null)
             {
@@ -217,6 +263,7 @@ namespace EnglishCenter.Business.Services.Courses
                 };
             }
 
+            courseContentModel.Course.NumLesson--;
 
             _unit.CourseContents.Remove(courseContentModel);
             await _unit.CompleteAsync();
@@ -397,6 +444,21 @@ namespace EnglishCenter.Business.Services.Courses
                 Success = true,
                 StatusCode = System.Net.HttpStatusCode.OK
             };
+        }
+
+        public Task<Response> GetTypeCourseContentAsync()
+        {
+            var typeQues = Enum.GetValues(typeof(CourseContentTypeEnum))
+                           .Cast<CourseContentTypeEnum>()
+                           .Select(type => new KeyValuePair<string, int>(type.ToString(), (int)type))
+                           .ToList();
+
+            return Task.FromResult(new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = typeQues,
+                Success = true
+            });
         }
 
         public async Task<Response> UpdateAsync(long contentId, CourseContentDto courseContentDto)

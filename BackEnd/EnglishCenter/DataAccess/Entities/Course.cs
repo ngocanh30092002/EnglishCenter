@@ -36,4 +36,8 @@ public class Course
 
     [InverseProperty("Course")]
     public virtual ICollection<CourseContent> CourseContents { set; get; } = new List<CourseContent>();
+
+    [InverseProperty("Course")]
+    public virtual ICollection<RoadMap> RoadMaps { set; get; } = new List<RoadMap>();
+
 }

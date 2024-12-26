@@ -14,11 +14,15 @@ namespace EnglishCenter.Business.Services.Classes
     {
         private readonly IUnitOfWork _unit;
         private readonly IMapper _mapper;
+        private readonly IClassMaterialService _classMaterialService;
+        private readonly ISubmissionTaskService _submissionTaskService;
 
-        public LessonService(IUnitOfWork unit, IMapper mapper)
+        public LessonService(IUnitOfWork unit, IMapper mapper, IClassMaterialService classMaterialService, ISubmissionTaskService submissionTaskService)
         {
             _unit = unit;
             _mapper = mapper;
+            _classMaterialService = classMaterialService;
+            _submissionTaskService = submissionTaskService;
         }
 
         public Task<Response> IsInChargeOfClassAsync(long id, string userId)
@@ -416,6 +420,33 @@ namespace EnglishCenter.Business.Services.Classes
                 };
             }
 
+            var classMaterialIds = _unit.ClassMaterials
+                                        .Find(l => l.LessonId == id)
+                                        .Select(s => s.ClassMaterialId)
+                                        .ToList();
+
+            foreach (var materialId in classMaterialIds)
+            {
+                var res = await _classMaterialService.DeleteAsync(materialId);
+                if (!res.Success) return res;
+            }
+
+            var submissionIds = _unit.SubmissionTasks
+                                        .Find(l => l.LessonId == id)
+                                        .Select(s => s.SubmissionId)
+                                        .ToList();
+
+            foreach (var submissionId in submissionIds)
+            {
+                var res = await _submissionTaskService.DeleteAsync(submissionId);
+                if (!res.Success) return res;
+            }
+
+            var attendances = _unit.Attendances
+                                        .Find(l => l.LessonId == id)
+                                        .ToList();
+
+            _unit.Attendances.RemoveRange(attendances);
             _unit.Lessons.Remove(lessonModel);
             await _unit.CompleteAsync();
 
@@ -439,16 +470,16 @@ namespace EnglishCenter.Business.Services.Classes
             });
         }
 
-        public Task<Response> GetAsync(long id)
+        public async Task<Response> GetAsync(long id)
         {
-            var model = _unit.Lessons.GetById(id);
+            var model = await _unit.Lessons.Include(l => l.ClassRoom).FirstOrDefaultAsync(l => l.LessonId == id);
 
-            return Task.FromResult(new Response()
+            return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
                 Message = _mapper.Map<LessonDto>(model),
                 Success = true
-            });
+            };
         }
 
         public async Task<Response> GetByEnrollAsync(long enrollId)
@@ -496,16 +527,27 @@ namespace EnglishCenter.Business.Services.Classes
 
         }
 
-        public Task<Response> GetByClassAsync(string classId)
+        public async Task<Response> GetByClassAsync(string classId)
         {
-            var lessonModels = _unit.Lessons.Find(l => l.ClassId == classId).ToList();
+            var lessonModels = await _unit.Lessons
+                                    .Include(l => l.ClassRoom)
+                                    .Where(l => l.ClassId == classId)
+                                    .OrderBy(l => l.Date)
+                                    .ToListAsync();
 
-            return Task.FromResult(new Response()
+            var lessonResDtos = _mapper.Map<List<LessonResDto>>(lessonModels);
+            foreach (var resDto in lessonResDtos)
+            {
+                resDto.StartPeriodTime = _unit.Periods.GetById(resDto.StartPeriod).StartTime;
+                resDto.EndPeriodTime = _unit.Periods.GetById(resDto.EndPeriod).EndTime;
+            }
+
+            return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Message = _mapper.Map<List<LessonDto>>(lessonModels),
+                Message = lessonResDtos,
                 Success = true
-            });
+            };
         }
 
         public async Task<Response> UpdateAsync(long id, LessonDto lessonModel)
@@ -528,12 +570,6 @@ namespace EnglishCenter.Business.Services.Classes
                 if (lessonEntity.ClassRoomId != lessonModel.ClassRoomId)
                 {
                     var res = await ChangeClassRoomAsync(id, lessonModel.ClassRoomId);
-                    if (!res.Success) return res;
-                }
-
-                if (lessonEntity.ClassId != lessonModel.ClassId)
-                {
-                    var res = await ChangeClassAsync(id, lessonModel.ClassId);
                     if (!res.Success) return res;
                 }
 

@@ -409,7 +409,7 @@ namespace EnglishCenter.Business.Services.Dictionary
                 Image = wordModel.Image != null ? Path.Combine("dictionary", fileName) : null,
                 Tag = wordModel.Tag,
                 Type = wordModel.Type,
-                Phonetic = wordModel.Phonetic,
+                Phonetic = wordModel.Phonetic ?? "",
                 IsFavorite = false,
                 UpdateDate = DateTime.Now
             };
@@ -554,7 +554,7 @@ namespace EnglishCenter.Business.Services.Dictionary
                     if (!res.Success) return res;
                 }
 
-                if (wordEntity.Phonetic != wordModel.Phonetic)
+                if (!string.IsNullOrEmpty(wordModel.Phonetic) && wordEntity.Phonetic != wordModel.Phonetic)
                 {
                     var res = await ChangePhoneticAsync(id, wordModel.Phonetic);
                     if (!res.Success) return res;

@@ -8,8 +8,15 @@ public class Attendance
     [Key]
     public long AttendanceId { set; get; }
 
-    [Required]
-    public DateOnly Date { set; get; }
+    [ForeignKey("LessonId")]
+    [InverseProperty("Attendances")]
+    public long LessonId { set; get; }
+    public virtual Lesson Lesson { set; get; } = null!;
+
+    public long EnrollId { set; get; }
+    [ForeignKey("EnrollId")]
+    [InverseProperty("Attendances")]
+    public Enrollment Enrollment { set; get; } = null!;
     public bool? IsAttended { set; get; }
     public bool? IsPermitted { set; get; }
     public bool? IsLate { set; get; }

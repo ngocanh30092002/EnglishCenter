@@ -2,6 +2,7 @@
 using EnglishCenter.Business.IServices;
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.UnitOfWork;
+using EnglishCenter.Presentation.Global.Enum;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
 using EnglishCenter.Presentation.Models.ResDTOs;
@@ -158,7 +159,7 @@ namespace EnglishCenter.Business.Services.Chats
         {
             var enrolls = await _unit.Enrollment
                                      .Include(e => e.User)
-                                     .Where(e => e.ClassId == classId && e.UserId != senderId)
+                                     .Where(e => e.ClassId == classId && e.UserId != senderId && e.StatusId == (int)EnrollEnum.Ongoing)
                                      .ToListAsync();
 
             var broadInfoList = new List<ChatBroadItemInfoResDto>();

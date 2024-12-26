@@ -40,5 +40,8 @@ namespace EnglishCenter.DataAccess.Entities
 
         [InverseProperty("Lesson")]
         public virtual ICollection<SubmissionTask> SubmissionTasks { set; get; } = new List<SubmissionTask>();
+
+        [InverseProperty("Lesson")]
+        public virtual ICollection<Attendance> Attendances { set; get; } = new List<Attendance>();
     }
 }
