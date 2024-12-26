@@ -8,9 +8,10 @@ namespace EnglishCenter.Business.IServices
         public Task<Response> GetAllAsync();
         public Task<Response> GetAsync(long enrollmentId);
         public Task<Response> GetAsync(string userId);
-        public Task<Response> GetAsync(string userId, long enrollmentId);
+        public Task<Response> GetAsync(string userId, long enrollmentId, bool isStudent = true);
         public Task<Response> GetAsync(string classId, int statusId);
         public Task<Response> GetAsync(string userId, string classId);
+        public Task<Response> GetByClassAsync(string classId);
         public Task<Response> GetCurrentClassesByStudentAsync(string userId);
         public Task<Response> GetByTeacherAsync(string userId);
         public Task<Response> GetByTeacherAsync(string userId, string classId);
@@ -26,6 +27,7 @@ namespace EnglishCenter.Business.IServices
         public Task<Response> CreateAsync(EnrollmentDto model);
         public Task<Response> UpdateAsync(long enrollmentId, EnrollmentDto model);
         public Task<Response> DeleteAsync(long enrollmentId);
+        public Task<Response> DeleteByOwnAsync(long enrollId, string userId);
         public Task<bool> IsEnrollmentOfStudentAsync(string userId, long enrollmentId);
 
     }

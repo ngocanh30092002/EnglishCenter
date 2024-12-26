@@ -21,5 +21,7 @@ namespace EnglishCenter.Presentation.Models.DTOs
 
         [Required]
         public DateOnly Date { set; get; }
+
+        public bool IsSend { set; get; }
     }
 }

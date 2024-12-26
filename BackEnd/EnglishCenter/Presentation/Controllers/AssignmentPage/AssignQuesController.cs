@@ -39,8 +39,36 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
             return await response.ChangeActionAsync();
         }
 
+        [HttpGet("processes/{processId}")]
+        public async Task<IActionResult> GetByProcessesAsync([FromRoute] long processId)
+        {
+            var response = await _assignQuesService.GetByProcessesAsync(processId);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("{id}/answer")]
+        public async Task<IActionResult> GetResultAsync([FromRoute] long id)
+        {
+            var response = await _assignQuesService.GetResultAsync(id);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("assignments/{assignId}/normal")]
+        public async Task<IActionResult> GetByAssignmentNormalAsync([FromRoute] long assignId)
+        {
+            var response = await _assignQuesService.GetByAssignmentNormalAsync(assignId);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("max-num")]
+        public async Task<IActionResult> GetMaxNumQuesAsync()
+        {
+            var response = await _assignQuesService.GetMaxNumQuesAsync();
+            return await response.ChangeActionAsync();
+        }
+
         [HttpGet("assignments/{assignId}/{noNum}")]
-        public async Task<IActionResult> GetAssignQuesByNoNumAsync([FromRoute] long assignId , [FromRoute] int noNum)
+        public async Task<IActionResult> GetAssignQuesByNoNumAsync([FromRoute] long assignId, [FromRoute] int noNum)
         {
             var response = await _assignQuesService.GetAssignQuesByNoNumAsync(assignId, noNum);
             return await response.ChangeActionAsync();
@@ -54,11 +82,27 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
             return await response.ChangeActionAsync();
         }
 
+        [HttpPost("assignments/{assignmentId}/random")]
+        [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
+        public async Task<IActionResult> HandleCreateRandomWithLevelAsync([FromRoute] long assignmentId, [FromForm] List<RandomTypeWithLevelDto> typeModels)
+        {
+            var response = await _assignQuesService.HandleCreateRandomWithLevelAsync(assignmentId, typeModels);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpPost("assignments/{assignmentId}")]
+        [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
+        public async Task<IActionResult> HandleCreateListAsync([FromRoute] long assignmentId, [FromForm] List<AssignQueDto> typeModels)
+        {
+            var response = await _assignQuesService.HandleCreateListAsync(assignmentId, typeModels);
+            return await response.ChangeActionAsync();
+        }
+
         [HttpPut("{id}")]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> UpdateAsync([FromRoute] long id, [FromForm] AssignQueDto model)
         {
-            var response = await _assignQuesService.UpdateAsync(id,model);
+            var response = await _assignQuesService.UpdateAsync(id, model);
             return await response.ChangeActionAsync();
         }
 
@@ -72,7 +116,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
 
         [HttpPatch("{id}/assignment")]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
-        public async Task<IActionResult> ChangeAssignmentIdAsync([FromRoute]long id, [FromQuery] long assignmentId)
+        public async Task<IActionResult> ChangeAssignmentIdAsync([FromRoute] long id, [FromQuery] long assignmentId)
         {
             var response = await _assignQuesService.ChangeAssignmentIdAsync(id, assignmentId);
             return await response.ChangeActionAsync();
@@ -80,7 +124,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
 
         [HttpPatch("{id}/ques")]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
-        public async Task<IActionResult> ChangeQuesAsync([FromRoute] long id, [FromQuery]int type, [FromQuery] long quesId)
+        public async Task<IActionResult> ChangeQuesAsync([FromRoute] long id, [FromQuery] int type, [FromQuery] long quesId)
         {
             var response = await _assignQuesService.ChangeQuesAsync(id, type, quesId);
             return await response.ChangeActionAsync();

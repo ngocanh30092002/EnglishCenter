@@ -1,4 +1,5 @@
-﻿using EnglishCenter.DataAccess.Database;
+﻿using AutoMapper;
+using EnglishCenter.DataAccess.Database;
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.IRepositories;
 using EnglishCenter.Presentation.Global.Enum;
@@ -9,8 +10,11 @@ namespace EnglishCenter.DataAccess.Repositories.HomeworkRepositories
 {
     public class HomeQuesRepository : GenericRepository<HomeQue>, IHomeQuesRepository
     {
-        public HomeQuesRepository(EnglishCenterContext context) : base(context)
+        private readonly IMapper _mapper;
+
+        public HomeQuesRepository(EnglishCenterContext context, IMapper mapper) : base(context)
         {
+            _mapper = mapper;
         }
 
         public async Task<bool> ChangeHomeworkIdAsync(HomeQue model, long homeworkId)
@@ -22,7 +26,7 @@ namespace EnglishCenter.DataAccess.Repositories.HomeworkRepositories
 
             var quesIdOfModel = await GetQuesIdAsync(model);
 
-            var isSameQues = await IsSameHomeQuesAsync((QuesTypeEnum) model.Type, homeworkId, quesIdOfModel);
+            var isSameQues = await IsSameHomeQuesAsync((QuesTypeEnum)model.Type, homeworkId, quesIdOfModel);
             if (isSameQues) return false;
 
             var otherHomeQues = await context.HomeQues
@@ -127,9 +131,6 @@ namespace EnglishCenter.DataAccess.Repositories.HomeworkRepositories
                 case QuesTypeEnum.Triple:
                     model.TripleQuesId = quesId;
                     break;
-                case QuesTypeEnum.Sentence_Media:
-                    model.SentenceMediaQuesId = quesId;
-                    break;
                 default:
                     throw new ArgumentException("Invalid Question Type");
             }
@@ -192,7 +193,7 @@ namespace EnglishCenter.DataAccess.Repositories.HomeworkRepositories
         {
             long quesId;
 
-            switch((QuesTypeEnum)model.Type)
+            switch ((QuesTypeEnum)model.Type)
             {
                 case QuesTypeEnum.Image:
                     quesId = model.ImageQuesId!.Value;
@@ -214,9 +215,6 @@ namespace EnglishCenter.DataAccess.Repositories.HomeworkRepositories
                     break;
                 case QuesTypeEnum.Triple:
                     quesId = model.TripleQuesId!.Value;
-                    break;
-                case QuesTypeEnum.Sentence_Media:
-                    quesId = model.SentenceMediaQuesId!.Value;
                     break;
                 default:
                     throw new ArgumentException("Invalid Question Type");
@@ -257,14 +255,39 @@ namespace EnglishCenter.DataAccess.Repositories.HomeworkRepositories
                 case (int)QuesTypeEnum.Triple:
                     timeResult = model.QuesTriple == null ? timeResult : model.QuesTriple.Time;
                     break;
-                case (int)QuesTypeEnum.Sentence_Media:
-                    timeResult = model.QuesSentenceMedia == null ? timeResult : model.QuesSentenceMedia.Time;
-                    break;
                 default:
                     throw new ArgumentException("Invalid Question Type");
             }
 
             return timeResult;
+        }
+
+        public async Task<object> GetAnswerInfoAsync(long homeQuesId, long? subId)
+        {
+            var homeQueModel = await context.HomeQues.FindAsync(homeQuesId);
+            if (homeQueModel == null) return null;
+
+            await LoadQuestionAsync(homeQueModel);
+
+            switch (homeQueModel.Type)
+            {
+                case (int)QuesTypeEnum.Image:
+                    return _mapper.Map<AnswerLcImageDto>(homeQueModel.QuesImage.Answer);
+                case (int)QuesTypeEnum.Audio:
+                    return _mapper.Map<AnswerLcAudioDto>(homeQueModel.QuesAudio.Answer);
+                case (int)QuesTypeEnum.Conversation:
+                    return _mapper.Map<AnswerLcConDto>(homeQueModel.QuesConversation.SubLcConversations.FirstOrDefault(s => s.SubId == subId.Value).Answer);
+                case (int)QuesTypeEnum.Sentence:
+                    return _mapper.Map<AnswerRcSentenceDto>(homeQueModel.QuesSentence.Answer);
+                case (int)QuesTypeEnum.Single:
+                    return _mapper.Map<AnswerRcSingleDto>(homeQueModel.QuesSingle.SubRcSingles.FirstOrDefault(s => s.SubId == subId.Value).Answer);
+                case (int)QuesTypeEnum.Double:
+                    return _mapper.Map<AnswerRcDoubleDto>(homeQueModel.QuesDouble.SubRcDoubles.FirstOrDefault(s => s.SubId == subId.Value).Answer);
+                case (int)QuesTypeEnum.Triple:
+                    return _mapper.Map<AnswerRcTripleDto>(homeQueModel.QuesTriple.SubRcTriples.FirstOrDefault(s => s.SubId == subId.Value).Answer);
+            }
+
+            return null;
         }
 
         public async Task<bool> IsCorrectAnswerAsync(HomeQue model, string selectedAnswer, long? subId)
@@ -306,9 +329,6 @@ namespace EnglishCenter.DataAccess.Repositories.HomeworkRepositories
                         if (!subId.HasValue) return false;
                         var subQueTriple = model.QuesTriple!.SubRcTriples.FirstOrDefault(s => s.SubId == subId.Value);
                         return subQueTriple!.Answer!.CorrectAnswer == selectedAnswer.ToUpper();
-
-                    case (int)QuesTypeEnum.Sentence_Media:
-                        return model.QuesSentenceMedia!.Answer!.CorrectAnswer == selectedAnswer.ToUpper();
                 }
 
                 return false;
@@ -345,9 +365,6 @@ namespace EnglishCenter.DataAccess.Repositories.HomeworkRepositories
                 case QuesTypeEnum.Triple:
                     isExist = await context.QuesRcTriples.AnyAsync(q => q.QuesId == quesId);
                     break;
-                case QuesTypeEnum.Sentence_Media:
-                    isExist = await context.QuesRcSentenceMedias.AnyAsync(q => q.QuesId == quesId);
-                    break;
                 default:
                     throw new ArgumentException("Invalid Question Type");
             }
@@ -363,7 +380,7 @@ namespace EnglishCenter.DataAccess.Repositories.HomeworkRepositories
             {
                 case QuesTypeEnum.Image:
                     isExist = await context.HomeQues
-                                        .AnyAsync(q => q.Type == (int) type &&
+                                        .AnyAsync(q => q.Type == (int)type &&
                                                        q.ImageQuesId == quesId &&
                                                        q.HomeworkId == homeworkId);
                     break;
@@ -401,13 +418,6 @@ namespace EnglishCenter.DataAccess.Repositories.HomeworkRepositories
                     isExist = await context.HomeQues
                                         .AnyAsync(q => q.Type == (int)type &&
                                                        q.TripleQuesId == quesId &&
-                                                       q.HomeworkId == homeworkId);
-                    break;
-
-                case QuesTypeEnum.Sentence_Media:
-                    isExist = await context.HomeQues
-                                        .AnyAsync(q => q.Type == (int)type &&
-                                                       q.SentenceMediaQuesId == quesId &&
                                                        q.HomeworkId == homeworkId);
                     break;
                 default:
@@ -476,13 +486,6 @@ namespace EnglishCenter.DataAccess.Repositories.HomeworkRepositories
                                 .ThenInclude(a => a.Answer)
                                 .LoadAsync();
                     break;
-                case QuesTypeEnum.Sentence_Media:
-                    await context.Entry(model)
-                                .Reference(m => m.QuesSentenceMedia)
-                                .Query()
-                                .Include(a => a.Answer)
-                                .LoadAsync();
-                    break;
                 default:
                     throw new ArgumentException("Invalid Question Type");
             }
@@ -539,11 +542,6 @@ namespace EnglishCenter.DataAccess.Repositories.HomeworkRepositories
                                 .Include(a => a.SubRcTriples)
                                 .LoadAsync();
                     break;
-                case QuesTypeEnum.Sentence_Media:
-                    await context.Entry(model)
-                                .Reference(m => m.QuesSentenceMedia)
-                                .LoadAsync();
-                    break;
                 default:
                     throw new ArgumentException("Invalid Question Type");
             }
@@ -556,7 +554,7 @@ namespace EnglishCenter.DataAccess.Repositories.HomeworkRepositories
             var homeQuesModel = await context.HomeQues.FindAsync(id);
             if (homeQuesModel == null) return false;
 
-            if(homeQuesModel.HomeworkId != model.HomeworkId)
+            if (homeQuesModel.HomeworkId != model.HomeworkId)
             {
                 var changeResult = await ChangeHomeworkIdAsync(homeQuesModel, model.HomeworkId);
                 if (!changeResult) return false;

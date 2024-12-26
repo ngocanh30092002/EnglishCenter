@@ -9,5 +9,6 @@ namespace EnglishCenter.DataAccess.IRepositories
         public Task<bool> ChangeImage1Async(QuesRcTriple model, string imageUrl);
         public Task<bool> ChangeImage2Async(QuesRcTriple model, string imageUrl);
         public Task<bool> ChangeImage3Async(QuesRcTriple model, string imageUrl);
+        public Task<bool> ChangeLevelAsync(QuesRcTriple model, int level);
     }
 }

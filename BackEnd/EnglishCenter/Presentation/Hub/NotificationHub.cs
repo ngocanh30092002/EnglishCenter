@@ -1,6 +1,8 @@
 ﻿using System.Security.Claims;
 using EnglishCenter.DataAccess.Database;
 using EnglishCenter.DataAccess.Entities;
+using EnglishCenter.Presentation.Global;
+using EnglishCenter.Presentation.Global.Enum;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -26,14 +28,54 @@ namespace EnglishCenter.Presentation.Hub
                                        .Include(g => g.Groups)
                                        .FirstOrDefault(s => s.UserId == userID);
 
-                if (_student?.Groups != null)
+                var classIds = _context.Enrollments
+                                       .Where(e => e.UserId == userID && e.StatusId == (int)EnrollEnum.Ongoing)
+                                       .Select(e => e.ClassId)
+                                       .ToList();
+
+
+
+
+                var systemGroup = await _context.Groups.FirstOrDefaultAsync(g => g.Name == GlobalVariable.SYSTEM);
+                if (systemGroup == null)
                 {
-                    foreach (var group in _student.Groups)
-                    {
-                        await Groups.AddToGroupAsync(Context.ConnectionId, group.Name);
-                    }
+                    systemGroup = new Group { Name = GlobalVariable.SYSTEM };
+                    _context.Groups.Add(systemGroup);
+                    await _context.SaveChangesAsync();
                 }
 
+                if (_student?.Groups == null || !_student.Groups.Any())
+                {
+                    _student.Groups = new List<Group>();
+                }
+
+                if (_student.Groups.All(g => g.Name != GlobalVariable.SYSTEM))
+                {
+                    _student.Groups.Add(systemGroup);
+                    await _context.SaveChangesAsync();
+                }
+
+                foreach (var group in _student.Groups)
+                {
+                    await Groups.AddToGroupAsync(Context.ConnectionId, group.Name);
+                }
+
+                foreach (var classId in classIds)
+                {
+                    var groupModel = _context.Groups.FirstOrDefault(g => g.Name == classId);
+                    if (groupModel != null)
+                    {
+                        var isExist = _student.Groups.Any(s => s.Name == groupModel.Name);
+                        if (!isExist)
+                        {
+                            _student.Groups.Add(groupModel);
+                        }
+                    }
+
+                    await Groups.AddToGroupAsync(Context.ConnectionId, classId);
+                }
+
+                await _context.SaveChangesAsync();
                 await base.OnConnectedAsync();
             }
             catch (Exception ex)
@@ -50,6 +92,13 @@ namespace EnglishCenter.Presentation.Hub
         public async Task SendNotiToGroup(string groupName)
         {
             await Clients.Group(groupName).ReceiveNotification();
+        }
+
+        public async Task SendNotiToUserAsync()
+        {
+            var userID = Context.User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
+
+            await Clients.User(userID).ReceiveNotification();
         }
 
         public async Task JoinGroup(string groupName)

@@ -379,7 +379,7 @@ namespace EnglishCenter.Business.Services.Exams
                 };
             }
 
-            if (model.Part == (int)PartEnum.Part6 && model.Image_1 != null)
+            if (model.Part == (int)PartEnum.Part6 && model.Image_1 == null)
             {
                 return new Response()
                 {
@@ -399,6 +399,16 @@ namespace EnglishCenter.Business.Services.Exams
                 };
             }
 
+            if (model.Level.HasValue && (model.Level < 1 || model.Level > 4))
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Level is invalid",
+                    Success = false
+                };
+            }
+
             var isFull = await IsFullQuesAsync(toeicModel, model.Part);
             if (isFull)
             {
@@ -414,6 +424,7 @@ namespace EnglishCenter.Business.Services.Exams
             queModel.ToeicId = model.ToeicId;
             queModel.Part = model.Part;
             queModel.IsGroup = model.IsGroup;
+            queModel.Level = model.Level ?? 1;
             queModel.NoNum = await NextNoNumAsync(model.ToeicId, model.Part);
 
             await _unit.BeginTransAsync();
@@ -488,6 +499,28 @@ namespace EnglishCenter.Business.Services.Exams
                 };
             }
 
+            var previousFile = Path.Combine(_webHostEnvironment.WebRootPath, queModel.Audio ?? "");
+            if (File.Exists(previousFile))
+            {
+                File.Delete(previousFile);
+            }
+
+            previousFile = Path.Combine(_webHostEnvironment.WebRootPath, queModel.Image_1 ?? "");
+            if (File.Exists(previousFile))
+            {
+                File.Delete(previousFile);
+            }
+            previousFile = Path.Combine(_webHostEnvironment.WebRootPath, queModel.Image_2 ?? "");
+            if (File.Exists(previousFile))
+            {
+                File.Delete(previousFile);
+            }
+            previousFile = Path.Combine(_webHostEnvironment.WebRootPath, queModel.Image_3 ?? "");
+            if (File.Exists(previousFile))
+            {
+                File.Delete(previousFile);
+            }
+
             var response = await ChangeAudioAsync(id, null);
             if (!response.Success) return response;
 
@@ -509,6 +542,12 @@ namespace EnglishCenter.Business.Services.Exams
                     var deleteRes = await _subService.DeleteAsync(subId);
                     if (!deleteRes.Success) return deleteRes;
                 }
+            }
+
+            var otherQues = _unit.QuesToeic.Find(q => q.NoNum > queModel.NoNum && q.ToeicId == queModel.ToeicId && q.Part == queModel.Part);
+            foreach (var model in otherQues)
+            {
+                model.NoNum = model.NoNum - 1;
             }
 
             _unit.QuesToeic.Remove(queModel);
@@ -533,16 +572,30 @@ namespace EnglishCenter.Business.Services.Exams
             });
         }
 
-        public Task<Response> GetAsync(long id)
+        public async Task<Response> GetAsync(long id)
         {
             var queModel = _unit.QuesToeic.GetById(id);
 
-            return Task.FromResult(new Response()
+            await _unit.QuesToeic.LoadSubQuesWithAnswer(queModel);
+
+            var resDto = _mapper.Map<QuesToeicResDto>(queModel);
+
+            if (queModel.Part <= (int)PartEnum.Part4)
+            {
+                var timeAudio = await VideoHelper.GetDurationAsync(Path.Combine(_webHostEnvironment.WebRootPath, queModel.Audio ?? ""));
+                resDto.Time = TimeOnly.FromTimeSpan(timeAudio).ToString("HH:mm:ss");
+            }
+            else
+            {
+                resDto.Time = TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(45 * queModel.SubToeicList.Count)).ToString("HH:mm:ss");
+            }
+
+            return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Message = _mapper.Map<QuesToeicResDto>(queModel),
+                Message = resDto,
                 Success = true
-            });
+            };
         }
 
         public async Task<Response> GetByToeicAsync(long toeicId)
@@ -588,6 +641,22 @@ namespace EnglishCenter.Business.Services.Exams
             });
         }
 
+        public Task<Response> GetQuesIdWithParts()
+        {
+            var data = _unit.QuesToeic.GetAll().Select(q => new
+            {
+                Part = q.Part,
+                QuesId = q.QuesId
+            }).OrderBy(q => q.Part);
+
+            return Task.FromResult(new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = data,
+                Success = true
+            });
+        }
+
         public async Task<Response> UpdateAsync(long id, QuesToeicDto model)
         {
             var queModel = _unit.QuesToeic.GetById(id);
@@ -616,6 +685,8 @@ namespace EnglishCenter.Business.Services.Exams
 
                 response = await ChangeImage3Async(id, model.Image_3);
                 if (!response.Success) return response;
+
+                response = await ChangeLevelAsync(id, model.Level!.Value);
 
                 if (queModel.IsGroup != model.IsGroup)
                 {
@@ -649,7 +720,7 @@ namespace EnglishCenter.Business.Services.Exams
             }
         }
 
-        private Task<bool> IsFullQuesAsync(ToeicExam toeicModel, int part)
+        public Task<bool> IsFullQuesAsync(ToeicExam toeicModel, int part)
         {
             var numQues = _unit.QuesToeic.Find(q => q.ToeicId == toeicModel.ToeicId && q.Part == part).Count();
 
@@ -737,6 +808,177 @@ namespace EnglishCenter.Business.Services.Exams
             }
 
             return Task.FromResult(result);
+        }
+
+        public async Task<Response> ChangeLevelAsync(long id, int level)
+        {
+            var queModel = _unit.QuesToeic.GetById(id);
+            if (queModel == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any toeic questions",
+                    Success = false
+                };
+            }
+
+            if (level < 1 || level > 4)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Level is invalid",
+                    Success = false
+                };
+            }
+
+            var isChangeSuccess = await _unit.QuesToeic.ChangeLevelAsync(queModel, level);
+            if (!isChangeSuccess)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Change group failed",
+                    Success = false
+                };
+            }
+
+            await _unit.CompleteAsync();
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = "",
+                Success = true
+            };
+        }
+
+        public async Task<Response> GetByToeicResultAsync(long toeicId)
+        {
+            var queModels = _unit.QuesToeic.Find(q => q.ToeicId == toeicId).OrderBy(q => q.NoNum);
+
+            foreach (var que in queModels)
+            {
+                await _unit.QuesToeic.LoadSubQuesWithAnswer(que);
+            }
+
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = _mapper.Map<List<QuesToeicResDto>>(queModels),
+                Success = true
+            };
+        }
+
+        public async Task<Response> GetIdByToeicAsync(long toeicId)
+        {
+            var quesModel = await _unit.QuesToeic
+                                 .Include(q => q.SubToeicList)
+                                 .Where(q => q.ToeicId == toeicId)
+                                 .SelectMany(q => q.SubToeicList.Select(s => new
+                                 {
+                                     QuesId = q.QuesId,
+                                     QuesNo = s.QuesNo,
+                                     SubId = s.SubId,
+                                     Part = q.Part
+                                 }))
+                                .ToListAsync();
+
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = quesModel,
+                Success = true
+            };
+        }
+
+        public async Task<bool> IsFullAsync(long toeicId)
+        {
+            var currentNumber = await _unit.QuesToeic
+                                 .Include(q => q.SubToeicList)
+                                 .Where(q => q.ToeicId == toeicId)
+                                 .SelectMany(q => q.SubToeicList)
+                                 .CountAsync();
+
+            return currentNumber == 200;
+        }
+
+        public async Task<int> GetQuesNoByToeicAsync(long toeicId, int part)
+        {
+            var lastQue = _unit.QuesToeic
+                                    .Find(s => s.ToeicId == toeicId && s.Part == part)
+                                    .OrderByDescending(s => s.NoNum)
+                                    .FirstOrDefault();
+
+            if (lastQue == null)
+            {
+                switch (part)
+                {
+                    case (int)PartEnum.Part1:
+                        return 1;
+                    case (int)PartEnum.Part2:
+                        return 7;
+                    case (int)PartEnum.Part3:
+                        return 32;
+                    case (int)PartEnum.Part4:
+                        return 71;
+                    case (int)PartEnum.Part5:
+                        return 101;
+                    case (int)PartEnum.Part6:
+                        return 131;
+                    case (int)PartEnum.Part7:
+                        return 147;
+                }
+            }
+
+            var nextQuesNo = await _subService.NextQueNoAsync(lastQue.QuesId);
+
+            return nextQuesNo;
+        }
+
+        public Task<Response> GetOtherQuesIdByRoadMapAsync(long roadMapId)
+        {
+            var randomQueIds = _unit.RandomQues
+                                    .Find(r => r.RoadMapExamId.HasValue && r.RoadMapExamId.Value == roadMapId)
+                                    .Select(r => r.QuesToeicId)
+                                    .ToList();
+
+            var data = _unit.QuesToeic.Find(q => !randomQueIds.Contains(q.QuesId))
+                                      .Select(q => new
+                                      {
+                                          Part = q.Part,
+                                          QuesId = q.QuesId
+                                      }).OrderBy(q => q.Part);
+
+            return Task.FromResult(new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = data,
+                Success = true
+            });
+        }
+
+        public Task<Response> GetOtherQuesIdByHomeworkAsync(long homeworkId)
+        {
+            var randomQueIds = _unit.RandomQues
+                                    .Find(r => r.HomeworkId.HasValue && r.HomeworkId.Value == homeworkId)
+                                    .Select(r => r.QuesToeicId)
+                                    .ToList();
+
+            var data = _unit.QuesToeic.Find(q => !randomQueIds.Contains(q.QuesId))
+                                      .Select(q => new
+                                      {
+                                          Part = q.Part,
+                                          QuesId = q.QuesId
+                                      }).OrderBy(q => q.Part);
+
+            return Task.FromResult(new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = data,
+                Success = true
+            });
+
         }
     }
 }

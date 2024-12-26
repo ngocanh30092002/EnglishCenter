@@ -1,8 +1,8 @@
-﻿using System;
-using AutoMapper;
+﻿using AutoMapper;
 using EnglishCenter.Business.IServices;
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.UnitOfWork;
+using EnglishCenter.Presentation.Global.Enum;
 using EnglishCenter.Presentation.Helpers;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
@@ -31,7 +31,7 @@ namespace EnglishCenter.Business.Services.Assignments
         public async Task<Response> ChangeAnswerAsync(long quesId, long answerId)
         {
             var queModel = _unit.QuesLcImages.GetById(quesId);
-            if(queModel == null)
+            if (queModel == null)
             {
                 return new Response()
                 {
@@ -75,7 +75,7 @@ namespace EnglishCenter.Business.Services.Assignments
         public async Task<Response> ChangeAudioAsync(long quesId, IFormFile audioFile)
         {
             var queModel = _unit.QuesLcImages.GetById(quesId);
-            if(queModel == null)
+            if (queModel == null)
             {
                 return new Response()
                 {
@@ -84,7 +84,7 @@ namespace EnglishCenter.Business.Services.Assignments
                     Success = false
                 };
             }
-            
+
             var previousPath = Path.Combine(_webHostEnvironment.WebRootPath, queModel.Audio);
             var folderPath = Path.Combine(_webHostEnvironment.WebRootPath, _audioBasePath);
             var fileAudio = $"audio_{DateTime.Now.Ticks}{Path.GetExtension(audioFile.FileName)}";
@@ -189,9 +189,42 @@ namespace EnglishCenter.Business.Services.Assignments
             };
         }
 
+        public async Task<Response> ChangeLevelAsync(long quesId, int level)
+        {
+            var queModel = _unit.QuesLcImages.GetById(quesId);
+            if (queModel == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any questions",
+                    Success = false
+                };
+            }
+
+            var isChangeSuccess = await _unit.QuesLcImages.ChangeLevelAsync(queModel, level);
+            if (!isChangeSuccess)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't change level",
+                    Success = false
+                };
+            }
+
+            await _unit.CompleteAsync();
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = "",
+                Success = true
+            };
+        }
+
         public async Task<Response> CreateAsync(QuesLcImageDto queModel)
         {
-            if(queModel.Image == null)
+            if (queModel.Image == null)
             {
                 return new Response()
                 {
@@ -203,7 +236,7 @@ namespace EnglishCenter.Business.Services.Assignments
 
             var imgFolderPath = Path.Combine(_webHostEnvironment.WebRootPath, _imageBasePath);
             var fileImage = $"image_{DateTime.Now.Ticks}{Path.GetExtension(queModel.Image.FileName)}";
-            
+
             var result = await UploadHelper.UploadFileAsync(queModel.Image, imgFolderPath, fileImage);
             if (!string.IsNullOrEmpty(result))
             {
@@ -245,6 +278,7 @@ namespace EnglishCenter.Business.Services.Assignments
             queEntity.Image = Path.Combine(_imageBasePath, fileImage);
             queEntity.Audio = Path.Combine(_audioBasePath, fileAudio);
             queEntity.Time = TimeOnly.FromTimeSpan(durationAudio);
+            queEntity.Level = queModel.Level ?? 1;
 
             if (queModel.AnswerId != null)
             {
@@ -275,7 +309,7 @@ namespace EnglishCenter.Business.Services.Assignments
             }
             else
             {
-                if(queModel.Answer != null)
+                if (queModel.Answer != null)
                 {
                     var answerModel = _mapper.Map<AnswerLcImage>(queModel.Answer);
                     _unit.AnswerLcImages.Add(answerModel);
@@ -285,7 +319,7 @@ namespace EnglishCenter.Business.Services.Assignments
             }
 
             _unit.QuesLcImages.Add(queEntity);
-            
+
             await _unit.CompleteAsync();
             return new Response()
             {
@@ -298,7 +332,7 @@ namespace EnglishCenter.Business.Services.Assignments
         public async Task<Response> DeleteAsync(long quesId)
         {
             var quesModel = _unit.QuesLcImages.GetById(quesId);
-            if(quesModel == null)
+            if (quesModel == null)
             {
                 return new Response()
                 {
@@ -323,12 +357,12 @@ namespace EnglishCenter.Business.Services.Assignments
 
             if (quesModel.AnswerId.HasValue)
             {
-                var answerModel = _unit.AnswerLcImages.GetById((long) quesModel.AnswerId);
+                var answerModel = _unit.AnswerLcImages.GetById((long)quesModel.AnswerId);
                 _unit.AnswerLcImages.Remove(answerModel);
             }
 
             _unit.QuesLcImages.Remove(quesModel);
-            
+
             await _unit.CompleteAsync();
             return new Response()
             {
@@ -368,10 +402,50 @@ namespace EnglishCenter.Business.Services.Assignments
 
         }
 
+        public async Task<Response> GetOtherQuestionByAssignmentAsync(long assignmentId)
+        {
+            var assignQues = _unit.AssignQues
+                                  .Find(a => a.AssignmentId == assignmentId && a.Type == (int)QuesTypeEnum.Image)
+                                  .Select(a => a.ImageQuesId)
+                                  .ToList();
+
+            var queModels = await _unit.QuesLcImages
+                                .Include(q => q.Answer)
+                                .Where(q => !assignQues.Contains(q.QuesId))
+                                .ToListAsync();
+
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = _mapper.Map<List<QuesLcImageResDto>>(queModels),
+                Success = true
+            };
+        }
+
+        public async Task<Response> GetOtherQuestionByHomeworkAsync(long homeworkId)
+        {
+            var homeQues = _unit.HomeQues
+                                 .Find(a => a.HomeworkId == homeworkId && a.Type == (int)QuesTypeEnum.Image)
+                                 .Select(a => a.ImageQuesId)
+                                 .ToList();
+
+            var queModels = await _unit.QuesLcImages
+                                .Include(q => q.Answer)
+                                .Where(q => !homeQues.Contains(q.QuesId))
+                                .ToListAsync();
+
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = _mapper.Map<List<QuesLcImageResDto>>(queModels),
+                Success = true
+            };
+        }
+
         public async Task<Response> UpdateAsync(long quesId, QuesLcImageDto queModel)
         {
             var queEntity = _unit.QuesLcImages.GetById(quesId);
-            if(queEntity == null)
+            if (queEntity == null)
             {
                 return new Response()
                 {
@@ -403,6 +477,11 @@ namespace EnglishCenter.Business.Services.Assignments
                     if (!response.Success) return response;
                 }
 
+                if (queModel.Level.HasValue && queEntity.Level != queModel.Level)
+                {
+                    var response = await ChangeLevelAsync(quesId, queModel.Level.Value);
+                    if (!response.Success) return response;
+                }
 
                 await _unit.CommitTransAsync();
                 return new Response()
@@ -412,7 +491,7 @@ namespace EnglishCenter.Business.Services.Assignments
                     Success = true
                 };
             }
-            catch(Exception err)
+            catch (Exception err)
             {
                 await _unit.RollBackTransAsync();
 

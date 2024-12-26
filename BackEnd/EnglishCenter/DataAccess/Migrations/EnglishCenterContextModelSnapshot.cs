@@ -207,47 +207,6 @@ namespace EnglishCenter.Migrations
                     b.ToTable("Answer_RC_Sentence");
                 });
 
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.AnswerRcSentenceMedia", b =>
-                {
-                    b.Property<long>("AnswerId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("AnswerId"));
-
-                    b.Property<string>("AnswerA")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AnswerB")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AnswerC")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AnswerD")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CorrectAnswer")
-                        .IsRequired()
-                        .HasMaxLength(1)
-                        .HasColumnType("nvarchar(1)");
-
-                    b.Property<string>("Explanation")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Question")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("AnswerId");
-
-                    b.ToTable("Answer_RC_Sentence_Media");
-                });
-
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.AnswerRcSingle", b =>
                 {
                     b.Property<long>("AnswerId")
@@ -390,10 +349,6 @@ namespace EnglishCenter.Migrations
                     b.Property<int>("NoNum")
                         .HasColumnType("int");
 
-                    b.Property<long?>("SentenceMediaQuesId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("SentenceMediaQuesId");
-
                     b.Property<long?>("SentenceQuesId")
                         .HasColumnType("bigint")
                         .HasColumnName("SentenceQuesId");
@@ -420,8 +375,6 @@ namespace EnglishCenter.Migrations
                     b.HasIndex("DoubleQuesId");
 
                     b.HasIndex("ImageQuesId");
-
-                    b.HasIndex("SentenceMediaQuesId");
 
                     b.HasIndex("SentenceQuesId");
 
@@ -651,6 +604,105 @@ namespace EnglishCenter.Migrations
                     b.ToTable("Classes");
                 });
 
+            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.ClassMaterial", b =>
+                {
+                    b.Property<long>("ClassMaterialId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ClassMaterialId"));
+
+                    b.Property<string>("ClassId")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("FilePath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long?>("LessonId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UploadAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UploadBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ClassMaterialId");
+
+                    b.HasIndex("ClassId");
+
+                    b.HasIndex("LessonId");
+
+                    b.ToTable("ClassMaterials");
+                });
+
+            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.ClassRoom", b =>
+                {
+                    b.Property<long>("ClassRoomId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ClassRoomId"));
+
+                    b.Property<int>("Capacity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ClassRoomName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Location")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ClassRoomId");
+
+                    b.ToTable("ClassRooms");
+                });
+
+            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.ClassSchedule", b =>
+                {
+                    b.Property<long>("ScheduleId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ScheduleId"));
+
+                    b.Property<string>("ClassId")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<long>("ClassRoomId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EndPeriod")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("StartPeriod")
+                        .HasColumnType("int");
+
+                    b.HasKey("ScheduleId");
+
+                    b.HasIndex("ClassId");
+
+                    b.HasIndex("ClassRoomId");
+
+                    b.ToTable("ClassSchedules");
+                });
+
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.Course", b =>
                 {
                     b.Property<string>("CourseId")
@@ -867,10 +919,6 @@ namespace EnglishCenter.Migrations
                     b.Property<int>("NoNum")
                         .HasColumnType("int");
 
-                    b.Property<long?>("SentenceMediaQuesId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("SentenceMediaQuesId");
-
                     b.Property<long?>("SentenceQuesId")
                         .HasColumnType("bigint")
                         .HasColumnName("SentenceQuesId");
@@ -898,8 +946,6 @@ namespace EnglishCenter.Migrations
 
                     b.HasIndex("ImageQuesId");
 
-                    b.HasIndex("SentenceMediaQuesId");
-
                     b.HasIndex("SentenceQuesId");
 
                     b.HasIndex("SingleQuesId");
@@ -920,19 +966,20 @@ namespace EnglishCenter.Migrations
                     b.Property<int>("AchievedPercentage")
                         .HasColumnType("int");
 
-                    b.Property<string>("ClassId")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
                     b.Property<DateTime>("EndTime")
                         .HasColumnType("datetime2");
 
                     b.Property<TimeOnly>("ExpectedTime")
                         .HasColumnType("time");
 
+                    b.Property<string>("Image")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("LateSubmitDays")
                         .HasColumnType("int");
+
+                    b.Property<long>("LessonId")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("datetime2");
@@ -944,9 +991,12 @@ namespace EnglishCenter.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
                     b.HasKey("HomeworkId");
 
-                    b.HasIndex("ClassId");
+                    b.HasIndex("LessonId");
 
                     b.ToTable("Homework");
                 });
@@ -1056,6 +1106,43 @@ namespace EnglishCenter.Migrations
                     b.ToTable("LearningProcesses");
                 });
 
+            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.Lesson", b =>
+                {
+                    b.Property<long>("LessonId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("LessonId"));
+
+                    b.Property<string>("ClassId")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<long>("ClassRoomId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<int>("EndPeriod")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StartPeriod")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Topic")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("LessonId");
+
+                    b.HasIndex("ClassId");
+
+                    b.HasIndex("ClassRoomId");
+
+                    b.ToTable("Lessons");
+                });
+
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.NotiStudent", b =>
                 {
                     b.Property<long>("NotiStuId")
@@ -1115,6 +1202,24 @@ namespace EnglishCenter.Migrations
                     b.HasKey("NotiId");
 
                     b.ToTable("Notifications");
+                });
+
+            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.Period", b =>
+                {
+                    b.Property<int>("PeriodId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EndTime")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StartTime")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("PeriodId");
+
+                    b.ToTable("Periods");
                 });
 
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.QuesLcAudio", b =>
@@ -1303,60 +1408,6 @@ namespace EnglishCenter.Migrations
                     b.ToTable("Ques_RC_Sentence");
                 });
 
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.QuesRcSentenceMedia", b =>
-                {
-                    b.Property<long>("QuesId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("QuesId"));
-
-                    b.Property<string>("AnswerA")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
-
-                    b.Property<string>("AnswerB")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
-
-                    b.Property<string>("AnswerC")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
-
-                    b.Property<string>("AnswerD")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
-
-                    b.Property<long?>("AnswerId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Audio")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Image")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Question")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<TimeOnly>("Time")
-                        .HasColumnType("time");
-
-                    b.HasKey("QuesId");
-
-                    b.HasIndex("AnswerId")
-                        .IsUnique()
-                        .HasFilter("[AnswerId] IS NOT NULL");
-
-                    b.ToTable("Ques_RC_Sentence_Media");
-                });
-
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.QuesRcSingle", b =>
                 {
                     b.Property<long>("QuesId")
@@ -1441,6 +1492,9 @@ namespace EnglishCenter.Migrations
 
                     b.Property<bool>("IsGroup")
                         .HasColumnType("bit");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("int");
 
                     b.Property<int>("NoNum")
                         .HasColumnType("int");
@@ -1813,6 +1867,76 @@ namespace EnglishCenter.Migrations
                     b.ToTable("Sub_Toeic");
                 });
 
+            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.SubmissionFile", b =>
+                {
+                    b.Property<long>("SubmissionFileId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("SubmissionFileId"));
+
+                    b.Property<long>("EnrollId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("FilePath")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LinkUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<long>("SubmissionTaskId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("UploadAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UploadBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("SubmissionFileId");
+
+                    b.HasIndex("EnrollId");
+
+                    b.HasIndex("SubmissionTaskId");
+
+                    b.ToTable("SubmissionFiles");
+                });
+
+            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.SubmissionTask", b =>
+                {
+                    b.Property<long>("SubmissionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("SubmissionId"));
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("EndTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("LessonId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("SubmissionId");
+
+                    b.HasIndex("LessonId");
+
+                    b.ToTable("SubmissionTasks");
+                });
+
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.Teacher", b =>
                 {
                     b.Property<string>("UserId")
@@ -2142,6 +2266,54 @@ namespace EnglishCenter.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
+            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.UserWord", b =>
+                {
+                    b.Property<long>("UserWordId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("UserWordId"));
+
+                    b.Property<string>("Image")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsFavorite")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Phonetic")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Tag")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Translation")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Word")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("UserWordId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserWords");
+                });
+
             modelBuilder.Entity("GroupStudent", b =>
                 {
                     b.Property<int>("GroupId")
@@ -2319,11 +2491,6 @@ namespace EnglishCenter.Migrations
                         .HasForeignKey("ImageQuesId")
                         .HasConstraintName("FK_Assign_Ques_Ques_LC_Image");
 
-                    b.HasOne("EnglishCenter.DataAccess.Entities.QuesRcSentenceMedia", "QuesSentenceMedia")
-                        .WithMany("AssignQues")
-                        .HasForeignKey("SentenceMediaQuesId")
-                        .HasConstraintName("FK_Assign_Ques_Ques_RC_Sentence_Media");
-
                     b.HasOne("EnglishCenter.DataAccess.Entities.QuesRcSentence", "QuesSentence")
                         .WithMany("AssignQues")
                         .HasForeignKey("SentenceQuesId")
@@ -2350,8 +2517,6 @@ namespace EnglishCenter.Migrations
                     b.Navigation("QuesImage");
 
                     b.Navigation("QuesSentence");
-
-                    b.Navigation("QuesSentenceMedia");
 
                     b.Navigation("QuesSingle");
 
@@ -2437,6 +2602,44 @@ namespace EnglishCenter.Migrations
                     b.Navigation("Course");
 
                     b.Navigation("Teacher");
+                });
+
+            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.ClassMaterial", b =>
+                {
+                    b.HasOne("EnglishCenter.DataAccess.Entities.Class", "Class")
+                        .WithMany("ClassMaterials")
+                        .HasForeignKey("ClassId")
+                        .HasConstraintName("FK_ClassMaterials_Classes");
+
+                    b.HasOne("EnglishCenter.DataAccess.Entities.Lesson", "Lesson")
+                        .WithMany("ClassMaterials")
+                        .HasForeignKey("LessonId")
+                        .HasConstraintName("FK_ClassMaterials_Lessons");
+
+                    b.Navigation("Class");
+
+                    b.Navigation("Lesson");
+                });
+
+            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.ClassSchedule", b =>
+                {
+                    b.HasOne("EnglishCenter.DataAccess.Entities.Class", "Class")
+                        .WithMany("ClassSchedules")
+                        .HasForeignKey("ClassId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_ClassSchedule_Class");
+
+                    b.HasOne("EnglishCenter.DataAccess.Entities.ClassRoom", "ClassRoom")
+                        .WithMany("ClassSchedules")
+                        .HasForeignKey("ClassRoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_ClassSchedule_ClassRoom");
+
+                    b.Navigation("Class");
+
+                    b.Navigation("ClassRoom");
                 });
 
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.CourseContent", b =>
@@ -2526,11 +2729,6 @@ namespace EnglishCenter.Migrations
                         .HasForeignKey("ImageQuesId")
                         .HasConstraintName("FK_Home_Ques_Ques_LC_Image");
 
-                    b.HasOne("EnglishCenter.DataAccess.Entities.QuesRcSentenceMedia", "QuesSentenceMedia")
-                        .WithMany("HomeQues")
-                        .HasForeignKey("SentenceMediaQuesId")
-                        .HasConstraintName("FK_Home_Ques_Ques_RC_Sentence_Media");
-
                     b.HasOne("EnglishCenter.DataAccess.Entities.QuesRcSentence", "QuesSentence")
                         .WithMany("HomeQues")
                         .HasForeignKey("SentenceQuesId")
@@ -2558,8 +2756,6 @@ namespace EnglishCenter.Migrations
 
                     b.Navigation("QuesSentence");
 
-                    b.Navigation("QuesSentenceMedia");
-
                     b.Navigation("QuesSingle");
 
                     b.Navigation("QuesTriple");
@@ -2567,14 +2763,14 @@ namespace EnglishCenter.Migrations
 
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.Homework", b =>
                 {
-                    b.HasOne("EnglishCenter.DataAccess.Entities.Class", "Class")
+                    b.HasOne("EnglishCenter.DataAccess.Entities.Lesson", "Lesson")
                         .WithMany("HomeworkTasks")
-                        .HasForeignKey("ClassId")
+                        .HasForeignKey("LessonId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("FK_Homework_Class");
+                        .HasConstraintName("FK_Homework_Lessons");
 
-                    b.Navigation("Class");
+                    b.Navigation("Lesson");
                 });
 
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.HwSubRecord", b =>
@@ -2645,6 +2841,27 @@ namespace EnglishCenter.Migrations
                     b.Navigation("Examination");
                 });
 
+            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.Lesson", b =>
+                {
+                    b.HasOne("EnglishCenter.DataAccess.Entities.Class", "Class")
+                        .WithMany("Lessons")
+                        .HasForeignKey("ClassId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_Lessons_Class");
+
+                    b.HasOne("EnglishCenter.DataAccess.Entities.ClassRoom", "ClassRoom")
+                        .WithMany("Lessons")
+                        .HasForeignKey("ClassRoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_Lessons_ClassRoom");
+
+                    b.Navigation("Class");
+
+                    b.Navigation("ClassRoom");
+                });
+
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.NotiStudent", b =>
                 {
                     b.HasOne("EnglishCenter.DataAccess.Entities.Notification", "Notification")
@@ -2692,15 +2909,6 @@ namespace EnglishCenter.Migrations
                         .WithOne("QuesRcSentence")
                         .HasForeignKey("EnglishCenter.DataAccess.Entities.QuesRcSentence", "AnswerId")
                         .HasConstraintName("FK_Ques_RC_Answer_Sentence");
-
-                    b.Navigation("Answer");
-                });
-
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.QuesRcSentenceMedia", b =>
-                {
-                    b.HasOne("EnglishCenter.DataAccess.Entities.AnswerRcSentenceMedia", "Answer")
-                        .WithOne("QuesRcSentenceMedia")
-                        .HasForeignKey("EnglishCenter.DataAccess.Entities.QuesRcSentenceMedia", "AnswerId");
 
                     b.Navigation("Answer");
                 });
@@ -2830,6 +3038,38 @@ namespace EnglishCenter.Migrations
                     b.Navigation("QuesToeic");
                 });
 
+            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.SubmissionFile", b =>
+                {
+                    b.HasOne("EnglishCenter.DataAccess.Entities.Enrollment", "Enrollment")
+                        .WithMany("SubmissionFiles")
+                        .HasForeignKey("EnrollId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EnglishCenter.DataAccess.Entities.SubmissionTask", "SubmissionTask")
+                        .WithMany("SubmissionFiles")
+                        .HasForeignKey("SubmissionTaskId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_SubmissionTasks_SubmissionFiles");
+
+                    b.Navigation("Enrollment");
+
+                    b.Navigation("SubmissionTask");
+                });
+
+            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.SubmissionTask", b =>
+                {
+                    b.HasOne("EnglishCenter.DataAccess.Entities.Lesson", "Lesson")
+                        .WithMany("SubmissionTasks")
+                        .HasForeignKey("LessonId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_SubmissionTask_Lessons");
+
+                    b.Navigation("Lesson");
+                });
+
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.Teacher", b =>
                 {
                     b.HasOne("EnglishCenter.DataAccess.Entities.User", "User")
@@ -2913,6 +3153,18 @@ namespace EnglishCenter.Migrations
                     b.Navigation("LearningProcess");
 
                     b.Navigation("SubToeic");
+                });
+
+            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.UserWord", b =>
+                {
+                    b.HasOne("EnglishCenter.DataAccess.Entities.User", "User")
+                        .WithMany("UserWords")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_UserWord_User");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("GroupStudent", b =>
@@ -3011,12 +3263,6 @@ namespace EnglishCenter.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.AnswerRcSentenceMedia", b =>
-                {
-                    b.Navigation("QuesRcSentenceMedia")
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.AnswerRcSingle", b =>
                 {
                     b.Navigation("SubRcSingle")
@@ -3055,9 +3301,20 @@ namespace EnglishCenter.Migrations
 
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.Class", b =>
                 {
+                    b.Navigation("ClassMaterials");
+
+                    b.Navigation("ClassSchedules");
+
                     b.Navigation("Enrollments");
 
-                    b.Navigation("HomeworkTasks");
+                    b.Navigation("Lessons");
+                });
+
+            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.ClassRoom", b =>
+                {
+                    b.Navigation("ClassSchedules");
+
+                    b.Navigation("Lessons");
                 });
 
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.Course", b =>
@@ -3082,6 +3339,8 @@ namespace EnglishCenter.Migrations
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.Enrollment", b =>
                 {
                     b.Navigation("LearningProcesses");
+
+                    b.Navigation("SubmissionFiles");
 
                     b.Navigation("Submissions");
                 });
@@ -3113,6 +3372,15 @@ namespace EnglishCenter.Migrations
                     b.Navigation("AssignmentRecords");
 
                     b.Navigation("ToeicRecords");
+                });
+
+            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.Lesson", b =>
+                {
+                    b.Navigation("ClassMaterials");
+
+                    b.Navigation("HomeworkTasks");
+
+                    b.Navigation("SubmissionTasks");
                 });
 
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.Notification", b =>
@@ -3153,13 +3421,6 @@ namespace EnglishCenter.Migrations
                 });
 
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.QuesRcSentence", b =>
-                {
-                    b.Navigation("AssignQues");
-
-                    b.Navigation("HomeQues");
-                });
-
-            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.QuesRcSentenceMedia", b =>
                 {
                     b.Navigation("AssignQues");
 
@@ -3210,6 +3471,11 @@ namespace EnglishCenter.Migrations
                     b.Navigation("ToeicRecords");
                 });
 
+            modelBuilder.Entity("EnglishCenter.DataAccess.Entities.SubmissionTask", b =>
+                {
+                    b.Navigation("SubmissionFiles");
+                });
+
             modelBuilder.Entity("EnglishCenter.DataAccess.Entities.Teacher", b =>
                 {
                     b.Navigation("Classes");
@@ -3243,6 +3509,8 @@ namespace EnglishCenter.Migrations
                     b.Navigation("Teacher");
 
                     b.Navigation("ToeicAttempts");
+
+                    b.Navigation("UserWords");
                 });
 #pragma warning restore 612, 618
         }

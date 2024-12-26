@@ -45,5 +45,11 @@ public class Class
     public virtual ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
 
     [InverseProperty("Class")]
-    public virtual ICollection<Homework> HomeworkTasks { set; get; } = new List<Homework>();
+    public virtual ICollection<ClassSchedule> ClassSchedules { set; get; } = new List<ClassSchedule>();
+
+    [InverseProperty("Class")]
+    public virtual ICollection<Lesson> Lessons { set; get; } = new List<Lesson>();
+
+    [InverseProperty("Class")]
+    public virtual ICollection<ClassMaterial> ClassMaterials { set; get; } = new List<ClassMaterial>();
 }

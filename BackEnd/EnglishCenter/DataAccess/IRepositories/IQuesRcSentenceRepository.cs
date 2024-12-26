@@ -1,5 +1,4 @@
 ﻿using EnglishCenter.DataAccess.Entities;
-using EnglishCenter.Presentation.Models.DTOs;
 
 namespace EnglishCenter.DataAccess.IRepositories
 {
@@ -12,5 +11,7 @@ namespace EnglishCenter.DataAccess.IRepositories
         public Task<bool> ChangeAnswerCAsync(QuesRcSentence model, string newAnswer);
         public Task<bool> ChangeAnswerDAsync(QuesRcSentence model, string newAnswer);
         public Task<bool> ChangeAnswerAsync(QuesRcSentence model, long answerId);
+        public Task<bool> ChangeLevelAsync(QuesRcSentence model, int level);
+
     }
 }

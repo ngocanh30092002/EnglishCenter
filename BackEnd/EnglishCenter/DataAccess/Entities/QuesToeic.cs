@@ -32,7 +32,13 @@ namespace EnglishCenter.DataAccess.Entities
         [Required]
         public int NoNum { set; get; } = 1;
 
+        [Required]
+        public int Level { set; get; } = 1;
+
         [InverseProperty("QuesToeic")]
         public virtual ICollection<SubToeic> SubToeicList { set; get; } = new List<SubToeic>();
+
+        [InverseProperty("QuesToeic")]
+        public virtual ICollection<RandomQuesToeic> RandomQues { set; get; } = new List<RandomQuesToeic>();
     }
 }

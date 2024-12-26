@@ -1,5 +1,4 @@
-﻿using EnglishCenter.DataAccess.Entities;
-using EnglishCenter.Presentation.Models;
+﻿using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
 
 namespace EnglishCenter.Business.IServices
@@ -8,8 +7,11 @@ namespace EnglishCenter.Business.IServices
     {
         public Task<Response> GetAllAsync();
         public Task<Response> GetAsync(long id);
+        public Task<Response> GetByLessonAsync(long lessonId);
+        public Task<Response> GetCurrentByClassAsync(string classId);
         public Task<bool> IsInChargeClass(string userId, long homeId);
-        public Task<Response> ChangeClassAsync(long id, string classId);
+        public Task<Response> ChangeLessonAsync(long id, long lessonId);
+        public Task<Response> ChangeImageAsync(long id, IFormFile file);
         public Task<Response> ChangeStartTimeAsync(long id, string startTime);
         public Task<Response> ChangeEndTimeAsync(long id, string endTime);
         public Task<Response> ChangeLateSubmitDaysAsync(long id, int days);

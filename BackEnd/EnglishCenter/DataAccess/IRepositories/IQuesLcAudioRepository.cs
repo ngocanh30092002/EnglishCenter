@@ -11,5 +11,6 @@ namespace EnglishCenter.DataAccess.IRepositories
         Task<bool> ChangeAnswerAAsync(QuesLcAudio queModel, string newAnswer);
         Task<bool> ChangeAnswerBAsync(QuesLcAudio queModel, string newAnswer);
         Task<bool> ChangeAnswerCAsync(QuesLcAudio queModel, string newAnswer);
+        Task<bool> ChangeLevelAsync(QuesLcAudio queModel, int level);
     }
 }

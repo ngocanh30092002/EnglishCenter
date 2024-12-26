@@ -7,7 +7,7 @@ namespace EnglishCenter.Presentation
 {
     public class LcImageProfile : Profile
     {
-        public LcImageProfile() 
+        public LcImageProfile()
         {
             CreateMap<AnswerLcImageDto, AnswerLcImage>()
                 .ForMember(d => d.AnswerA, opt => opt.MapFrom(src => src.AnswerA))
@@ -22,6 +22,7 @@ namespace EnglishCenter.Presentation
                 .ForMember(d => d.ImageUrl, opt => opt.MapFrom(src => src.Image.Replace("\\", "/")))
                 .ForMember(d => d.AudioUrl, opt => opt.MapFrom(src => src.Audio.Replace("\\", "/")))
                 .ForMember(d => d.Time, opt => opt.MapFrom(src => src.Time))
+                .ForMember(d => d.Level, opt => opt.MapFrom(src => src.Level))
                 .ForMember(d => d.AnswerInfo, opt => opt.MapFrom(src => src.Answer));
         }
     }

@@ -11,6 +11,7 @@ namespace EnglishCenter.DataAccess.IRepositories
         public Task<bool> ChangeImage1Async(QuesToeic queModel, string imagePath);
         public Task<bool> ChangeImage2Async(QuesToeic queModel, string imagePath);
         public Task<bool> ChangeImage3Async(QuesToeic queModel, string imagePath);
+        public Task<bool> ChangeLevelAsync(QuesToeic queModel, int level);
         public Task<bool> ChangeGroupAsync(QuesToeic queModel, bool isGroup);
     }
 }

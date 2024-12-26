@@ -9,6 +9,7 @@ namespace EnglishCenter.DataAccess.IRepositories
         public Task<bool> LoadQuestionAsync(AssignQue model);
         public Task<bool> LoadQuestionWithoutAnswerAsync(AssignQue model);
         public Task<List<AssignQue>?> GetByAssignmentAsync(long assignmentId);
+        public Task<List<AssignQue>?> GetByProcessAsync(long processId);
         public Task<bool> IsExistQuesIdAsync(QuesTypeEnum type, long quesId);
         public Task<bool> IsCorrectAnswerAsync(AssignQue model, string selectedAnswer, long? subId);
         public Task<bool> IsSameAssignQuesAsync(QuesTypeEnum type, long assignmentId, long quesId);

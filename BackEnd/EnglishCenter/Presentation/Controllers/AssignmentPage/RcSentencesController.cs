@@ -3,7 +3,6 @@ using EnglishCenter.Presentation.Global;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EnglishCenter.Presentation.Controllers.AssignmentPage
@@ -16,7 +15,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
         private readonly IQuesRcSentenceService _quesService;
         private readonly IAnswerRcSentenceService _answerService;
 
-        public RcSentencesController(IQuesRcSentenceService quesService, IAnswerRcSentenceService answerService) 
+        public RcSentencesController(IQuesRcSentenceService quesService, IAnswerRcSentenceService answerService)
         {
             _quesService = quesService;
             _answerService = answerService;
@@ -28,6 +27,20 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
         public async Task<IActionResult> GetQuesSentencesAsync()
         {
             var response = await _quesService.GetAllAsync();
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("assignments/{id}/other")]
+        public async Task<IActionResult> GetOtherQuestionByAssignmentAsync([FromRoute] long id)
+        {
+            var response = await _quesService.GetOtherQuestionByAssignmentAsync(id);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("homework/{id}/other")]
+        public async Task<IActionResult> GetOtherQuestionByHomeworkAsync([FromRoute] long id)
+        {
+            var response = await _quesService.GetOtherQuestionByHomeworkAsync(id);
             return await response.ChangeActionAsync();
         }
 

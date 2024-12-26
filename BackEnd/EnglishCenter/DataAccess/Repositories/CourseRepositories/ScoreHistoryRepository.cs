@@ -3,6 +3,7 @@ using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.IRepositories;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
+using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
 {
@@ -40,10 +41,20 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
             return Task.FromResult(true);
         }
 
+        public async Task<List<ScoreHistory>> GetByClassAsync(string classId)
+        {
+            var scoreModels = await context.ScoreHistories
+                                          .Include(s => s.Enrollment)
+                                          .ThenInclude(s => s.User)
+                                          .Where(s => s.Enrollment.ClassId == classId)
+                                          .ToListAsync();
+
+            return scoreModels;
+        }
         public async Task<Response> UpdateAsync(long scoreId, ScoreHistoryDto model)
         {
             var scoreModel = await context.ScoreHistories.FindAsync(scoreId);
-            
+
             if (scoreModel == null)
             {
                 return new Response()

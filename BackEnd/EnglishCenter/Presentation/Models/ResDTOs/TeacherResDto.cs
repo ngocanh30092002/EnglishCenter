@@ -11,5 +11,7 @@
         public string? ImageUrl { set; get; }
         public string? UseName { set; get; }
         public string? Description { set; get; }
+        public string? Email { set; get; }
+        public string? TeacherId { set; get; }
     }
 }

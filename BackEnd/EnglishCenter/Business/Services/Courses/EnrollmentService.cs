@@ -14,11 +14,15 @@ namespace EnglishCenter.Business.Services.Courses
     {
         private readonly IUnitOfWork _unit;
         private readonly IMapper _mapper;
+        private readonly IAttendanceService _attendService;
+        private readonly ISubmissionFileService _submissionFileService;
 
-        public EnrollmentService(IMapper mapper, IUnitOfWork unit)
+        public EnrollmentService(IMapper mapper, IUnitOfWork unit, ISubmissionFileService submissionFileService, IAttendanceService attendService)
         {
             _unit = unit;
             _mapper = mapper;
+            _attendService = attendService;
+            _submissionFileService = submissionFileService;
         }
 
         private Task<bool> IsStillLearningAsync(string userId, string classId)
@@ -78,9 +82,9 @@ namespace EnglishCenter.Business.Services.Courses
             };
         }
 
-        private async Task<Response> CreateWithPreCourseAsync(EnrollmentDto model, Course preCourse, Course currentCourse, Class classModel)
+        private async Task<Response> CreateWithPreCourseAsync(EnrollmentDto model, List<Course> preCourses, Course currentCourse, Class classModel)
         {
-            var highestScore = await _unit.Enrollment.GetHighestScoreAsync(model.UserId!, preCourse.CourseId);
+            var highestScore = await _unit.Enrollment.GetHighestScoreAsync(model.UserId!, preCourses.Select(c => c.CourseId).ToList());
 
             if (highestScore < currentCourse.EntryPoint)
             {
@@ -153,7 +157,7 @@ namespace EnglishCenter.Business.Services.Courses
             });
         }
 
-        public Task<Response> GetAsync(string userId, long enrollmentId)
+        public Task<Response> GetAsync(string userId, long enrollmentId, bool isStudent = true)
         {
             var enrollment = _unit.Enrollment
                                   .Include(e => e.User)
@@ -171,7 +175,7 @@ namespace EnglishCenter.Business.Services.Courses
                 });
             }
 
-            if (enrollment.UserId != userId)
+            if (isStudent && enrollment.UserId != userId)
             {
                 return Task.FromResult(new Response()
                 {
@@ -212,6 +216,23 @@ namespace EnglishCenter.Business.Services.Courses
             };
         }
 
+        public async Task<Response> GetByClassAsync(string classId)
+        {
+            var enrollments = await _unit.Enrollment
+                                        .Include(e => e.Status)
+                                        .Include(e => e.User)
+                                        .ThenInclude(s => s.User)
+                                        .Where(e => e.ClassId == classId && (e.StatusId == (int)EnrollEnum.Ongoing || e.StatusId == (int)EnrollEnum.Completed))
+                                        .ToListAsync();
+
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = _mapper.Map<List<EnrollResDto>>(enrollments),
+                Success = true
+            };
+        }
+
         public async Task<Response> GetAsync(string classId, int statusId)
         {
             if (!Enum.IsDefined(typeof(EnrollEnum), statusId))
@@ -229,7 +250,7 @@ namespace EnglishCenter.Business.Services.Courses
             return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Message = _mapper.Map<List<EnrollmentDto>>(enrollments),
+                Message = _mapper.Map<List<EnrollResDto>>(enrollments),
                 Success = true
             };
         }
@@ -407,9 +428,9 @@ namespace EnglishCenter.Business.Services.Courses
             }
 
             var courseModel = _unit.Courses.GetById(classModel.CourseId);
-            var preCourse = await _unit.Courses.GetPreviousAsync(courseModel);
+            var preCourses = await _unit.Courses.GetPreviousAsync(courseModel);
 
-            var isSuccess = await _unit.Enrollment.HandleStartClassAsync(classId, preCourse);
+            var isSuccess = await _unit.Enrollment.HandleStartClassAsync(classId, preCourses);
             if (!isSuccess)
             {
                 return new Response()
@@ -429,6 +450,15 @@ namespace EnglishCenter.Business.Services.Courses
                     Success = false
                 };
             }
+
+            await _unit.Notifications.SendNotificationToGroup(classModel.ClassId, new NotiDto()
+            {
+                Title = "Class message",
+                Description = $"Class {classModel.ClassId} are starting now. Join the class!",
+                Image = classModel.Image,
+                IsRead = false,
+                Time = DateTime.Now,
+            });
 
             await _unit.CompleteAsync();
             return new Response()
@@ -483,6 +513,15 @@ namespace EnglishCenter.Business.Services.Courses
                 };
             }
 
+            await _unit.Notifications.SendNotificationToGroup(classModel.ClassId, new NotiDto()
+            {
+                Title = "Class message",
+                Description = $"Class {classModel.ClassId} ended on {DateTime.Now.ToString("MMMM dd, yyyy")}",
+                Image = classModel.Image,
+                IsRead = false,
+                Time = DateTime.Now,
+            });
+
             await _unit.CompleteAsync();
             return new Response()
             {
@@ -519,6 +558,15 @@ namespace EnglishCenter.Business.Services.Courses
 
             classModel.RegisteringNum--;
             classModel.RegisteredNum++;
+
+            await _unit.Notifications.SendNotificationToUser(enrollModel.UserId, enrollModel.ClassId, new NotiDto()
+            {
+                Title = "Automatic messages",
+                Description = $"You were accepted when registering for class {enrollModel.ClassId}",
+                Image = enrollModel.Class.Image,
+                IsRead = false,
+                Time = DateTime.Now,
+            });
 
             await _unit.CompleteAsync();
             return new Response()
@@ -568,7 +616,7 @@ namespace EnglishCenter.Business.Services.Courses
 
         public async Task<Response> HandleRejectAsync(long enrollmentId)
         {
-            var enrollModel = _unit.Enrollment.GetById(enrollmentId);
+            var enrollModel = _unit.Enrollment.Include(e => e.Class).FirstOrDefault(e => e.EnrollId == enrollmentId);
             if (enrollModel == null)
             {
                 return new Response()
@@ -595,7 +643,6 @@ namespace EnglishCenter.Business.Services.Courses
                 _unit.ScoreHis.Remove(scoreHisModel);
             }
 
-            _unit.Enrollment.Remove(enrollModel);
 
             var classModel = _unit.Classes.GetById(enrollModel.ClassId);
             if (classModel == null)
@@ -615,6 +662,17 @@ namespace EnglishCenter.Business.Services.Courses
             {
                 classModel.RegisteredNum--;
             }
+
+            enrollModel.StatusId = (int)EnrollEnum.Rejected;
+
+            await _unit.Notifications.SendNotificationToUser(enrollModel.UserId, enrollModel.ClassId, new NotiDto()
+            {
+                Title = "Automatic messages",
+                Description = $"You were rejected when registering for class {enrollModel.ClassId}",
+                Image = enrollModel.Class.Image,
+                IsRead = false,
+                Time = DateTime.Now,
+            });
 
             await _unit.CompleteAsync();
             return new Response()
@@ -781,8 +839,9 @@ namespace EnglishCenter.Business.Services.Courses
                 };
             }
 
-            // Todo: check time end
-            if (classModel.Status == (int)ClassEnum.End)
+            var currentDate = DateOnly.FromDateTime(DateTime.Now);
+
+            if (classModel.Status == (int)ClassEnum.End || classModel.EndDate < currentDate)
             {
                 return new Response()
                 {
@@ -791,6 +850,17 @@ namespace EnglishCenter.Business.Services.Courses
                     Success = false
                 };
             }
+
+            if (classModel.StartDate > currentDate)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't register for this class because it hasn't started yet.",
+                    Success = false
+                };
+            }
+
 
             var studentModel = _unit.Students.GetById(model.UserId ?? "");
             if (studentModel == null)
@@ -815,15 +885,15 @@ namespace EnglishCenter.Business.Services.Courses
             }
 
             var courseModel = _unit.Courses.GetById(classModel.CourseId);
-            var preCourse = await _unit.Courses.GetPreviousAsync(courseModel);
+            var preCourses = await _unit.Courses.GetPreviousAsync(courseModel);
 
-            if (preCourse == null)
+            if (preCourses == null || preCourses.Count == 0)
             {
                 return await CreateWithNoPreCourseAsync(model, classModel);
             }
             else
             {
-                return await CreateWithPreCourseAsync(model, preCourse, courseModel, classModel);
+                return await CreateWithPreCourseAsync(model, preCourses, courseModel, classModel);
             }
         }
 
@@ -858,8 +928,40 @@ namespace EnglishCenter.Business.Services.Courses
                 classModel.RegisteredNum--;
             }
 
+            var attendIds = _unit.Attendances.Find(s => s.EnrollId == enrollmentId).Select(s => s.AttendanceId).ToList();
+
+            foreach (var attendId in attendIds)
+            {
+                var deleteRes = await _attendService.DeleteAsync(attendId);
+                if (!deleteRes.Success) return deleteRes;
+            }
+
+            var hwSubmission = _unit.HwSubmissions.Find(s => s.EnrollId == enrollmentId).ToList();
+
+            _unit.HwSubmissions.RemoveRange(hwSubmission);
+            var submissionFileIds = _unit.SubmissionFiles
+                                         .Find(s => s.EnrollId == enrollmentId)
+                                         .Select(s => s.SubmissionFileId)
+                                         .ToList();
+
+            foreach (var submissionId in submissionFileIds)
+            {
+                var deleteRes = await _submissionFileService.DeleteAsync(submissionId);
+                if (!deleteRes.Success) return deleteRes;
+            }
+
             _unit.Enrollment.Remove(enrollmentModel);
+
             await _unit.CompleteAsync();
+
+            await _unit.Notifications.SendNotificationToUser(enrollmentModel.UserId, classModel.ClassId, new NotiDto()
+            {
+                Title = "Class message",
+                Description = $"You have been removed from class {classModel.ClassId} by the teacher or admin",
+                Image = classModel.Image,
+                IsRead = false,
+                Time = DateTime.Now,
+            });
 
             return new Response()
             {
@@ -867,7 +969,6 @@ namespace EnglishCenter.Business.Services.Courses
                 Message = "",
                 Success = true
             };
-
         }
 
         public async Task<Response> UpdateAsync(long enrollmentId, EnrollmentDto model)
@@ -880,6 +981,67 @@ namespace EnglishCenter.Business.Services.Courses
             }
 
             return response;
+        }
+
+        public async Task<Response> DeleteByOwnAsync(long enrollId, string userId)
+        {
+            var enrollmentModel = _unit.Enrollment.GetById(enrollId);
+
+            if (enrollmentModel == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any enrollments"
+                };
+            }
+
+            if (enrollmentModel.UserId != userId)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "You can't delete someone else's recordings"
+                };
+            }
+
+            if (enrollmentModel.StatusId == (int)EnrollEnum.Ongoing)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "You are in this class and can't perform this task.",
+                    Success = false
+                };
+            }
+
+            if (enrollmentModel.ScoreHisId.HasValue)
+            {
+                var scoreHisModel = _unit.ScoreHis.GetById(enrollmentModel.ScoreHisId.Value);
+
+                _unit.ScoreHis.Remove(scoreHisModel);
+            }
+
+            var classModel = _unit.Classes.GetById(enrollmentModel.ClassId);
+
+            if (enrollmentModel.StatusId == (int)EnrollEnum.Pending)
+            {
+                classModel.RegisteringNum--;
+            }
+            else if (enrollmentModel.StatusId != (int)EnrollEnum.Rejected)
+            {
+                classModel.RegisteredNum--;
+            }
+
+            _unit.Enrollment.Remove(enrollmentModel);
+            await _unit.CompleteAsync();
+
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = "",
+                Success = true
+            };
         }
     }
 }

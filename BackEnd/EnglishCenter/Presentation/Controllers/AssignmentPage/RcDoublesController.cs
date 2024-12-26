@@ -1,11 +1,10 @@
 ﻿using EnglishCenter.Business.IServices;
-using EnglishCenter.Business.Services.Assignments;
 using EnglishCenter.Presentation.Global;
 using EnglishCenter.Presentation.Helpers;
 using EnglishCenter.Presentation.Models.DTOs;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace EnglishCenter.Presentation.Controllers.AssignmentPage
 {
@@ -40,6 +39,20 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
             return await response.ChangeActionAsync();
         }
 
+        [HttpGet("assignments/{id}/other")]
+        public async Task<IActionResult> GetOtherQuestionByAssignmentAsync([FromRoute] long id)
+        {
+            var response = await _quesService.GetOtherQuestionByAssignmentAsync(id);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("homework/{id}/other")]
+        public async Task<IActionResult> GetOtherQuestionByHomeworkAsync([FromRoute] long id)
+        {
+            var response = await _quesService.GetOtherQuestionByHomeworkAsync(id);
+            return await response.ChangeActionAsync();
+        }
+
         [HttpPost]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> CreateAsync([FromForm] QuesRcDoubleDto queModel)
@@ -60,6 +73,11 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
                 {
                     return BadRequest(new { message = "The image file is invalid. Only JPEG, PNG, GIF, and SVG are allowed.", success = false });
                 }
+            }
+
+            if (!string.IsNullOrEmpty(queModel.SubRcDoubleDtoJson))
+            {
+                queModel.SubRcDoubleDtos = JsonConvert.DeserializeObject<List<SubRcDoubleDto>>(queModel.SubRcDoubleDtoJson);
             }
 
             var response = await _quesService.CreateAsync(queModel);

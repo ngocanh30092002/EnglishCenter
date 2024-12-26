@@ -43,7 +43,10 @@ namespace EnglishCenter.DataAccess.Repositories.HomeworkRepositories
             var enrollment = await context.Enrollments.FindAsync(enrollId);
             if (enrollment == null) return false;
 
-            if (submitModel.Homework.ClassId == enrollment.ClassId && enrollment.StatusId == (int)EnrollEnum.Ongoing)
+            var lessonModel = await context.Lessons.FindAsync(submitModel.Homework.LessonId);
+            if (lessonModel == null) return false;
+
+            if (lessonModel.ClassId == enrollment.ClassId && enrollment.StatusId == (int)EnrollEnum.Ongoing)
             {
                 submitModel.EnrollId = enrollId;
                 return true;
@@ -68,7 +71,10 @@ namespace EnglishCenter.DataAccess.Repositories.HomeworkRepositories
             var homeworkModel = await context.Homework.FindAsync(homeworkId);
             if (homeworkModel == null) return false;
 
-            if (submitModel.Enrollment.ClassId != homeworkModel.ClassId) return false;
+            var lessonModel = await context.Lessons.FindAsync(homeworkModel.LessonId);
+            if (lessonModel == null) return false;
+
+            if (submitModel.Enrollment.ClassId != lessonModel.ClassId) return false;
 
             submitModel.HomeworkId = homeworkId;
 

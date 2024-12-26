@@ -2,6 +2,7 @@
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.IRepositories;
 using EnglishCenter.Presentation.Global.Enum;
+using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
 {
@@ -44,6 +45,29 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
             processModel.Status = (int)statusEnum;
 
             return Task.FromResult(true);
+        }
+
+        public async Task<List<long>> GetExamsProcessAsync(long enrollId, string classId)
+        {
+            var classModel = await context.Classes.FindAsync(classId);
+            if (classModel == null)
+            {
+                return new List<long>();
+            }
+
+            var examIds = context.Examinations
+                                .Include(e => e.CourseContent)
+                                .Where(e => e.CourseContent.CourseId == classModel.CourseId &&
+                                            e.CourseContent.Type != 1)
+                                .Select(e => e.ExamId)
+                                .ToList();
+
+            var learningProcess = context.LearningProcesses
+                                         .Where(p => p.EnrollId == enrollId && p.ExamId.HasValue && examIds.Contains(p.ExamId.Value))
+                                         .Select(p => p.ProcessId)
+                                         .ToList();
+
+            return learningProcess;
         }
     }
 }

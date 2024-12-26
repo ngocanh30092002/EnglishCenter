@@ -1,4 +1,6 @@
-﻿namespace EnglishCenter.Presentation.Models.DTOs
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace EnglishCenter.Presentation.Models.DTOs
 {
     public class QuesRcSentenceDto
     {
@@ -9,6 +11,9 @@
         public string AnswerD { set; get; } = null!;
         public string Time { set; get; } = null!;
         public long? AnswerId { set; get; }
-        public AnswerRcSentenceDto? Answer { set; get;}
+
+        [Range(1, 4)]
+        public int? Level { set; get; } = 1;
+        public AnswerRcSentenceDto? Answer { set; get; }
     }
 }

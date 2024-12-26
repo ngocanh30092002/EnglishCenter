@@ -25,6 +25,13 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
             return await response.ChangeActionAsync();
         }
 
+        [HttpGet("classes/{classId}")]
+        public async Task<IActionResult> GetScoreByClassAsync([FromRoute] string classId)
+        {
+            var response = await _processService.GetScoreByClassAsync(classId);
+            return await response.ChangeActionAsync();
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetAsync([FromRoute] long id)
         {
@@ -68,9 +75,9 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
         }
 
         [HttpGet("enrollments/{enrollId}/status")]
-        public async Task<IActionResult> GetStatusLessonAsync([FromRoute] long enrollId, [FromQuery] long? assignmentId, [FromQuery] long? examId)
+        public async Task<IActionResult> GetStatusExerciseAsync([FromRoute] long enrollId, [FromQuery] long? assignmentId, [FromQuery] long? examId)
         {
-            var response = await _processService.GetStatusLessonAsync(enrollId, assignmentId, examId);
+            var response = await _processService.GetStatusExerciseAsync(enrollId, assignmentId, examId);
             return await response.ChangeActionAsync();
         }
 
@@ -78,6 +85,14 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
         public async Task<IActionResult> IsSubmittedAsync([FromRoute] long id)
         {
             var response = await _processService.IsSubmittedAsync(id);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("enrollments/{enrollId}/exam-info")]
+        [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
+        public async Task<IActionResult> GetExamInfoAsync([FromRoute] long enrollId, [FromQuery] string classId)
+        {
+            var response = await _processService.GetExamInfoAsync(enrollId, classId);
             return await response.ChangeActionAsync();
         }
 

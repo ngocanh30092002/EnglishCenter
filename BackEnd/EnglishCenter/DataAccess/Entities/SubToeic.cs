@@ -30,6 +30,9 @@ namespace EnglishCenter.DataAccess.Entities
         public virtual ICollection<ToeicRecord> ToeicRecords { set; get; } = new List<ToeicRecord>();
 
         [InverseProperty("SubToeic")]
-        public virtual ICollection<ToeicPracticeRecord> ToeicPracticeRecords { set; get; } = new List<ToeicPracticeRecord>();
+        public virtual ICollection<AttemptRecord> AttemptRecords { set; get; } = new List<AttemptRecord>();
+
+        [InverseProperty("SubToeic")]
+        public virtual ICollection<HwSubRecord> SubRecords { set; get; } = new List<HwSubRecord>();
     }
 }

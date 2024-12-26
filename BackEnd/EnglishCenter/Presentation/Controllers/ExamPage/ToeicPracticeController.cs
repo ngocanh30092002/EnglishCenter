@@ -12,9 +12,9 @@ namespace EnglishCenter.Presentation.Controllers.ExamPage
     [Authorize]
     public class ToeicPracticeController : ControllerBase
     {
-        private readonly IToeicPracticeRecordService _toeicService;
+        private readonly IAttemptRecordService _toeicService;
 
-        public ToeicPracticeController(IToeicPracticeRecordService toeicService)
+        public ToeicPracticeController(IAttemptRecordService toeicService)
         {
             _toeicService = toeicService;
         }
@@ -31,6 +31,20 @@ namespace EnglishCenter.Presentation.Controllers.ExamPage
         public async Task<IActionResult> GetAsync([FromRoute] long id)
         {
             var response = await _toeicService.GetAsync(id);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("attempt/{attemptId}")]
+        public async Task<IActionResult> GetByRoadMapQuestionAsync([FromRoute] long attemptId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return BadRequest();
+            }
+
+            var response = await _toeicService.GetByRoadMapQuestionAsync(attemptId, userId);
             return await response.ChangeActionAsync();
         }
 
@@ -63,7 +77,7 @@ namespace EnglishCenter.Presentation.Controllers.ExamPage
         }
 
         [HttpPost()]
-        public async Task<IActionResult> CreateAsync([FromForm] ToeicPracticeRecordDto model)
+        public async Task<IActionResult> CreateAsync([FromForm] AttemptRecordDto model)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
             if (string.IsNullOrEmpty(userId))
@@ -80,7 +94,7 @@ namespace EnglishCenter.Presentation.Controllers.ExamPage
 
         [HttpPost("admin")]
         [Authorize(Roles = AppRole.ADMIN)]
-        public async Task<IActionResult> CreateAsync([FromForm] ToeicPracticeRecordDto model, [FromQuery] string userId)
+        public async Task<IActionResult> CreateAsync([FromForm] AttemptRecordDto model, [FromQuery] string userId)
         {
             if (string.IsNullOrEmpty(userId))
             {
@@ -95,7 +109,7 @@ namespace EnglishCenter.Presentation.Controllers.ExamPage
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateAsync([FromRoute] long id, [FromForm] ToeicPracticeRecordDto model)
+        public async Task<IActionResult> UpdateAsync([FromRoute] long id, [FromForm] AttemptRecordDto model)
         {
             var response = await _toeicService.UpdateAsync(id, model);
 

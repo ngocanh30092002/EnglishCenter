@@ -17,6 +17,7 @@ namespace EnglishCenter.DataAccess.IRepositories
         public Task<int> GetNumberByHomeworkAsync(long homeworkId);
         public Task<long> GetQuesIdAsync(HomeQue model);
         public Task<TimeOnly> GetTimeQuesAsync(HomeQue model);
+        public Task<object> GetAnswerInfoAsync(long homeQuesId, long? subId);
         public Task<List<HomeQue>?> GetByHomeworkAsync(long homeworkId);
         public Task<bool> UpdateAsync(long id, HomeQueDto model);
     }

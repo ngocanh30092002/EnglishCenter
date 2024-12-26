@@ -1,7 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using EnglishCenter.Business.IServices;
+using EnglishCenter.Presentation.Global;
 using EnglishCenter.Presentation.Helpers;
 using EnglishCenter.Presentation.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EnglishCenter.Presentation.Controllers.AuthenticationPage
@@ -71,6 +73,44 @@ namespace EnglishCenter.Presentation.Controllers.AuthenticationPage
             }
 
             var registerResponse = await _accountService.RegisterAsync(model);
+
+            return await registerResponse.ChangeActionAsync();
+        }
+
+        [HttpPost("admin/register")]
+        [Authorize(Roles = AppRole.ADMIN)]
+        public async Task<IActionResult> RegisterWithRolesAsync([FromForm] RegisterModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errorMessage = ModelState.Values
+                                             .SelectMany(v => v.Errors)
+                                             .Select(err => err.ErrorMessage)
+                                             .ToList();
+
+                var response = new Response() { Success = false, Message = errorMessage, StatusCode = System.Net.HttpStatusCode.BadRequest };
+                return await response.ChangeActionAsync();
+            }
+
+            if (model.Image != null)
+            {
+                var isImageFile = await UploadHelper.IsImageAsync(model.Image);
+                if (!isImageFile)
+                {
+                    return BadRequest(new { message = "The image file is invalid. Only JPEG, PNG, GIF, and SVG are allowed.", success = false });
+                }
+            }
+
+            if (model.BackgroundImage != null)
+            {
+                var isImageFile = await UploadHelper.IsImageAsync(model.BackgroundImage);
+                if (!isImageFile)
+                {
+                    return BadRequest(new { message = "The background image file is invalid. Only JPEG, PNG, GIF, and SVG are allowed.", success = false });
+                }
+            }
+
+            var registerResponse = await _accountService.RegisterWithRoleAsync(model);
 
             return await registerResponse.ChangeActionAsync();
         }

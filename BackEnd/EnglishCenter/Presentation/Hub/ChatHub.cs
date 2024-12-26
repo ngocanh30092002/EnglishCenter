@@ -45,6 +45,10 @@ namespace EnglishCenter.Presentation.Hub
         public async Task SendMessage(ChatMessageDto message)
         {
             var userId = _connections.FirstOrDefault(x => x.Value == Context.ConnectionId).Key;
+            if (string.IsNullOrEmpty(userId))
+            {
+                userId = Context.User!.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
+            }
 
             message.SenderId = userId;
 
@@ -104,9 +108,12 @@ namespace EnglishCenter.Presentation.Hub
 
         public Task<List<string>> GetOnlineUsers(string classId)
         {
-            //Todo: handle to filter user same class
+            var usersInClass = _connections.Keys.Where(k =>
+            {
+                return _unit.Enrollment.IsExist(e => e.UserId == k && e.ClassId == classId);
+            }).ToList();
 
-            return Task.FromResult(_connections.Keys.ToList());
+            return Task.FromResult(usersInClass);
         }
         public override async Task OnDisconnectedAsync(Exception? exception)
         {

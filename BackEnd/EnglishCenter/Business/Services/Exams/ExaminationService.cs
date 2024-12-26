@@ -304,6 +304,17 @@ namespace EnglishCenter.Business.Services.Exams
             });
         }
 
+        public Task<Response> GetByCouseContentAsync(long courseContentId)
+        {
+            var model = _unit.Examinations.Find(e => e.ContentId == courseContentId).FirstOrDefault();
+
+            return Task.FromResult(new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = _mapper.Map<ExaminationDto>(model),
+                Success = true
+            });
+        }
         public async Task<Response> UpdateAsync(long id, ExaminationDto model)
         {
             var examModel = _unit.Examinations.GetById(id);

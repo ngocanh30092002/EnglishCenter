@@ -5,9 +5,9 @@ using EnglishCenter.Presentation.Models.ResDTOs;
 
 namespace EnglishCenter.Presentation
 {
-    public class TeacherProfile  : Profile
+    public class TeacherProfile : Profile
     {
-        public TeacherProfile() 
+        public TeacherProfile()
         {
             CreateMap<Teacher, TeacherResDto>()
                 .ForMember(des => des.FullName, opt => opt.MapFrom(src => (src.FirstName + " " + src.LastName).Trim()))
@@ -18,8 +18,10 @@ namespace EnglishCenter.Presentation
                 .ForMember(des => des.BackgroundImageUrl, opt => opt.MapFrom(src => src.BackgroundImage == null ? "" : src.BackgroundImage.Replace("\\", "/")))
                 .ForMember(des => des.ImageUrl, opt => opt.MapFrom(src => src.Image == null ? "" : src.Image.Replace("\\", "/")))
                 .ForMember(des => des.UseName, opt => opt.MapFrom(src => src.UserName))
-                .ForMember(des => des.Description, opt => opt.MapFrom(src => src.Description));
-                
+                .ForMember(des => des.Description, opt => opt.MapFrom(src => src.Description))
+                .ForMember(des => des.Email, opt => opt.MapFrom(src => src.User.Email))
+                .ForMember(des => des.TeacherId, opt => opt.MapFrom(src => src.UserId));
+
         }
     }
 }

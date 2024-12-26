@@ -1,8 +1,8 @@
-﻿using EnglishCenter.Business.IServices;
-using EnglishCenter.DataAccess.IRepositories;
+﻿using System.Security.Claims;
+using EnglishCenter.Business.IServices;
+using EnglishCenter.Presentation.Global;
 using EnglishCenter.Presentation.Helpers;
 using EnglishCenter.Presentation.Models.DTOs;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EnglishCenter.Presentation.Controllers.CoursePage
@@ -46,6 +46,27 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
             return await response.ChangeActionAsync();
         }
 
+        [HttpGet("teacher/current")]
+        public async Task<IActionResult> GetClassesWithTeacherAsync()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
+            if (userId == "")
+            {
+                return BadRequest();
+            }
+
+            var isTeacher = User.IsInRole(AppRole.TEACHER);
+            var isAdmin = User.IsInRole(AppRole.ADMIN);
+
+            if (isTeacher || isAdmin)
+            {
+                var response = await _classService.GetClassesWithTeacherAsync(userId);
+                return await response.ChangeActionAsync();
+            }
+
+            return Unauthorized();
+        }
+
         [HttpPut("{classId}")]
         public async Task<IActionResult> UpdateClassAsync([FromRoute] string classId, [FromForm] ClassDto model)
         {
@@ -72,7 +93,7 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
         [HttpPost]
         public async Task<IActionResult> CreateClassAsync([FromForm] ClassDto model)
         {
-            if(model.Image != null)
+            if (model.Image != null)
             {
                 var isImageFile = await UploadHelper.IsImageAsync(model.Image);
                 if (!isImageFile)

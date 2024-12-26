@@ -125,7 +125,7 @@ namespace EnglishCenter.DataAccess.Repositories.AuthenticationRepositories
             };
         }
 
-        public async Task<Response> ChangeStudentInfoAsync(Student student, StudentInfoDto model)
+        public async Task<Response> ChangeStudentInfoAsync(Student student, UserInfoDto model)
         {
             var user = await _userManager.FindByIdAsync(student.UserId);
             if (student == null || user == null)
@@ -185,46 +185,14 @@ namespace EnglishCenter.DataAccess.Repositories.AuthenticationRepositories
             };
         }
 
-        public bool ChangeStudentBackground(Student student, StudentBackgroundDto stuModel)
+        public Task<bool> ChangeStudentBackgroundAsync(Student student, UserBackgroundDto stuModel)
         {
-            if (student == null) return false;
+            if (student == null) return Task.FromResult(false);
 
             student.UserName = stuModel.UserName;
             student.Description = stuModel.Description;
 
-            return true;
-        }
-
-        public async Task<StudentInfoDto?> GetStudentInfoAsync(Student student)
-        {
-            var user = await _userManager.FindByIdAsync(student.UserId);
-
-            if (student == null || user == null)
-            {
-                return null;
-            }
-
-            var userDto = _mapper.Map<StudentInfoDto>(student);
-            userDto.Email = user.Email ?? "";
-
-            return userDto;
-        }
-
-        public async Task<StudentBackgroundDto?> GetStudentBackgroundAsync(Student student)
-        {
-            var user = await _userManager.FindByIdAsync(student.UserId);
-
-            if (student == null || user == null)
-            {
-                return null;
-            }
-
-            var roleOfUser = await _userManager.GetRolesAsync(user);
-
-            var userBackgroundDto = _mapper.Map<StudentBackgroundDto>(student);
-            userBackgroundDto.Roles = roleOfUser.ToList();
-
-            return userBackgroundDto;
+            return Task.FromResult(true);
         }
     }
 }

@@ -3,8 +3,8 @@ using EnglishCenter.Presentation.Global;
 using EnglishCenter.Presentation.Helpers;
 using EnglishCenter.Presentation.Models.DTOs;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace EnglishCenter.Presentation.Controllers.AssignmentPage
 {
@@ -31,6 +31,21 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
             var response = await _quesService.GetAllAsync();
             return await response.ChangeActionAsync();
         }
+
+        [HttpGet("assignments/{id}/other")]
+        public async Task<IActionResult> GetOtherQuestionByAssignmentAsync([FromRoute] long id)
+        {
+            var response = await _quesService.GetOtherQuestionByAssignmentAsync(id);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("homework/{id}/other")]
+        public async Task<IActionResult> GetOtherQuestionByHomeworkAsync([FromRoute] long id)
+        {
+            var response = await _quesService.GetOtherQuestionByHomeworkAsync(id);
+            return await response.ChangeActionAsync();
+        }
+
 
         [HttpGet("{quesId}")]
         public async Task<IActionResult> GetQuesTripleAsync([FromRoute] long quesId)
@@ -68,6 +83,12 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
                 {
                     return BadRequest(new { message = "The image file is invalid. Only JPEG, PNG, GIF, and SVG are allowed.", success = false });
                 }
+            }
+
+
+            if (!string.IsNullOrEmpty(queModel.SubRcTripleResDtoJson))
+            {
+                queModel.SubRcTripleDtos = JsonConvert.DeserializeObject<List<SubRcTripleDto>>(queModel.SubRcTripleResDtoJson);
             }
 
             var response = await _quesService.CreateAsync(queModel);

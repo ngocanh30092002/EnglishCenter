@@ -9,9 +9,7 @@ namespace EnglishCenter.DataAccess.IRepositories
         public Task<bool> ChangeStudentImageAsync(IFormFile file, Student student);
         public Task<bool> ChangeBackgroundImageAsync(IFormFile file, Student student);
         public Task<Response> ChangePasswordAsync(Student student, string currentPassword, string newPassword);
-        public Task<Response> ChangeStudentInfoAsync(Student student, StudentInfoDto model);
-        public bool ChangeStudentBackground(Student student, StudentBackgroundDto stuModel);
-        public Task<StudentInfoDto?> GetStudentInfoAsync(Student student);
-        public Task<StudentBackgroundDto?> GetStudentBackgroundAsync(Student student);
+        public Task<Response> ChangeStudentInfoAsync(Student student, UserInfoDto model);
+        public Task<bool> ChangeStudentBackgroundAsync(Student student, UserBackgroundDto stuModel);
     }
 }

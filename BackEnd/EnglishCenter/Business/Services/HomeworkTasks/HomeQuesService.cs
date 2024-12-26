@@ -26,7 +26,7 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
         public async Task<Response> ChangeHomeworkIdAsync(long id, long homeworkId)
         {
             var homeQueModel = _unit.HomeQues.GetById(id);
-            if(homeQueModel == null)
+            if (homeQueModel == null)
             {
                 return new Response()
                 {
@@ -104,7 +104,7 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
         public async Task<Response> ChangeQuesAsync(long id, int type, long quesId)
         {
             var homeQueModel = _unit.HomeQues.GetById(id);
-            if(homeQueModel == null)
+            if (homeQueModel == null)
             {
                 return new Response()
                 {
@@ -114,7 +114,7 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
                 };
             }
 
-            if(!Enum.IsDefined(typeof(QuesTypeEnum), type))
+            if (!Enum.IsDefined(typeof(QuesTypeEnum), type))
             {
                 return new Response()
                 {
@@ -124,7 +124,7 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
                 };
             }
 
-            var isChangeSuccess = await _unit.HomeQues.ChangeQuesAsync(homeQueModel, (QuesTypeEnum) type, quesId);
+            var isChangeSuccess = await _unit.HomeQues.ChangeQuesAsync(homeQueModel, (QuesTypeEnum)type, quesId);
             if (!isChangeSuccess)
             {
                 return new Response()
@@ -151,7 +151,7 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
                                     .Include(a => a.HomeQues)
                                     .FirstOrDefault(a => a.HomeworkId == model.HomeworkId);
 
-            if(homeworkModel == null)
+            if (homeworkModel == null)
             {
                 return new Response()
                 {
@@ -194,7 +194,7 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
 
             var homeQueModel = _mapper.Map<HomeQue>(model);
             var currentMaxNum = homeworkModel.HomeQues.Count > 0 ? homeworkModel.HomeQues.Max(c => c.NoNum) : 0;
-            
+
             homeQueModel.NoNum = currentMaxNum + 1;
 
             _unit.HomeQues.Add(homeQueModel);
@@ -209,6 +209,65 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
                 Message = "",
                 Success = true
             };
+        }
+
+        public async Task<Response> HandleCreateWithHwAsync(long homeworkId, List<TypeQuestionDto> typeQuesDtos)
+        {
+            var homeworkModel = _unit.Homework.GetById(homeworkId);
+            if (homeworkModel == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any homework",
+                    Success = false
+                };
+            }
+
+            await _unit.BeginTransAsync();
+
+            try
+            {
+                foreach (var model in typeQuesDtos)
+                {
+                    if (model.QueIds.Count != 0)
+                    {
+                        foreach (var id in model.QueIds)
+                        {
+                            var homeQueDto = new HomeQueDto()
+                            {
+                                HomeworkId = homeworkId,
+                                QuesId = id,
+                                Type = model.Type
+                            };
+
+                            var createRes = await CreateAsync(homeQueDto);
+                            if (!createRes.Success) return createRes;
+                        }
+                    }
+                }
+
+                await _unit.CompleteAsync();
+                await _unit.CommitTransAsync();
+
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Message = "",
+                    Success = true
+                };
+            }
+            catch (Exception ex)
+            {
+                await _unit.RollBackTransAsync();
+
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = ex.Message,
+                    Success = false
+                };
+            }
         }
 
         public async Task<Response> DeleteAsync(long id)
@@ -261,7 +320,7 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
                     Success = true
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 await _unit.RollBackTransAsync();
 
@@ -278,7 +337,7 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
         {
             var models = _unit.HomeQues.GetAll();
 
-            foreach(var model in models)
+            foreach (var model in models)
             {
                 var isSuccess = await _unit.HomeQues.LoadQuestionAsync(model);
                 if (!isSuccess)
@@ -316,8 +375,8 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
         public async Task<Response> GetByHomeworkAsync(long homeworkId)
         {
             var models = _unit.HomeQues.Find(h => h.HomeworkId == homeworkId);
-            
-            foreach(var model in models)
+
+            foreach (var model in models)
             {
                 var isSuccess = await _unit.HomeQues.LoadQuestionAsync(model);
                 if (!isSuccess)
@@ -331,11 +390,52 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
                 }
             }
 
+            if (models != null && models.Count() != 0)
+            {
+                models = models.GroupBy(model => model.Type)
+                               .Select(group => group.OrderBy(x => Guid.NewGuid()).ToList())
+                               .SelectMany(group => group)
+                               .OrderBy(a => a.Type)
+                               .ToList();
+            }
 
             return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Message = _mapper.Map<List<HomeQueResDto>>(models.OrderBy(m => m.NoNum)),
+                Message = _mapper.Map<List<HomeQueResDto>>(models),
+                Success = true
+            };
+        }
+
+        public async Task<Response> GetByHwSubmissionAsync(long hwSubId)
+        {
+            var models = _unit.HwSubRecords
+                                .Include(a => a.HomeQue)
+                                .Where(a => a.SubmissionId == hwSubId)
+                                .OrderBy(a => a.RecordId)
+                                .AsEnumerable()
+                                .DistinctBy(a => a.HwQuesId)
+                                .Select(a => a.HomeQue)
+                                .ToList();
+
+            foreach (var model in models)
+            {
+                var isSuccess = await _unit.HomeQues.LoadQuestionAsync(model);
+                if (!isSuccess)
+                {
+                    return new Response()
+                    {
+                        StatusCode = System.Net.HttpStatusCode.BadRequest,
+                        Message = "Load questions fail",
+                        Success = false
+                    };
+                }
+            }
+
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = _mapper.Map<List<HomeQueResDto>>(models),
                 Success = true
             };
         }
@@ -382,6 +482,98 @@ namespace EnglishCenter.Business.Services.HomeworkTasks
                 Message = number,
                 Success = true
             };
+        }
+
+        public Task<Response> GetTypeQuesAsync()
+        {
+            var typeQues = Enum.GetValues(typeof(QuesTypeEnum))
+                           .Cast<QuesTypeEnum>()
+                           .Select(type => new KeyValuePair<string, int>(type.ToString(), (int)type))
+                           .ToList();
+
+            return Task.FromResult(new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = typeQues,
+                Success = true
+            });
+        }
+
+        public Task<Response> GetNumQuesWithTypeAsync()
+        {
+            var result = new List<NumQuesResDto>();
+
+            result.Add(new NumQuesResDto()
+            {
+                Name = QuesTypeEnum.Image.ToString(),
+                Num = _unit.QuesLcImages.GetAll().Count(),
+                Type = "Listening"
+            });
+
+            result.Add(new NumQuesResDto()
+            {
+                Name = QuesTypeEnum.Audio.ToString(),
+                Num = _unit.QuesLcAudios.GetAll().Count(),
+                Type = "Listening"
+            });
+
+            result.Add(new NumQuesResDto()
+            {
+                Name = QuesTypeEnum.Conversation.ToString(),
+                Num = _unit.QuesLcCons.GetAll().Count(),
+                Type = "Listening"
+            });
+
+            result.Add(new NumQuesResDto()
+            {
+                Name = QuesTypeEnum.Sentence.ToString(),
+                Num = _unit.QuesRcSentences.GetAll().Count(),
+                Type = "Reading"
+            });
+
+            result.Add(new NumQuesResDto()
+            {
+                Name = QuesTypeEnum.Single.ToString(),
+                Num = _unit.QuesRcSingles.GetAll().Count(),
+                Type = "Reading"
+            });
+
+            result.Add(new NumQuesResDto()
+            {
+                Name = QuesTypeEnum.Double.ToString(),
+                Num = _unit.QuesRcDoubles.GetAll().Count(),
+                Type = "Reading"
+            });
+
+            result.Add(new NumQuesResDto()
+            {
+                Name = QuesTypeEnum.Triple.ToString(),
+                Num = _unit.QuesRcTriples.GetAll().Count(),
+                Type = "Reading"
+            });
+
+            return Task.FromResult(new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = result,
+                Success = true
+            });
+        }
+
+        public Task<Response> GetPartAsync()
+        {
+            var typeQues = Enum.GetValues(typeof(PartEnum))
+                           .Cast<PartEnum>()
+                           .Select(type => new KeyValuePair<string, int>(type.ToString(), (int)type))
+                           .ToList();
+
+            return Task.FromResult(new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = typeQues,
+                Success = true
+            });
+
         }
 
         public async Task<Response> UpdateAsync(long id, HomeQueDto model)

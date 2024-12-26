@@ -33,8 +33,6 @@ namespace EnglishCenter.DataAccess.UnitOfWork
         IQuesRcTripleRepository QuesRcTriples { get; }
         ISubRcTripleRepository SubRcTriples { get; }
         IAnswerRcTripleRepository AnswerRcTriples { get; }
-        IQuesRcSenMediaRepository QuesRcSenMedia { get; }
-        IAnswerRcSenMediaRepository AnswerRcMedia { get; }
         ILearningProcessRepository LearningProcesses { get; }
         IAssignmentRecordRepository AssignmentRecords { get; }
         IHomeworkRepository Homework { get; }
@@ -49,10 +47,25 @@ namespace EnglishCenter.DataAccess.UnitOfWork
         ISubToeicRepository SubToeic { get; }
         IAnswerToeicRepository AnswerToeic { get; }
         IToeicDirectionRepository ToeicDirections { get; }
-        IToeicPracticeRecordRepository ToeicPracticeRecords { get; }
-        IToeicAttemptRepository ToeicAttempts { get; }
+        IAttemptRecordRepository AttemptRecords { get; }
+        IUserAttemptRepository UserAttempts { get; }
         IChatFileRepository ChatFiles { get; }
         IChatMessageRepository ChatMessages { get; }
+        IPeriodRepository Periods { get; }
+        IClassRoomRepository ClassRooms { get; }
+        ILessonRepository Lessons { get; }
+        IClassScheduleRepository ClassSchedules { get; }
+        IClassMaterialRepository ClassMaterials { get; }
+        ISubmissionTaskRepository SubmissionTasks { get; }
+        ISubmissionFileRepository SubmissionFiles { get; }
+        IUserWordRepository UserWords { get; }
+        IRoadMapRepository RoadMaps { get; }
+        IRoadMapExamRepository RoadMapExams { get; }
+        IRandomQueToeicRepository RandomQues { get; }
+        IAttendanceRepository Attendances { get; }
+        INotificationRepository Notifications { get; }
+        IIssueReportRepository IssueReports { get; }
+        IIssueResponseRepository IssueResponses { get; }
         public Task<int> CompleteAsync();
         public Task BeginTransAsync();
         public Task CommitTransAsync();

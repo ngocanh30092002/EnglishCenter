@@ -1,8 +1,6 @@
-﻿using EnglishCenter.Business.IServices;
-using EnglishCenter.DataAccess.Database;
+﻿using EnglishCenter.DataAccess.Database;
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.IRepositories;
-using EnglishCenter.Presentation.Models.DTOs;
 using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
@@ -14,7 +12,7 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
 
         }
 
-        public Task<bool> ChangeTimeAsync(QuesRcSentence model , TimeOnly time)
+        public Task<bool> ChangeTimeAsync(QuesRcSentence model, TimeOnly time)
         {
             if (model == null) return Task.FromResult(false);
 
@@ -78,6 +76,17 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
             if (model == null) return Task.FromResult(false);
 
             model.Question = newQues;
+
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> ChangeLevelAsync(QuesRcSentence model, int level)
+        {
+            if (model == null) return Task.FromResult(false);
+
+            if (level <= 0 || level > 4) return Task.FromResult(false);
+
+            model.Level = level;
 
             return Task.FromResult(true);
         }

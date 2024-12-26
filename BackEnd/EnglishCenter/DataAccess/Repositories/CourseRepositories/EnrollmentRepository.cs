@@ -39,7 +39,12 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
 
         public async Task<List<Enrollment>> GetAsync(string classId, EnrollEnum status)
         {
-            var enrollments = await context.Enrollments.Where(e => e.ClassId == classId && e.StatusId == (int)status).ToListAsync();
+            var enrollments = await context.Enrollments
+                                           .Include(e => e.User)
+                                           .ThenInclude(u => u.User)
+                                           .Include(e => e.Status)
+                                           .Where(e => e.ClassId == classId && e.StatusId == (int)status)
+                                           .ToListAsync();
 
             return enrollments;
         }
@@ -84,10 +89,10 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
             return enroll;
         }
 
-        public async Task<int> GetHighestScoreAsync(string userId, string courseId)
+        public async Task<int> GetHighestScoreAsync(string userId, List<string> courseIds)
         {
             var enrolls = await context.Enrollments.Include(c => c.Class)
-                                        .Where(c => c.Class.CourseId == courseId &&
+                                        .Where(c => courseIds.Contains(c.Class.CourseId) &&
                                                     c.UserId == userId &&
                                                     c.StatusId == (int)EnrollEnum.Completed)
                                         .ToListAsync();
@@ -170,7 +175,10 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
 
         public async Task<bool> HandleAcceptedAsync(string classId)
         {
-            var classModel = await context.Classes.FindAsync(classId);
+            var classModel = await context.Classes
+                            .Include(c => c.Course)
+                            .FirstOrDefaultAsync(c => c.ClassId == classId);
+
             if (classModel == null) return false;
 
             var enrolls = await context.Enrollments
@@ -179,10 +187,28 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
 
             foreach (var enroll in enrolls)
             {
-                //enroll.StatusId = classModel.Status == ClassEnum.Opening ? ;
                 if (classModel.Status == (int)ClassEnum.Opening)
                 {
                     enroll.StatusId = (int)EnrollEnum.Ongoing;
+
+
+                    if (classModel == null) return false;
+
+                    var preCourses = await context.Courses
+                                                        .Where(c => c.Priority == classModel.Course.Priority - 1)
+                                                        .ToListAsync();
+
+                    if (!enroll.ScoreHisId.HasValue)
+                    {
+                        var scoreHis = new ScoreHistory() { EntrancePoint = 0, MidtermPoint = 0, FinalPoint = 0 };
+                        if (preCourses != null && preCourses.Count != 0)
+                        {
+                            scoreHis.EntrancePoint = await GetHighestScoreAsync(enroll.UserId, preCourses.Select(c => c.CourseId).ToList());
+                        }
+
+                        enroll.ScoreHis = scoreHis;
+                    }
+
                 }
                 else if (classModel.Status == (int)ClassEnum.Waiting)
                 {
@@ -210,6 +236,30 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
             if (enroll.Class.Status == (int)ClassEnum.Opening)
             {
                 enroll.StatusId = (int)EnrollEnum.Ongoing;
+                var classModel = await context.Classes
+                                       .Include(c => c.Course)
+                                       .FirstOrDefaultAsync(c => c.ClassId == enroll.ClassId);
+
+                if (classModel == null) return false;
+
+                var preCourses = await context.Courses
+                                                    .Where(c => c.Priority == classModel.Course.Priority - 1)
+                                                    .ToListAsync();
+
+                if (!enroll.ScoreHisId.HasValue)
+                {
+                    var scoreHis = new ScoreHistory() { EntrancePoint = 0, MidtermPoint = 0, FinalPoint = 0 };
+                    if (preCourses != null && preCourses.Count != 0)
+                    {
+                        scoreHis.EntrancePoint = await GetHighestScoreAsync(enroll.UserId, preCourses.Select(c => c.CourseId).ToList());
+                    }
+
+                    enroll.ScoreHis = scoreHis;
+                    if (!await ChangeUpdateTimeAsync(enroll, DateTime.Now))
+                    {
+                        return false;
+                    }
+                }
             }
             else if (enroll.Class.Status == (int)ClassEnum.Waiting)
             {
@@ -224,29 +274,31 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
             return isSuccess;
         }
 
-        public async Task<bool> HandleStartClassAsync(string classId, Course preCourse)
+        public async Task<bool> HandleStartClassAsync(string classId, List<Course>? preCourses)
         {
             var classModel = await context.Classes.FindAsync(classId);
             if (classModel == null) return false;
-            if (classModel.Status == (int)ClassEnum.End || classModel.Status == (int)ClassEnum.Opening) return false;
 
             var enrolls = await GetAsync(classId, EnrollEnum.Waiting);
+            var enrollOngoing = await GetAsync(classId, EnrollEnum.Ongoing);
+            enrolls.AddRange(enrollOngoing);
 
             foreach (var enroll in enrolls)
             {
                 enroll.StatusId = (int)EnrollEnum.Ongoing;
-
-                var scoreHis = new ScoreHistory() { EntrancePoint = 0, MidtermPoint = 0, FinalPoint = 0 };
-                if (preCourse != null)
+                if (!enroll.ScoreHisId.HasValue)
                 {
-                    scoreHis.EntrancePoint = await GetHighestScoreAsync(enroll.UserId, preCourse.CourseId);
-                }
+                    var scoreHis = new ScoreHistory() { EntrancePoint = 0, MidtermPoint = 0, FinalPoint = 0 };
+                    if (preCourses != null && preCourses.Count != 0)
+                    {
+                        scoreHis.EntrancePoint = await GetHighestScoreAsync(enroll.UserId, preCourses.Select(c => c.CourseId).ToList());
+                    }
 
-                enroll.ScoreHis = scoreHis;
-
-                if (!await ChangeUpdateTimeAsync(enroll, DateTime.Now))
-                {
-                    return false;
+                    enroll.ScoreHis = scoreHis;
+                    if (!await ChangeUpdateTimeAsync(enroll, DateTime.Now))
+                    {
+                        return false;
+                    }
                 }
             }
 
@@ -257,7 +309,6 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
         {
             var classModel = await context.Classes.FindAsync(classId);
             if (classModel == null) return false;
-            if (classModel.Status != (int)ClassEnum.Opening) return false;
 
             var enrolls = await GetAsync(classId, EnrollEnum.Ongoing);
 
@@ -269,6 +320,12 @@ namespace EnglishCenter.DataAccess.Repositories.CourseRepositories
                 {
                     return false;
                 }
+            }
+
+            var classSchedules = context.ClassSchedules.Where(c => c.ClassId == classId);
+            foreach (var classSchedule in classSchedules)
+            {
+                classSchedule.IsActive = false;
             }
 
             return true;

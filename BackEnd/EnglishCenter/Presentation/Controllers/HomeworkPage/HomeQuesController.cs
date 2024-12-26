@@ -13,7 +13,7 @@ namespace EnglishCenter.Presentation.Controllers.HomeworkPage
     {
         private readonly IHomeQuesService _homeService;
 
-        public HomeQuesController(IHomeQuesService homeService) 
+        public HomeQuesController(IHomeQuesService homeService)
         {
             _homeService = homeService;
         }
@@ -32,10 +32,38 @@ namespace EnglishCenter.Presentation.Controllers.HomeworkPage
             return await response.ChangeActionAsync();
         }
 
+        [HttpGet("types")]
+        public async Task<IActionResult> GetTypeQuesAsync()
+        {
+            var response = await _homeService.GetTypeQuesAsync();
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("types/num-ques")]
+        public async Task<IActionResult> GetNumQuesWithTypeAsync()
+        {
+            var response = await _homeService.GetNumQuesWithTypeAsync();
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("part-types")]
+        public async Task<IActionResult> GetPartAsync()
+        {
+            var response = await _homeService.GetPartAsync();
+            return await response.ChangeActionAsync();
+        }
+
         [HttpGet("homework/{homeworkId}")]
         public async Task<IActionResult> GetByHomeworkAsync([FromRoute] long homeworkId)
         {
             var response = await _homeService.GetByHomeworkAsync(homeworkId);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("submissions/{hwSubId}")]
+        public async Task<IActionResult> GetByHwSubmissionAsync([FromRoute] long hwSubId)
+        {
+            var response = await _homeService.GetByHwSubmissionAsync(hwSubId);
             return await response.ChangeActionAsync();
         }
 
@@ -51,6 +79,13 @@ namespace EnglishCenter.Presentation.Controllers.HomeworkPage
         public async Task<IActionResult> CreateAsync([FromForm] HomeQueDto model)
         {
             var response = await _homeService.CreateAsync(model);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpPost("homework/{homeworkId}")]
+        public async Task<IActionResult> HandleCreateWithHwAsync([FromRoute] long homeworkId, [FromForm] List<TypeQuestionDto> listModels)
+        {
+            var response = await _homeService.HandleCreateWithHwAsync(homeworkId, listModels);
             return await response.ChangeActionAsync();
         }
 

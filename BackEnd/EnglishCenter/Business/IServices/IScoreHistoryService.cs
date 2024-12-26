@@ -10,6 +10,7 @@ namespace EnglishCenter.Business.IServices
         public Task<Response> DeleteAsync(long scoreId);
         public Task<Response> GetAllAsync();
         public Task<Response> GetAsync(long scoreId);
+        public Task<Response> GetByClassAsync(string classId);
         public Task<Response> ChangeEntrancePointAsync(long scoreId, int score);
         public Task<Response> ChangeMidtermPointAsync(long scoreId, int score);
         public Task<Response> ChangeFinalPointAsync(long scoreId, int score);

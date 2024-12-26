@@ -1,5 +1,7 @@
 ﻿using EnglishCenter.Business.IServices;
 using EnglishCenter.DataAccess.Entities;
+using EnglishCenter.DataAccess.UnitOfWork;
+using EnglishCenter.Presentation.Global;
 using EnglishCenter.Presentation.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -10,29 +12,74 @@ namespace EnglishCenter.Business.Services.Authorization
     {
         private RoleManager<IdentityRole> _roleManager;
         private readonly UserManager<User> _userManager;
+        private readonly IUnitOfWork _unit;
 
-        public RoleService(RoleManager<IdentityRole> roleManager, UserManager<User> userManager)
+        public RoleService(RoleManager<IdentityRole> roleManager, UserManager<User> userManager, IUnitOfWork unit)
         {
             _roleManager = roleManager;
             _userManager = userManager;
+            _unit = unit;
         }
 
-        public async Task<bool> AddUserRoleAsync(string userId, string roleName)
+        public async Task<Response> AddUserRoleAsync(string userId, string roleName)
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
-                return false;
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any users",
+                    Success = false
+                };
             }
 
             var role = await _roleManager.FindByNameAsync(roleName);
             if (role == null)
             {
-                return false;
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any roles",
+                    Success = false
+                };
+            }
+
+            var isInRole = await _userManager.IsInRoleAsync(user, roleName);
+            if (isInRole)
+            {
+                return new Response() { StatusCode = System.Net.HttpStatusCode.OK, Message = "", Success = true };
+            }
+
+            var studentModel = _unit.Students.GetById(userId);
+
+            if (roleName == AppRole.ADMIN || roleName == AppRole.TEACHER)
+            {
+                var isExistTeacher = _unit.Teachers.IsExist(t => t.UserId == userId);
+                if (!isExistTeacher)
+                {
+                    var teacherModel = new Teacher()
+                    {
+                        FirstName = studentModel.FirstName,
+                        LastName = studentModel.LastName,
+                        Gender = studentModel.Gender,
+                        Address = studentModel?.Address,
+                        DateOfBirth = studentModel?.DateOfBirth,
+                        PhoneNumber = studentModel?.PhoneNumber,
+                        UserId = studentModel!.UserId,
+                        UserName = studentModel?.FirstName + " " + studentModel?.LastName,
+                        Image = studentModel?.Image,
+                        BackgroundImage = studentModel?.BackgroundImage,
+                        Description = studentModel?.Description,
+                    };
+
+                    _unit.Teachers.Add(teacherModel);
+                    await _unit.CompleteAsync();
+                }
             }
 
             await _userManager.AddToRoleAsync(user, roleName);
-            return true;
+            return new Response() { StatusCode = System.Net.HttpStatusCode.OK, Message = "", Success = true };
         }
 
         public async Task<bool> CreateRoleAsync(string roleName)
@@ -57,26 +104,82 @@ namespace EnglishCenter.Business.Services.Authorization
                 return false;
             }
 
+            var isAnyUserInRole = await _userManager.GetUsersInRoleAsync(roleName);
+            if (isAnyUserInRole.Any())
+            {
+                return false;
+            }
+
             await _roleManager.DeleteAsync(role);
             return true;
         }
 
-        public async Task<bool> DeleteUserRolesAsync(string userId, string roleName)
+        public async Task<Response> DeleteUserRolesAsync(string userId, string roleName)
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
-                return false;
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any users",
+                    Success = false
+                };
             }
 
             var role = await _roleManager.FindByNameAsync(roleName);
+
             if (role == null)
             {
-                return false;
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Role isn't exist",
+                    Success = false
+                };
+            }
+
+            if (roleName == AppRole.STUDENT)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Student is default role so can't delete",
+                    Success = false
+                };
+            }
+
+            if (roleName == AppRole.TEACHER)
+            {
+                var teacherModel = await _unit.Teachers
+                                              .Include(t => t.Classes)
+                                              .FirstOrDefaultAsync(t => t.UserId == userId);
+
+                if (teacherModel != null)
+                {
+                    if (teacherModel.Classes.Count != 0)
+                    {
+                        return new Response()
+                        {
+                            StatusCode = System.Net.HttpStatusCode.BadRequest,
+                            Message = "This user is in charge of a class so cannot delete",
+                            Success = false
+                        };
+                    }
+
+                    _unit.Teachers.Remove(teacherModel);
+                    await _unit.CompleteAsync();
+                }
             }
 
             await _userManager.RemoveFromRoleAsync(user, roleName);
-            return true;
+
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = "",
+                Success = true
+            };
         }
 
         public async Task<Response> GetRolesAsync()

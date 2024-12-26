@@ -1,25 +1,40 @@
 ﻿using EnglishCenter.DataAccess.Database;
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.IRepositories;
-using EnglishCenter.Presentation.Global.Enum;
 using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.DataAccess.Repositories.HomeworkRepositories
 {
     public class HomeworkRepository : GenericRepository<Homework>, IHomeworkRepository
     {
-        public HomeworkRepository(EnglishCenterContext context) : base(context)
+        private readonly IWebHostEnvironment _webHostEnvironment;
+
+        public HomeworkRepository(EnglishCenterContext context, IWebHostEnvironment webHostEnvironment) : base(context)
         {
+            _webHostEnvironment = webHostEnvironment;
         }
 
-        public async Task<bool> ChangeClassAsync(Homework homeModel, string classId)
+        public Task<bool> ChangeImageAsync(Homework homeModel, string newPath)
+        {
+            if (homeModel == null) return Task.FromResult(false);
+
+            var filePath = Path.Combine(_webHostEnvironment.WebRootPath, newPath);
+
+            if (!File.Exists(filePath)) return Task.FromResult(false);
+
+            homeModel.Image = newPath;
+
+            return Task.FromResult(true);
+        }
+
+        public async Task<bool> ChangeLessonAsync(Homework homeModel, long lessonId)
         {
             if (homeModel == null) return false;
 
-            var isExistClass = await context.Classes.AnyAsync(c => c.ClassId == classId && c.Status == (int) ClassEnum.Opening);
-            if (!isExistClass) return false;
+            var lessonModel = await context.Lessons.FindAsync(lessonId);
+            if (lessonModel == null) return false;
 
-            homeModel.ClassId = classId;
+            homeModel.Lesson = lessonModel;
 
             return true;
         }
@@ -27,7 +42,7 @@ namespace EnglishCenter.DataAccess.Repositories.HomeworkRepositories
         public Task<bool> ChangeEndTimeAsync(Homework homeModel, DateTime endTime)
         {
             if (homeModel == null) return Task.FromResult(false);
-            if(homeModel.StartTime > endTime) return Task.FromResult(false);
+            if (homeModel.StartTime > endTime) return Task.FromResult(false);
 
             homeModel.EndTime = endTime;
 
@@ -47,7 +62,7 @@ namespace EnglishCenter.DataAccess.Repositories.HomeworkRepositories
         public Task<bool> ChangePercentageAsync(Homework homeModel, int percentage)
         {
             if (homeModel == null) return Task.FromResult(false);
-            if(percentage < 0 || percentage > 100) return Task.FromResult(false);
+            if (percentage < 0 || percentage > 100) return Task.FromResult(false);
 
             homeModel.AchievedPercentage = percentage;
             return Task.FromResult(true);
@@ -81,11 +96,18 @@ namespace EnglishCenter.DataAccess.Repositories.HomeworkRepositories
             return Task.FromResult(true);
         }
 
-        public Task<bool> IsInChargeAsync(Homework homework, string userId)
+        public async Task<bool> IsInChargeAsync(Homework homework, string userId)
         {
-            if (homework == null) return Task.FromResult(false);
+            if (homework == null) return false;
 
-            return Task.FromResult(homework.Class.TeacherId == userId);
+            var lesson = await context.Lessons
+                                      .Include(l => l.Class)
+                                      .FirstOrDefaultAsync(l => l.LessonId == homework.LessonId);
+
+            if (lesson == null) return false;
+
+
+            return lesson.Class.TeacherId == userId;
         }
     }
 }

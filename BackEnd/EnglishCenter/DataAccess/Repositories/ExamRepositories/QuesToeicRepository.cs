@@ -36,6 +36,7 @@ namespace EnglishCenter.DataAccess.Repositories.ExamRepositories
 
             return true;
         }
+
         public Task<bool> ChangeAudioAsync(QuesToeic queModel, string audioPath)
         {
             if (queModel == null) return Task.FromResult(false);
@@ -81,6 +82,16 @@ namespace EnglishCenter.DataAccess.Repositories.ExamRepositories
             if (queModel == null) return Task.FromResult(false);
 
             queModel.Image_3 = string.IsNullOrEmpty(imagePath) ? null : imagePath;
+
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> ChangeLevelAsync(QuesToeic queModel, int level)
+        {
+            if (queModel == null) return Task.FromResult(false);
+            if (level <= 0 || level > 4) return Task.FromResult(false);
+
+            queModel.Level = level;
 
             return Task.FromResult(true);
         }

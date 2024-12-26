@@ -36,6 +36,18 @@ namespace EnglishCenter.Presentation.Controllers.HomePage
             return await response.ChangeActionAsync();
         }
 
+        [HttpPut("{scheduleEventId}/send-noti")]
+        public async Task<IActionResult> SendTaskInfoToNotiAsync([FromRoute] long scheduleEventId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
+            if (userId == "")
+            {
+                BadRequest();
+            }
+            var response = await _eventService.SendTaskInfoToNotiAsync(userId, scheduleEventId);
+            return await response.ChangeActionAsync();
+        }
+
         [HttpGet("date/{date}")]
         public async Task<IActionResult> GetScheduleEventsWithDateAsync([FromRoute] string date)
         {

@@ -136,5 +136,21 @@ namespace EnglishCenter.Presentation.Controllers.HomePage
             await _context.SaveChangesAsync();
             return Ok();
         }
+
+        [HttpDelete()]
+        public async Task<IActionResult> DeleteAllNotification()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            var notiStudents = await _context.NotiStudents
+                                   .Where(ns => ns.UserId == userId)
+                                   .ToListAsync();
+
+
+            _context.NotiStudents.RemoveRange(notiStudents);
+
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
     }
 }

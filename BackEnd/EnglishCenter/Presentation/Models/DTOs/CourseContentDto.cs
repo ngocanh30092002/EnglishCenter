@@ -23,5 +23,6 @@ namespace EnglishCenter.Presentation.Models.DTOs
         public int? Type { set; get; } = 1;
 
         public ICollection<AssignmentResDto>? Assignments { get; set; }
+
     }
 }

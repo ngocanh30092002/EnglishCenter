@@ -9,6 +9,5 @@
         Single = 5,
         Double = 6,
         Triple = 7,
-        Sentence_Media = 8
     }
 }

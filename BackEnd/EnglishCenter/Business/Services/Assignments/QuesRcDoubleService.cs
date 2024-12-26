@@ -2,6 +2,7 @@
 using EnglishCenter.Business.IServices;
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.UnitOfWork;
+using EnglishCenter.Presentation.Global.Enum;
 using EnglishCenter.Presentation.Helpers;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
@@ -125,6 +126,39 @@ namespace EnglishCenter.Business.Services.Assignments
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
                     Message = result,
+                    Success = false
+                };
+            }
+
+            await _unit.CompleteAsync();
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = "",
+                Success = true
+            };
+        }
+
+        public async Task<Response> ChangeLevelAsync(long quesId, int level)
+        {
+            var queModel = _unit.QuesRcDoubles.GetById(quesId);
+            if (queModel == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any questions",
+                    Success = false
+                };
+            }
+
+            var isChangeSuccess = await _unit.QuesRcDoubles.ChangeLevelAsync(queModel, level);
+            if (!isChangeSuccess)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't change level",
                     Success = false
                 };
             }
@@ -290,16 +324,47 @@ namespace EnglishCenter.Business.Services.Assignments
             queEntity.Image1 = Path.Combine(_imageBasePath1, fileImage1);
             queEntity.Image2 = Path.Combine(_imageBasePath2, fileImage2);
             queEntity.Quantity = queModel.Quantity ?? 1;
+            queEntity.Level = queModel.Level ?? 1;
 
-            _unit.QuesRcDoubles.Add(queEntity);
-            await _unit.CompleteAsync();
-
-            return new Response()
+            try
             {
-                StatusCode = System.Net.HttpStatusCode.OK,
-                Message = "",
-                Success = true
-            };
+
+                _unit.QuesRcDoubles.Add(queEntity);
+                await _unit.CompleteAsync();
+
+
+                if (queModel.SubRcDoubleDtos != null && queModel.SubRcDoubleDtos.Count != 0)
+                {
+                    foreach (var sub in queModel.SubRcDoubleDtos)
+                    {
+                        sub.PreQuesId = queEntity.QuesId;
+
+                        var createRes = await _subService.CreateAsync(sub);
+                        if (!createRes.Success) return createRes;
+                    }
+                }
+
+                await _unit.CommitTransAsync();
+                await _unit.CompleteAsync();
+
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Message = "",
+                    Success = true
+                };
+            }
+            catch (Exception ex)
+            {
+                await _unit.RollBackTransAsync();
+
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = ex.Message,
+                    Success = false
+                };
+            }
         }
 
         public async Task<Response> DeleteAsync(long quesId)
@@ -368,6 +433,46 @@ namespace EnglishCenter.Business.Services.Assignments
             });
         }
 
+        public Task<Response> GetOtherQuestionByAssignmentAsync(long assignmentId)
+        {
+            var assignQues = _unit.AssignQues
+                                   .Find(a => a.AssignmentId == assignmentId && a.Type == (int)QuesTypeEnum.Double)
+                                   .Select(a => a.DoubleQuesId)
+                                   .ToList();
+
+            var queModels = _unit.QuesRcDoubles
+                                .GetAll()
+                                .Where(q => !assignQues.Contains(q.QuesId))
+                                .ToList();
+
+            return Task.FromResult(new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = _mapper.Map<List<QuesRcDoubleResDto>>(queModels),
+                Success = true
+            });
+        }
+
+        public Task<Response> GetOtherQuestionByHomeworkAsync(long homeworkId)
+        {
+            var homeQues = _unit.HomeQues
+                                   .Find(a => a.HomeworkId == homeworkId && a.Type == (int)QuesTypeEnum.Double)
+                                   .Select(a => a.DoubleQuesId)
+                                   .ToList();
+
+            var queModels = _unit.QuesRcDoubles
+                                .GetAll()
+                                .Where(q => !homeQues.Contains(q.QuesId))
+                                .ToList();
+
+            return Task.FromResult(new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = _mapper.Map<List<QuesRcDoubleResDto>>(queModels),
+                Success = true
+            });
+        }
+
         public async Task<Response> UpdateAsync(long quesId, QuesRcDoubleDto queModel)
         {
             await _unit.BeginTransAsync();
@@ -389,6 +494,12 @@ namespace EnglishCenter.Business.Services.Assignments
                 if (queModel.Image2 != null)
                 {
                     var changeResponse = await ChangeImage2Async(quesId, queModel.Image2);
+                    if (!changeResponse.Success) return changeResponse;
+                }
+
+                if (queModel.Level.HasValue)
+                {
+                    var changeResponse = await ChangeLevelAsync(quesId, queModel.Level.Value);
                     if (!changeResponse.Success) return changeResponse;
                 }
 

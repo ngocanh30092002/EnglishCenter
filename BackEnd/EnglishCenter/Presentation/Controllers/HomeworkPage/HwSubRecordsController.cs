@@ -32,10 +32,24 @@ namespace EnglishCenter.Presentation.Controllers.HomeworkPage
             return await response.ChangeActionAsync();
         }
 
+        [HttpGet("{id}/result")]
+        public async Task<IActionResult> GetResultAsync(long id)
+        {
+            var response = await _subRecordService.GetResultAsync(id);
+            return await response.ChangeActionAsync();
+        }
+
         [HttpGet("submission/{hwSubId}")]
         public async Task<IActionResult> GetByHwSubmitAsync([FromRoute] long hwSubId)
         {
             var response = await _subRecordService.GetByHwSubmitAsync(hwSubId);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("submission/{hwSubId}/ques")]
+        public async Task<IActionResult> GetByHwQuesAsync([FromRoute] long hwSubId)
+        {
+            var response = await _subRecordService.GetByHwQuesAsync(hwSubId);
             return await response.ChangeActionAsync();
         }
 

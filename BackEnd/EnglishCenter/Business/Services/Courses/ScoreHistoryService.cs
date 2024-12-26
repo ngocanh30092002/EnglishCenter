@@ -4,6 +4,7 @@ using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.UnitOfWork;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
+using EnglishCenter.Presentation.Models.ResDTOs;
 
 namespace EnglishCenter.Business.Services.Courses
 {
@@ -12,7 +13,7 @@ namespace EnglishCenter.Business.Services.Courses
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unit;
 
-        public ScoreHistoryService(IMapper mapper, IUnitOfWork unit) 
+        public ScoreHistoryService(IMapper mapper, IUnitOfWork unit)
         {
             _mapper = mapper;
             _unit = unit;
@@ -125,7 +126,7 @@ namespace EnglishCenter.Business.Services.Courses
                 };
             }
 
-            if(model.MidtermPoint < 0)
+            if (model.MidtermPoint < 0)
             {
                 return new Response()
                 {
@@ -161,7 +162,7 @@ namespace EnglishCenter.Business.Services.Courses
         public async Task<Response> DeleteAsync(long scoreId)
         {
             var scoreHisModel = _unit.ScoreHis.GetById(scoreId);
-            if(scoreHisModel == null)
+            if (scoreHisModel == null)
             {
                 return new Response()
                 {
@@ -205,10 +206,34 @@ namespace EnglishCenter.Business.Services.Courses
             });
         }
 
+        public async Task<Response> GetByClassAsync(string classId)
+        {
+            var isExistClass = _unit.Classes.IsExist(e => e.ClassId == classId);
+            if (!isExistClass)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any classes",
+                    Success = false
+                };
+            }
+
+            var scoreHisModels = await _unit.ScoreHis.GetByClassAsync(classId);
+
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = _mapper.Map<List<ScoreHisResDto>>(scoreHisModels),
+                Success = true
+            };
+
+        }
+
         public async Task<Response> UpdateAsync(long scoreId, ScoreHistoryDto model)
         {
             var response = await _unit.ScoreHis.UpdateAsync(scoreId, model);
-            if(response.Success)
+            if (response.Success)
             {
                 await _unit.CompleteAsync();
             }

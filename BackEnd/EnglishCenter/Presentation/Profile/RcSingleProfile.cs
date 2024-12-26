@@ -7,10 +7,11 @@ namespace EnglishCenter.Presentation
 {
     public class RcSingleProfile : Profile
     {
-        public RcSingleProfile() 
+        public RcSingleProfile()
         {
             CreateMap<QuesRcSingle, QuesRcSingleResDto>()
                .ForMember(des => des.Id, opt => opt.MapFrom(src => src.QuesId))
+               .ForMember(des => des.Level, opt => opt.MapFrom(src => src.Level))
                .ForMember(des => des.ImageUrl, opt => opt.MapFrom(src => src.Image.Replace("\\", "/")))
                .ForMember(des => des.Time, opt => opt.MapFrom(src => src.Time))
                .ForMember(des => des.Questions, opt => opt.MapFrom(src => src.SubRcSingles));

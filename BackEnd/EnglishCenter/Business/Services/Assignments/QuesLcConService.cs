@@ -2,6 +2,7 @@
 using EnglishCenter.Business.IServices;
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.UnitOfWork;
+using EnglishCenter.Presentation.Global.Enum;
 using EnglishCenter.Presentation.Helpers;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
@@ -150,6 +151,39 @@ namespace EnglishCenter.Business.Services.Assignments
             };
         }
 
+        public async Task<Response> ChangeLevelAsync(long quesId, int level)
+        {
+            var queModel = _unit.QuesLcCons.GetById(quesId);
+            if (queModel == null)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any questions",
+                    Success = false
+                };
+            }
+
+            var isChangeSuccess = await _unit.QuesLcCons.ChangeLevelAsync(queModel, level);
+            if (!isChangeSuccess)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't change level",
+                    Success = false
+                };
+            }
+
+            await _unit.CompleteAsync();
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = "",
+                Success = true
+            };
+        }
+
         public async Task<Response> ChangeQuantityAsync(long quesId, int quantity)
         {
             var queModel = _unit.QuesLcCons.Include(q => q.SubLcConversations).FirstOrDefault(q => q.QuesId == quesId);
@@ -267,16 +301,45 @@ namespace EnglishCenter.Business.Services.Assignments
             }
 
             queEntity.Quantity = queModel.Quantity ?? 1;
+            queEntity.Level = queModel.Level ?? 1;
 
-            _unit.QuesLcCons.Add(queEntity);
-            await _unit.CompleteAsync();
-
-            return new Response()
+            try
             {
-                StatusCode = System.Net.HttpStatusCode.OK,
-                Message = "",
-                Success = true
-            };
+                _unit.QuesLcCons.Add(queEntity);
+                await _unit.CompleteAsync();
+
+                if (queModel.SubLcCons != null && queModel.SubLcCons.Count != 0)
+                {
+                    foreach (var sub in queModel.SubLcCons)
+                    {
+                        sub.PreQuesId = queEntity.QuesId;
+
+                        var createRes = await _subService.CreateAsync(sub);
+                        if (!createRes.Success) return createRes;
+                    }
+                }
+
+                await _unit.CommitTransAsync();
+                await _unit.CompleteAsync();
+
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Message = "",
+                    Success = true
+                };
+            }
+            catch (Exception ex)
+            {
+                await _unit.RollBackTransAsync();
+
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = ex.Message,
+                    Success = false
+                };
+            }
         }
 
         public async Task<Response> DeleteAsync(long quesId)
@@ -350,6 +413,46 @@ namespace EnglishCenter.Business.Services.Assignments
             });
         }
 
+        public Task<Response> GetOtherQuestionByAssignmentAsync(long assignmentId)
+        {
+            var assignQues = _unit.AssignQues
+                                  .Find(a => a.AssignmentId == assignmentId && a.Type == (int)QuesTypeEnum.Conversation)
+                                  .Select(a => a.ConversationQuesId)
+                                  .ToList();
+
+            var queModels = _unit.QuesLcCons
+                                .GetAll()
+                                .Where(q => !assignQues.Contains(q.QuesId))
+                                .ToList();
+
+            return Task.FromResult(new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = _mapper.Map<List<QuesLcConResDto>>(queModels),
+                Success = true
+            });
+        }
+
+        public Task<Response> GetOtherQuestionByHomeworkAsync(long homeworkId)
+        {
+            var homeQues = _unit.HomeQues
+                                  .Find(a => a.HomeworkId == homeworkId && a.Type == (int)QuesTypeEnum.Conversation)
+                                  .Select(a => a.ConversationQuesId)
+                                  .ToList();
+
+            var queModels = _unit.QuesLcCons
+                                .GetAll()
+                                .Where(q => !homeQues.Contains(q.QuesId))
+                                .ToList();
+
+            return Task.FromResult(new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = _mapper.Map<List<QuesLcConResDto>>(queModels),
+                Success = true
+            });
+        }
+
         public async Task<Response> UpdateAsync(long quesId, QuesLcConDto queModel)
         {
             await _unit.BeginTransAsync();
@@ -371,6 +474,12 @@ namespace EnglishCenter.Business.Services.Assignments
                 if (queModel.Audio != null)
                 {
                     var changeResponse = await ChangeAudioAsync(quesId, queModel.Audio);
+                    if (!changeResponse.Success) return changeResponse;
+                }
+
+                if (queModel.Level.HasValue)
+                {
+                    var changeResponse = await ChangeLevelAsync(quesId, queModel.Level ?? 1);
                     if (!changeResponse.Success) return changeResponse;
                 }
 

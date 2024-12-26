@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
 using EnglishCenter.Business.IServices;
 using EnglishCenter.DataAccess.Entities;
-using EnglishCenter.DataAccess.IRepositories;
 using EnglishCenter.DataAccess.UnitOfWork;
+using EnglishCenter.Presentation.Global.Enum;
 using EnglishCenter.Presentation.Helpers;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
@@ -17,15 +17,20 @@ namespace EnglishCenter.Business.Services.Courses
         private string _imageBase;
         private string _imageThumbnailBase;
 
-        public CourseService(IMapper mapper, IUnitOfWork unit, IWebHostEnvironment webHostEnvironment)
+        public CourseService(
+            IMapper mapper,
+            IUnitOfWork unit,
+            IWebHostEnvironment webHostEnvironment,
+            IClassService classService)
         {
             _mapper = mapper;
             _unit = unit;
             _webHostEnvironment = webHostEnvironment;
             _imageBase = Path.Combine("courses", "images");
             _imageThumbnailBase = Path.Combine("courses", "images-thumbnail");
+
         }
-        public async Task<Response> ChangePriorityAsync(string courseId, int priority)
+        public async Task<Response> ChangePriorityAsync(string courseId, int? priority)
         {
             var courseModel = _unit.Courses.GetById(courseId);
             if (courseModel == null)
@@ -60,7 +65,7 @@ namespace EnglishCenter.Business.Services.Courses
         public async Task<Response> CheckIsQualifiedAsync(string userId, string courseId)
         {
             var isExistUser = _unit.Students.IsExist(s => s.UserId == userId);
-            if(!isExistUser) 
+            if (!isExistUser)
             {
                 return new Response()
                 {
@@ -92,8 +97,8 @@ namespace EnglishCenter.Business.Services.Courses
             }
 
             var priority = courseModel.Priority.Value;
-            var preCourse = _unit.Courses.Find(c => c.Priority ==  priority - 1).FirstOrDefault();
-            if (preCourse == null)
+            var preCourseIds = _unit.Courses.Find(c => c.Priority == priority - 1).Select(c => c.CourseId).ToList();
+            if (preCourseIds.Count == 0)
             {
                 return new Response()
                 {
@@ -103,8 +108,8 @@ namespace EnglishCenter.Business.Services.Courses
                 };
             }
 
-            var highestScore = await _unit.Enrollment.GetHighestScoreAsync(userId, preCourse.CourseId);
-            if(highestScore >= courseModel.EntryPoint)
+            var highestScore = await _unit.Enrollment.GetHighestScoreAsync(userId, preCourseIds);
+            if (highestScore >= courseModel.EntryPoint)
             {
                 return new Response()
                 {
@@ -138,6 +143,28 @@ namespace EnglishCenter.Business.Services.Courses
             }
 
             var courseModel = _mapper.Map<Course>(model);
+            courseModel.NumLesson = 0;
+            courseModel.IsSequential = model.IsSequential;
+
+            if (!courseModel.Priority.HasValue && courseModel.EntryPoint != 0)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Course without priority won't have an entry point",
+                    Success = false
+                };
+            }
+
+            if (courseModel.Priority.HasValue && courseModel.Priority.Value == 1 && courseModel.EntryPoint != 0)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "First course won't have an entry point",
+                    Success = false
+                };
+            }
 
             if (model.Image != null)
             {
@@ -158,7 +185,7 @@ namespace EnglishCenter.Business.Services.Courses
                 courseModel.Image = Path.Combine(_imageBase, fileName);
             }
 
-            if(model.ImageThumbnail != null)
+            if (model.ImageThumbnail != null)
             {
                 var uploadFolder = Path.Combine(_webHostEnvironment.WebRootPath, _imageThumbnailBase);
                 var fileName = $"{DateTime.Now.Ticks}_{model.ImageThumbnail?.FileName}";
@@ -191,7 +218,7 @@ namespace EnglishCenter.Business.Services.Courses
         public async Task<Response> DeleteAsync(string courseId)
         {
             var courseModel = _unit.Courses.GetById(courseId);
-            if(courseModel == null)
+            if (courseModel == null)
             {
                 return new Response()
                 {
@@ -201,13 +228,14 @@ namespace EnglishCenter.Business.Services.Courses
                 };
             }
 
-            var classesCourse = _unit.Classes.Find(c => c.CourseId ==  courseId);
-            if(classesCourse != null && classesCourse.Any())
+            var classesCourse = _unit.Classes.Find(c => c.CourseId == courseId);
+
+            if (classesCourse != null && classesCourse.Any(c => c.Status == (int)ClassEnum.Opening))
             {
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "There are currently classes in progress, so the subject can't be deleted",
+                    Message = "There are currently classes in progress, so this course can't be deleted",
                     Success = false
                 };
             }
@@ -228,6 +256,17 @@ namespace EnglishCenter.Business.Services.Courses
                 {
                     File.Delete(imagePath);
                 }
+            }
+
+            var isChangeSuccess = await _unit.Courses.ChangePriorityAsync(courseModel, null);
+            if (!isChangeSuccess)
+            {
+                return new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't delete course",
+                    Success = false
+                };
             }
 
             _unit.Courses.Remove(courseModel);
@@ -304,7 +343,7 @@ namespace EnglishCenter.Business.Services.Courses
         {
             var courseModel = _unit.Courses.GetById(courseId);
 
-            if(courseModel == null)
+            if (courseModel == null)
             {
                 return new Response()
                 {

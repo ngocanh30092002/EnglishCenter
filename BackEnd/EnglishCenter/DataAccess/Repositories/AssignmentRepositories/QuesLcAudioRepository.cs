@@ -61,6 +61,17 @@ namespace EnglishCenter.DataAccess.Repositories.AssignmentRepositories
             return Task.FromResult(true);
         }
 
+        public Task<bool> ChangeLevelAsync(QuesLcAudio queModel, int level)
+        {
+            if (queModel == null) return Task.FromResult(false);
+
+            if (level <= 0 || level > 4) return Task.FromResult(false);
+
+            queModel.Level = level;
+
+            return Task.FromResult(true);
+        }
+
         public Task<bool> ChangeQuestionAsync(QuesLcAudio queModel, string newQues)
         {
             if (queModel == null) return Task.FromResult(false);

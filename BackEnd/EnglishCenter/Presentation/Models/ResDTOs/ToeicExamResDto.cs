@@ -9,5 +9,6 @@
         public int? Completed_Num { set; get; }
         public int? Point { set; get; }
         public int? TimeMinutes { set; get; }
+        public bool? IsFull { set; get; }
     }
 }

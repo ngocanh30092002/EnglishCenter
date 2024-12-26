@@ -7,10 +7,11 @@ namespace EnglishCenter.Presentation
 {
     public class LcConversationProfile : Profile
     {
-        public LcConversationProfile() 
+        public LcConversationProfile()
         {
             CreateMap<QuesLcConversation, QuesLcConResDto>()
                 .ForMember(des => des.Id, opt => opt.MapFrom(src => src.QuesId))
+                .ForMember(des => des.Level, opt => opt.MapFrom(src => src.Level))
                 .ForMember(des => des.ImageUrl, opt => opt.MapFrom(src => src.Image == null ? "" : src.Image.Replace("\\", "/")))
                 .ForMember(des => des.AudioUrl, opt => opt.MapFrom(src => src.Audio.Replace("\\", "/")))
                 .ForMember(des => des.Time, opt => opt.MapFrom(src => src.Time))

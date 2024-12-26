@@ -1,11 +1,10 @@
 ﻿using EnglishCenter.Business.IServices;
-using EnglishCenter.Business.Services.Assignments;
 using EnglishCenter.Presentation.Global;
 using EnglishCenter.Presentation.Helpers;
 using EnglishCenter.Presentation.Models.DTOs;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace EnglishCenter.Presentation.Controllers.AssignmentPage
 {
@@ -17,7 +16,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
         private readonly IAnswerRcSingleService _answerService;
         private readonly ISubRcSingleService _subRcSingleService;
 
-        public RcSinglesController(IQuesRcSingleService queRcSingleService, IAnswerRcSingleService answerService, ISubRcSingleService subRcSingleService) 
+        public RcSinglesController(IQuesRcSingleService queRcSingleService, IAnswerRcSingleService answerService, ISubRcSingleService subRcSingleService)
         {
             _queRcSingleService = queRcSingleService;
             _answerService = answerService;
@@ -32,6 +31,20 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
             return await response.ChangeActionAsync();
         }
 
+        [HttpGet("assignments/{id}/other")]
+        public async Task<IActionResult> GetOtherQuestionByAssignmentAsync([FromRoute] long id)
+        {
+            var response = await _queRcSingleService.GetOtherQuestionByAssignmentAsync(id);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("homework/{id}/other")]
+        public async Task<IActionResult> GetOtherQuestionByHomeworkAsync([FromRoute] long id)
+        {
+            var response = await _queRcSingleService.GetOtherQuestionByHomeworkAsync(id);
+            return await response.ChangeActionAsync();
+        }
+
         [HttpGet("{quesId}")]
         public async Task<IActionResult> GetQuesSingleAsync([FromRoute] long quesId)
         {
@@ -43,7 +56,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> CreateAsync([FromForm] QuesRcSingleDto queModel)
         {
-            if(queModel.Image != null)
+            if (queModel.Image != null)
             {
                 var isImageFile = await UploadHelper.IsImageAsync(queModel.Image);
                 if (!isImageFile)
@@ -51,6 +64,12 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
                     return BadRequest(new { message = "The image file is invalid. Only JPEG, PNG, GIF, and SVG are allowed.", success = false });
                 }
             }
+
+            if (!string.IsNullOrEmpty(queModel.SubRcSingleDtoJson))
+            {
+                queModel.SubRcSingleDtos = JsonConvert.DeserializeObject<List<SubRcSingleDto>>(queModel.SubRcSingleDtoJson);
+            }
+
 
             var response = await _queRcSingleService.CreateAsync(queModel);
             return await response.ChangeActionAsync();
@@ -101,7 +120,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
         {
             if (!TimeOnly.TryParse(time, out TimeOnly timeOnly))
             {
-                return BadRequest(new { message = "Time is not in correct format"  , success = false });
+                return BadRequest(new { message = "Time is not in correct format", success = false });
             }
 
             var response = await _queRcSingleService.ChangeTimeAsync(quesId, timeOnly);

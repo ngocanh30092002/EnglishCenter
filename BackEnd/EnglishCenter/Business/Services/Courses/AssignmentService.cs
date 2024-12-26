@@ -228,22 +228,14 @@ namespace EnglishCenter.Business.Services.Courses
 
         public async Task<Response> CreateAsync(AssignmentDto model)
         {
-            if (!TimeOnly.TryParse(model.Time, out TimeOnly timeOnly))
+            var timeOnly = TimeOnly.MinValue;
+
+            if (!string.IsNullOrEmpty(model.Time) && !TimeOnly.TryParse(model.Time, out timeOnly))
             {
                 return new Response()
                 {
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
                     Message = "Time is not in correct format"
-                };
-            }
-
-            if (timeOnly == TimeOnly.MinValue)
-            {
-                return new Response()
-                {
-                    StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Message = "You need to set a time for your homework.",
-                    Success = false
                 };
             }
 
@@ -274,12 +266,39 @@ namespace EnglishCenter.Business.Services.Courses
                                             .Max();
 
             var assignModel = new Assignment();
-            assignModel.NoNum = currentNum.HasValue ? currentNum.Value + 1 : 1;
             assignModel.Title = model.Title;
             assignModel.Time = timeOnly;
             assignModel.CourseContentId = model.ContentId;
             assignModel.ExpectedTime = TimeOnly.MinValue;
             assignModel.AchievedPercentage = model.Achieved_Percentage;
+
+            if (model.NoNum.HasValue)
+            {
+                if (model.NoNum.Value <= 0 || model.NoNum.Value > currentNum + 1)
+                {
+
+                    return new Response()
+                    {
+                        StatusCode = System.Net.HttpStatusCode.BadRequest,
+                        Message = "No num is invalid",
+                        Success = false
+                    };
+                }
+
+                var otherAssignments = _unit.Assignments
+                                            .Find(s => s.CourseContentId == model.ContentId && s.NoNum >= model.NoNum.Value)
+                                            .OrderBy(s => s.NoNum);
+
+                foreach (var assign in otherAssignments)
+                {
+                    assign.NoNum = assign.NoNum + 1;
+                }
+                assignModel.NoNum = model.NoNum.Value;
+            }
+            else
+            {
+                assignModel.NoNum = currentNum.HasValue ? currentNum.Value + 1 : 1;
+            }
 
             _unit.Assignments.Add(assignModel);
             await _unit.CompleteAsync();
@@ -287,7 +306,7 @@ namespace EnglishCenter.Business.Services.Courses
             return new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Message = "",
+                Message = assignModel.AssignmentId,
                 Success = true
             };
         }

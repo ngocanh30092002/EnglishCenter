@@ -3,7 +3,6 @@ using EnglishCenter.Presentation.Global;
 using EnglishCenter.Presentation.Helpers;
 using EnglishCenter.Presentation.Models.DTOs;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EnglishCenter.Presentation.Controllers.AssignmentPage
@@ -37,22 +36,35 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
             return await response.ChangeActionAsync();
         }
 
+        [HttpGet("assignments/{id}/other")]
+        public async Task<IActionResult> GetOtherQuestionByAssignmentAsync([FromRoute] long id)
+        {
+            var response = await _quesService.GetOtherQuestionByAssignmentAsync(id);
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("homework/{id}/other")]
+        public async Task<IActionResult> GetOtherQuestionByHomeworkAsync([FromRoute] long id)
+        {
+            var response = await _quesService.GetOtherQuestionByHomeworkAsync(id);
+            return await response.ChangeActionAsync();
+        }
         [HttpPost]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> CreateAsync([FromForm] QuesLcImageDto queModel)
         {
-            if (queModel.Image != null) 
+            if (queModel.Image != null)
             {
                 var isImageFile = await UploadHelper.IsImageAsync(queModel.Image);
                 if (!isImageFile)
                 {
-                    return BadRequest(new { message = "The image file is invalid. Only JPEG, PNG, GIF, and SVG are allowed." , success = false });
+                    return BadRequest(new { message = "The image file is invalid. Only JPEG, PNG, GIF, and SVG are allowed.", success = false });
                 }
             }
-            if(queModel.Audio != null)
+            if (queModel.Audio != null)
             {
                 var isAudioFile = await UploadHelper.IsAudioAsync(queModel.Audio);
-                if(!isAudioFile)
+                if (!isAudioFile)
                 {
                     return BadRequest(new { message = "The audio file is invalid. Only MP3, WAV and OGG are allowed. ", success = false });
                 }
@@ -205,7 +217,7 @@ namespace EnglishCenter.Presentation.Controllers.AssignmentPage
 
         [HttpDelete("answers/{answerId}")]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
-        public async Task<IActionResult> DeleteAnswerAsync([FromRoute]long answerId)
+        public async Task<IActionResult> DeleteAnswerAsync([FromRoute] long answerId)
         {
             var response = await _answerService.DeleteAsync(answerId);
             return await response.ChangeActionAsync();

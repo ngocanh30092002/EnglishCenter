@@ -7,7 +7,7 @@ namespace EnglishCenter.Presentation
 {
     public class LcAudioProfile : Profile
     {
-        public LcAudioProfile() 
+        public LcAudioProfile()
         {
             CreateMap<AnswerLcAudioDto, AnswerLcAudio>()
                .ForMember(d => d.Question, opt => opt.MapFrom(src => src.Question))
@@ -23,6 +23,7 @@ namespace EnglishCenter.Presentation
                 .ForMember(d => d.AnswerA, opt => opt.MapFrom(src => src.AnswerA))
                 .ForMember(d => d.AnswerB, opt => opt.MapFrom(src => src.AnswerB))
                 .ForMember(d => d.AnswerC, opt => opt.MapFrom(src => src.AnswerC))
+                .ForMember(d => d.Level, opt => opt.MapFrom(src => src.Level))
                 .ForMember(d => d.AudioUrl, opt => opt.MapFrom(src => src.Audio.Replace("\\", "/")))
                 .ForMember(d => d.Time, opt => opt.MapFrom(src => src.Time))
                 .ForMember(d => d.AnswerInfo, opt => opt.MapFrom(src => src.Answer));
@@ -32,7 +33,8 @@ namespace EnglishCenter.Presentation
                 .ForMember(d => d.Question, opt => opt.MapFrom(src => src.Question))
                 .ForMember(d => d.AnswerA, opt => opt.MapFrom(src => src.AnswerA))
                 .ForMember(d => d.AnswerB, opt => opt.MapFrom(src => src.AnswerB))
-                .ForMember(d => d.AnswerC, opt => opt.MapFrom(src => src.AnswerC));
+                .ForMember(d => d.AnswerC, opt => opt.MapFrom(src => src.AnswerC))
+                .ForMember(d => d.Level, opt => opt.MapFrom(src => src.Level));
         }
     }
 }

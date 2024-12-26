@@ -1,5 +1,5 @@
-﻿using EnglishCenter.Business.IServices;
-using EnglishCenter.DataAccess.IRepositories;
+﻿using System.Security.Claims;
+using EnglishCenter.Business.IServices;
 using EnglishCenter.Presentation.Global;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -42,6 +42,17 @@ namespace EnglishCenter.Presentation.Controllers.AdminPage
             return await response.ChangeActionAsync();
         }
 
+        [Authorize]
+        [HttpGet("user")]
+        public async Task<IActionResult> GetUserRoleAsync()
+        {
+            string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
+            if (userId == null) return BadRequest();
+
+            var response = await _roleService.GetUserRolesAsync(userId);
+            return await response.ChangeActionAsync();
+        }
+
         [Authorize(Roles = AppRole.ADMIN)]
         [HttpPost()]
         public async Task<bool> CreateRoleAsync([FromBody] string roleName)
@@ -51,9 +62,10 @@ namespace EnglishCenter.Presentation.Controllers.AdminPage
 
         [Authorize(Roles = AppRole.ADMIN)]
         [HttpPost("users/{userId}")]
-        public async Task<bool> AddUserRoleAsync([FromRoute] string userId, [FromBody] string roleName)
+        public async Task<IActionResult> AddUserRoleAsync([FromRoute] string userId, [FromBody] string roleName)
         {
-            return await _roleService.AddUserRoleAsync(userId, roleName);
+            var response = await _roleService.AddUserRoleAsync(userId, roleName);
+            return await response.ChangeActionAsync();
         }
 
         [Authorize(Roles = AppRole.ADMIN)]
@@ -65,9 +77,10 @@ namespace EnglishCenter.Presentation.Controllers.AdminPage
 
         [Authorize(Roles = AppRole.ADMIN)]
         [HttpDelete("users/{userId}")]
-        public async Task<bool> DeleteUserRolesAsync([FromRoute] string userId, [FromBody] string roleName)
+        public async Task<IActionResult> DeleteUserRolesAsync([FromRoute] string userId, [FromQuery] string roleName)
         {
-            return await _roleService.DeleteUserRolesAsync(userId, roleName);
+            var response = await _roleService.DeleteUserRolesAsync(userId, roleName);
+            return await response.ChangeActionAsync();
         }
     }
 }

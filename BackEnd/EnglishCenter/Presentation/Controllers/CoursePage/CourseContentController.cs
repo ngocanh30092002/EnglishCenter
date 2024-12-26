@@ -58,6 +58,21 @@ namespace EnglishCenter.Presentation.Controllers.CoursePage
             return await response.ChangeActionAsync();
         }
 
+        [HttpGet("course/{courseId}/total-num")]
+        public async Task<IActionResult> GetNumLessonAsync([FromRoute] string courseId)
+        {
+            var response = await _contentService.GetNumLessonAsync(courseId);
+
+            return await response.ChangeActionAsync();
+        }
+
+        [HttpGet("types")]
+        public async Task<IActionResult> GetTypesAsync()
+        {
+            var response = await _contentService.GetTypeCourseContentAsync();
+            return await response.ChangeActionAsync();
+        }
+
         [HttpPost]
         [Authorize(Policy = GlobalVariable.ADMIN_TEACHER)]
         public async Task<IActionResult> CreateContentAsync([FromForm] CourseContentDto model)

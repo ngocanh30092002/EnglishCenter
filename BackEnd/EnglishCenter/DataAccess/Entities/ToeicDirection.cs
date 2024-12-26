@@ -25,5 +25,8 @@ namespace EnglishCenter.DataAccess.Entities
 
         [InverseProperty("ToeicDirection")]
         public virtual ICollection<ToeicExam> ToeicExams { get; set; } = new List<ToeicExam>();
+
+        [InverseProperty("ToeicDirection")]
+        public virtual ICollection<RoadMapExam> RoadMapExams { get; set; } = new List<RoadMapExam>();
     }
 }

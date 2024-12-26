@@ -9,14 +9,16 @@ namespace EnglishCenter.Business.IServices
     {
         public Task<Response> GetAllAsync();
         public Task<Response> GetAsync(long id);
+        public Task<Response> GetExamInfoAsync(long enrollId, string classId);
         public Task<Response> GetHisProcessesAsync(long enrollId, long? assignmentId, long? examId);
         public Task<Response> GetOngoingAsync(long enrollId, long? assignmentId, long? examId);
+        public Task<Response> GetScoreByClassAsync(string classId);
         public Task<Response> GetScoreByProcessAsync(long id);
         public Task<Response> GetNumberAttemptedAsync(long enrollId, long assignmentId);
         public Task<Response> GetStatusExamAsync(long enrollId, long examId);
-        public Task<Response> GetStatusLessonAsync(long id, long? assignmentId, long? examId);
+        public Task<Response> GetStatusExerciseAsync(long id, long? assignmentId, long? examId);
         public Task<Response> IsSubmittedAsync(long id);
-        public Task<LessonStatusEnum> IsStatusLessonAsync(Enrollment enroll, long? assignmentId, long? examId);
+        public Task<ExerciseStatusEnum> IsStatusExerciseAsync(Enrollment enroll, long? assignmentId, long? examId);
         public Task<Response> HandleSubmitProcessAsync(long id, LearningProcessDto model);
         public Task<Response> ChangeStatusAsync(long id, int status);
         public Task<Response> ChangeStartTimeAsync(long id, string dateTime);

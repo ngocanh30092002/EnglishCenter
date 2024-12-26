@@ -11,13 +11,13 @@ namespace EnglishCenter.DataAccess.Entities
 
         public long SubmissionId { set; get; }
 
-        public long HwQuesId { set; get; }
-        
+        public long? HwQuesId { set; get; }
+
         public long? HwSubQuesId { set; get; }
 
         [StringLength(1)]
-        public string? SelectedAnswer { set;get; }
-    
+        public string? SelectedAnswer { set; get; }
+
         public bool IsCorrect { set; get; } = false;
 
         [ForeignKey("SubmissionId")]
@@ -26,6 +26,12 @@ namespace EnglishCenter.DataAccess.Entities
 
         [ForeignKey("HwQuesId")]
         [InverseProperty("SubRecords")]
-        public virtual HomeQue HomeQue { set; get; } = null!;
+        public virtual HomeQue? HomeQue { set; get; }
+
+        public long? SubToeicId { set; get; }
+
+        [ForeignKey("SubToeicId")]
+        [InverseProperty("SubRecords")]
+        public virtual SubToeic? SubToeic { set; get; }
     }
 }

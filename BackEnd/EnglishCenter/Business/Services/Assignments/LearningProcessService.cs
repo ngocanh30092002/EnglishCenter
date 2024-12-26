@@ -16,13 +16,21 @@ namespace EnglishCenter.Business.Services.Assignments
         private readonly IMapper _mapper;
         private readonly IAssignmentRecordService _assignmentRecordService;
         private readonly IToeicRecordService _toeicRecordService;
+        private readonly IUserService _userService;
 
-        public LearningProcessService(IUnitOfWork unit, IMapper mapper, IAssignmentRecordService assignmentRecordService, IToeicRecordService toeicRecordService)
+        public LearningProcessService(
+                IUnitOfWork unit,
+                IMapper mapper,
+                IAssignmentRecordService assignmentRecordService,
+                IToeicRecordService toeicRecordService,
+                IUserService userService
+            )
         {
             _unit = unit;
             _mapper = mapper;
             _assignmentRecordService = assignmentRecordService;
             _toeicRecordService = toeicRecordService;
+            _userService = userService;
         }
 
         public async Task<Response> ChangeEndTimeAsync(long id, string dateTime)
@@ -367,7 +375,6 @@ namespace EnglishCenter.Business.Services.Assignments
         {
             var processes = _unit.LearningProcesses.GetAll();
 
-            // Todo: change to resdto
             return Task.FromResult(new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
@@ -380,7 +387,6 @@ namespace EnglishCenter.Business.Services.Assignments
         {
             var process = _unit.LearningProcesses.GetById(id);
 
-            // Todo: change to resdto
             return Task.FromResult(new Response()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
@@ -676,6 +682,119 @@ namespace EnglishCenter.Business.Services.Assignments
             }
         }
 
+        public async Task<Response> GetScoreByClassAsync(string classId)
+        {
+            var processes = await _unit.LearningProcesses
+                               .Include(p => p.Enrollment)
+                               .Include(p => p.Assignment)
+                               .Include(p => p.Examination)
+                               .Where(p => p.Enrollment.ClassId == classId)
+                               .ToListAsync();
+
+            var resDtos = new List<ProcessResDto>();
+
+            foreach (var model in processes)
+            {
+                var dtoModel = new ProcessResDto();
+                var userInfoRes = await _userService.GetUserFullInfoAsync(model.Enrollment.UserId);
+
+                var scoreAnswer = await ScoreAnswerAsync(model.ProcessId);
+
+                dtoModel.UserInfo = userInfoRes.Message as UserInfoResDto;
+                dtoModel.ProcessID = model.ProcessId;
+                dtoModel.Status = ((ProcessStatusEnum)model.Status).ToString();
+                TimeSpan diffTime = TimeSpan.Zero;
+
+                if (model.EndTime.HasValue)
+                {
+                    diffTime = (TimeSpan)(model.EndTime - model.StartTime);
+                }
+
+                if (diffTime >= TimeOnly.MaxValue.ToTimeSpan())
+                {
+                    dtoModel.Time = TimeOnly.FromTimeSpan(TimeOnly.MaxValue.ToTimeSpan()).ToString("HH:mm:ss");
+                }
+                else
+                {
+                    dtoModel.Time = TimeOnly.FromTimeSpan(diffTime).ToString("HH:mm:ss");
+                }
+
+                dtoModel.CorrectNumber = scoreAnswer.correctNum;
+                dtoModel.TotalNumber = scoreAnswer.totalNum;
+                dtoModel.CurrentRate = Math.Ceiling(dtoModel.CorrectNumber * 100.0 * 100.0 / dtoModel.TotalNumber) / 100;
+
+                if (double.IsNaN(dtoModel.CurrentRate))
+                {
+                    dtoModel.CurrentRate = 0;
+                }
+                if (model.AssignmentId.HasValue)
+                {
+                    dtoModel.Title = model.Assignment!.Title ?? "";
+                    dtoModel.AssignmentInfo = _mapper.Map<AssignmentResDto>(model.Assignment);
+                }
+                else
+                {
+                    dtoModel.Title = model.Examination!.Title;
+                    dtoModel.ExamInfo = _mapper.Map<ExaminationDto>(model.Examination);
+                }
+
+                resDtos.Add(dtoModel);
+            }
+
+
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = resDtos,
+                Success = true
+            };
+        }
+
+        public async Task<Response> GetExamInfoAsync(long enrollId, string classId)
+        {
+            var learningProcessIds = await _unit.LearningProcesses.GetExamsProcessAsync(enrollId, classId);
+            var result = new List<ExamInfoResDto>();
+
+            var learningProcessRes = _unit.LearningProcesses
+                                          .Include(p => p.Examination)
+                                          .Where(p => learningProcessIds.Contains(p.ProcessId))
+                                          .ToList();
+
+            foreach (var process in learningProcessRes)
+            {
+                var examInfo = new ExamInfoResDto();
+
+                var res = new ToeicScoreResDto()
+                {
+                    Part1 = await _unit.ToeicRecords.GetNumCorrectRecordsWithPartAsync(process.ProcessId, (int)PartEnum.Part1),
+                    Part2 = await _unit.ToeicRecords.GetNumCorrectRecordsWithPartAsync(process.ProcessId, (int)PartEnum.Part2),
+                    Part3 = await _unit.ToeicRecords.GetNumCorrectRecordsWithPartAsync(process.ProcessId, (int)PartEnum.Part3),
+                    Part4 = await _unit.ToeicRecords.GetNumCorrectRecordsWithPartAsync(process.ProcessId, (int)PartEnum.Part4),
+                    Part5 = await _unit.ToeicRecords.GetNumCorrectRecordsWithPartAsync(process.ProcessId, (int)PartEnum.Part5),
+                    Part6 = await _unit.ToeicRecords.GetNumCorrectRecordsWithPartAsync(process.ProcessId, (int)PartEnum.Part6),
+                    Part7 = await _unit.ToeicRecords.GetNumCorrectRecordsWithPartAsync(process.ProcessId, (int)PartEnum.Part7),
+                };
+                var listeningCon = await _unit.ToeicConversion.GetByNumberCorrectAsync(res.Part1 + res.Part2 + res.Part3 + res.Part4, ToeicEnum.Listening);
+                var readingCon = await _unit.ToeicConversion.GetByNumberCorrectAsync(res.Part5 + res.Part6 + res.Part7, ToeicEnum.Reading);
+
+                res.Listening = listeningCon == null ? 0 : listeningCon.EstimatedScore;
+                res.Reading = readingCon == null ? 0 : readingCon.EstimatedScore;
+
+                examInfo.ToeicScore = res;
+                examInfo.Examination = _mapper.Map<ExaminationDto>(process.Examination);
+                examInfo.ProcessId = process.ProcessId;
+
+                result.Add(examInfo);
+            }
+
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = result,
+                Success = true
+            };
+        }
+
         public async Task<Response> HandleSubmitProcessAsync(long id, LearningProcessDto model)
         {
             var processModel = _unit.LearningProcesses
@@ -785,7 +904,8 @@ namespace EnglishCenter.Business.Services.Assignments
                 Success = true
             });
         }
-        public async Task<Response> GetStatusLessonAsync(long id, long? assignmentId, long? examId)
+
+        public async Task<Response> GetStatusExerciseAsync(long id, long? assignmentId, long? examId)
         {
             var enrollModel = _unit.Enrollment.Include(e => e.Class).FirstOrDefault(e => e.EnrollId == id);
             if (enrollModel == null)
@@ -798,7 +918,7 @@ namespace EnglishCenter.Business.Services.Assignments
                 };
             }
 
-            var status = await IsStatusLessonAsync(enrollModel, assignmentId, examId);
+            var status = await IsStatusExerciseAsync(enrollModel, assignmentId, examId);
 
 
             return new Response()
@@ -809,13 +929,13 @@ namespace EnglishCenter.Business.Services.Assignments
             };
         }
 
-        public async Task<LessonStatusEnum> IsStatusLessonAsync(Enrollment enroll, long? assignmentId, long? examId)
+        public async Task<ExerciseStatusEnum> IsStatusExerciseAsync(Enrollment enroll, long? assignmentId, long? examId)
         {
-            if (enroll.StatusId != (int)EnrollEnum.Ongoing) return LessonStatusEnum.Locked;
-            if (!(assignmentId == null ^ examId == null)) return LessonStatusEnum.Locked;
+            if (enroll.StatusId != (int)EnrollEnum.Ongoing) return ExerciseStatusEnum.Locked;
+            if (!(assignmentId == null ^ examId == null)) return ExerciseStatusEnum.Locked;
 
             var courseModel = _unit.Courses.GetById(enroll.Class.CourseId);
-            if (courseModel == null) return LessonStatusEnum.Locked;
+            if (courseModel == null) return ExerciseStatusEnum.Locked;
 
             if (assignmentId.HasValue)
             {
@@ -823,7 +943,7 @@ namespace EnglishCenter.Business.Services.Assignments
                                             .Include(a => a.CourseContent)
                                             .FirstOrDefaultAsync(a => a.AssignmentId == assignmentId.Value);
 
-                if (assignment == null) return LessonStatusEnum.Locked;
+                if (assignment == null) return ExerciseStatusEnum.Locked;
 
                 return await IsStatusWithAssignmentAsync(enroll, assignment, courseModel.IsSequential);
             }
@@ -833,7 +953,7 @@ namespace EnglishCenter.Business.Services.Assignments
                                            .Include(a => a.CourseContent)
                                            .FirstOrDefaultAsync(a => a.ExamId == examId);
 
-                if (examModel == null) return LessonStatusEnum.Locked;
+                if (examModel == null) return ExerciseStatusEnum.Locked;
 
                 return await IsStatusWithExamAsync(enroll, examModel, courseModel.IsSequential);
             }
@@ -1169,14 +1289,25 @@ namespace EnglishCenter.Business.Services.Assignments
                         if (!response.Success) return response;
                     }
                 }
-                // Todo: Handle submit
+
                 var correctNum = _unit.AssignmentRecords.Find(a => a.LearningProcessId == processModel.ProcessId && a.IsCorrect).Count();
                 var numQues = await _unit.AssignQues.GetNumberByAssignmentAsync(processModel.AssignmentId!.Value);
 
                 bool isQualified = (correctNum * 100.0 / numQues) > processModel.Assignment!.AchievedPercentage;
 
+                var assignmentModel = _unit.Assignments.GetById(processModel.AssignmentId.Value);
+                var endTime = processModel.StartTime.Add(assignmentModel.Time.ToTimeSpan());
+
+                if (endTime <= DateTime.Now)
+                {
+                    processModel.EndTime = endTime;
+                }
+                else
+                {
+                    processModel.EndTime = DateTime.Now;
+                }
+
                 processModel.Status = isQualified ? (int)ProcessStatusEnum.Completed : (int)ProcessStatusEnum.NotAchieved;
-                processModel.EndTime = DateTime.Now;
 
                 await _unit.CompleteAsync();
                 return new Response()
@@ -1271,8 +1402,10 @@ namespace EnglishCenter.Business.Services.Assignments
                     scoreHisModel.FinalPoint = totalPoint;
                 }
 
+                var endTime = processModel.StartTime.AddHours(2);
+
                 processModel.Status = (int)ProcessStatusEnum.Completed;
-                processModel.EndTime = DateTime.Now;
+                processModel.EndTime = DateTime.Now < endTime ? DateTime.Now : endTime;
 
                 await _unit.CompleteAsync();
 
@@ -1295,7 +1428,7 @@ namespace EnglishCenter.Business.Services.Assignments
             }
         }
 
-        private async Task<LessonStatusEnum> IsStatusWithAssignmentAsync(Enrollment enroll, Assignment assignment, bool isSequential)
+        private async Task<ExerciseStatusEnum> IsStatusWithAssignmentAsync(Enrollment enroll, Assignment assignment, bool isSequential)
         {
             var isExistProcess = false;
 
@@ -1305,31 +1438,31 @@ namespace EnglishCenter.Business.Services.Assignments
                                                 (p.Status == (int)ProcessStatusEnum.Completed ||
                                                 p.Status == (int)ProcessStatusEnum.Achieved));
 
-            if (isExistProcess) return LessonStatusEnum.Passed;
+            if (isExistProcess) return ExerciseStatusEnum.Passed;
 
             isExistProcess = _unit.LearningProcesses
                                   .IsExist(p => p.EnrollId == enroll.EnrollId &&
                                                 p.AssignmentId == assignment.AssignmentId &&
                                                 p.Status == (int)ProcessStatusEnum.NotAchieved);
 
-            if (isExistProcess) return LessonStatusEnum.Failed;
+            if (isExistProcess) return ExerciseStatusEnum.Failed;
 
-            if (!isSequential) return LessonStatusEnum.Open;
+            if (!isSequential) return ExerciseStatusEnum.Open;
 
             isExistProcess = _unit.LearningProcesses
                                   .IsExist(p => p.EnrollId == enroll.EnrollId &&
                                                 p.AssignmentId == assignment.AssignmentId &&
                                                 p.Status == (int)ProcessStatusEnum.Ongoing);
 
-            if (isExistProcess) return LessonStatusEnum.Open;
+            if (isExistProcess) return ExerciseStatusEnum.Open;
 
             var preCourseContent = await _unit.CourseContents.GetPreviousAsync(assignment.CourseContent);
-            if (preCourseContent == null && assignment.NoNum == 1) return LessonStatusEnum.Open;
+            if (preCourseContent == null && assignment.NoNum == 1) return ExerciseStatusEnum.Open;
 
             if (preCourseContent == null || preCourseContent.Type == 1)
             {
                 var previousAssignment = await _unit.Assignments.GetPreviousAssignmentAsync(assignment.AssignmentId);
-                if (previousAssignment == null) return LessonStatusEnum.Locked;
+                if (previousAssignment == null) return ExerciseStatusEnum.Locked;
 
                 isExistProcess = _unit.LearningProcesses
                                       .IsExist(p => p.EnrollId == enroll.EnrollId &&
@@ -1337,35 +1470,35 @@ namespace EnglishCenter.Business.Services.Assignments
                                                     (p.Status == (int)ProcessStatusEnum.Achieved ||
                                                     p.Status == (int)ProcessStatusEnum.Completed));
 
-                if (isExistProcess) return LessonStatusEnum.Open;
+                if (isExistProcess) return ExerciseStatusEnum.Open;
 
-                return LessonStatusEnum.Locked;
+                return ExerciseStatusEnum.Locked;
             }
 
             if (preCourseContent.Type != 1)
             {
                 isExistProcess = _unit.LearningProcesses.IsExist(p => p.EnrollId == enroll.EnrollId && p.ExamId == preCourseContent.Examination.ExamId);
-                if (isExistProcess) return LessonStatusEnum.Open;
+                if (isExistProcess) return ExerciseStatusEnum.Open;
             }
 
-            return LessonStatusEnum.Locked;
+            return ExerciseStatusEnum.Locked;
         }
 
-        private async Task<LessonStatusEnum> IsStatusWithExamAsync(Enrollment enroll, Examination exam, bool isSequential)
+        private async Task<ExerciseStatusEnum> IsStatusWithExamAsync(Enrollment enroll, Examination exam, bool isSequential)
         {
             var isExist = _unit.LearningProcesses.IsExist(p => p.EnrollId == enroll.EnrollId && p.ExamId == exam.ExamId);
-            if (isExist) return LessonStatusEnum.Passed;
-            if (!isSequential) return LessonStatusEnum.Open;
+            if (isExist) return ExerciseStatusEnum.Passed;
+            if (!isSequential) return ExerciseStatusEnum.Open;
 
             var preCourseContent = await _unit.CourseContents.GetPreviousAsync(exam.CourseContent);
-            if (preCourseContent == null) return LessonStatusEnum.Open;
+            if (preCourseContent == null) return ExerciseStatusEnum.Open;
 
             if (preCourseContent.Type != 1)
             {
                 isExist = _unit.LearningProcesses.IsExist(p => p.EnrollId == enroll.EnrollId && p.ExamId == preCourseContent.Examination.ExamId);
-                if (isExist) return LessonStatusEnum.Open;
+                if (isExist) return ExerciseStatusEnum.Open;
 
-                return LessonStatusEnum.Locked;
+                return ExerciseStatusEnum.Locked;
             }
 
             var preAssignment = _unit.Assignments
@@ -1373,7 +1506,7 @@ namespace EnglishCenter.Business.Services.Assignments
                                      .OrderByDescending(a => a.NoNum)
                                      .FirstOrDefault();
 
-            if (preAssignment == null) return LessonStatusEnum.Locked;
+            if (preAssignment == null) return ExerciseStatusEnum.Locked;
 
             isExist = _unit.LearningProcesses
                            .IsExist(p => p.EnrollId == enroll.EnrollId &&
@@ -1381,9 +1514,16 @@ namespace EnglishCenter.Business.Services.Assignments
                                          (p.Status == (int)ProcessStatusEnum.Completed ||
                                          p.Status == (int)ProcessStatusEnum.Achieved));
 
-            if (isExist) return LessonStatusEnum.Open;
+            if (isExist) return ExerciseStatusEnum.Open;
 
-            return LessonStatusEnum.Locked;
+            return ExerciseStatusEnum.Locked;
+        }
+
+        private Task<(int correctNum, int totalNum)> ScoreAnswerAsync(long processId)
+        {
+            var correctNumber = _unit.AssignmentRecords.Find(a => a.LearningProcessId == processId && a.IsCorrect == true).Count();
+            var totalNum = _unit.AssignmentRecords.Find(a => a.LearningProcessId == processId).Count();
+            return Task.FromResult((correctNumber, totalNum));
         }
     }
 }

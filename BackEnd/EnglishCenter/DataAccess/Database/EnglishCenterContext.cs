@@ -59,10 +59,6 @@ public class EnglishCenterContext : IdentityDbContext<User>
 
     public virtual DbSet<QuesRcSentence> QuesRcSentences { set; get; }
 
-    public virtual DbSet<QuesRcSentenceMedia> QuesRcSentenceMedias { set; get; }
-
-    public virtual DbSet<AnswerRcSentenceMedia> AnswerRcMedia { set; get; }
-
     public virtual DbSet<QuesRcSingle> QuesRcSingles { get; set; }
 
     public virtual DbSet<QuesRcTriple> QuesRcTriples { get; set; }
@@ -113,18 +109,40 @@ public class EnglishCenterContext : IdentityDbContext<User>
 
     public virtual DbSet<ToeicDirection> Directions { set; get; }
 
-    public virtual DbSet<ToeicPracticeRecord> ToeicPracticeRecords { set; get; }
+    public virtual DbSet<AttemptRecord> AttemptRecords { set; get; }
 
-    public virtual DbSet<ToeicAttempt> ToeicAttempts { set; get; }
+    public virtual DbSet<UserAttempt> UserAttempts { set; get; }
 
     public virtual DbSet<ChatMessage> ChatMessages { set; get; }
 
     public virtual DbSet<ChatFile> ChatFiles { set; get; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        optionsBuilder.UseSqlServer("Name=ConnectionStrings:EnglishCenter");
-    }
+    public virtual DbSet<ClassSchedule> ClassSchedules { set; get; }
+
+    public virtual DbSet<Lesson> Lessons { set; get; }
+
+    public virtual DbSet<ClassRoom> ClassRooms { set; get; }
+
+    public virtual DbSet<Period> Periods { set; get; }
+
+    public virtual DbSet<ClassMaterial> ClassMaterials { set; get; }
+
+    public virtual DbSet<SubmissionTask> SubmissionTask { set; get; }
+
+    public virtual DbSet<SubmissionFile> SubmissionFiles { set; get; }
+
+    public virtual DbSet<UserWord> UserWords { set; get; }
+
+    public virtual DbSet<RoadMap> RoadMaps { set; get; }
+
+    public virtual DbSet<RoadMapExam> RoadMapExams { set; get; }
+
+    public virtual DbSet<RandomQuesToeic> RandomQues { set; get; }
+
+    public virtual DbSet<IssueReport> IssueReports { set; get; }
+
+    public virtual DbSet<IssueResponse> IssueResponses { set; get; }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -139,6 +157,106 @@ public class EnglishCenterContext : IdentityDbContext<User>
             }
         }
 
+        modelBuilder.Entity<IssueResponse>(entity =>
+        {
+            entity.HasOne(i => i.User).WithMany(u => u.IssueResponses).HasConstraintName("FK_IssueResponses_Users").OnDelete(DeleteBehavior.NoAction);
+            entity.HasOne(i => i.IssueReport).WithMany(u => u.IssueResponses).HasConstraintName("FK_IssueResponses_IssueReports").OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<IssueReport>(entity =>
+        {
+            entity.HasOne(i => i.User).WithMany(u => u.IssueReports).HasConstraintName("FK_IssueReports_Users").OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Attendance>(entity =>
+        {
+            entity.HasOne(s => s.Lesson)
+                  .WithMany(l => l.Attendances)
+                  .HasConstraintName("FK_Attendance_Lessons")
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(s => s.Enrollment)
+                  .WithMany(l => l.Attendances)
+                  .HasConstraintName("FK_Attendances_Enrollment")
+                  .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        modelBuilder.Entity<RandomQuesToeic>(entity =>
+        {
+            entity.HasOne(u => u.RoadMapExam).WithMany(u => u.RandomQues).HasConstraintName("FK_RandomQuesToeic_RoadMapExam").OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(u => u.Homework).WithMany(u => u.RandomQues).HasConstraintName("FK_RandomQuesToeic_Homework").OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(u => u.QuesToeic).WithMany(u => u.RandomQues).HasConstraintName("FK_RandomQuesToeic_QuesToeic");
+        });
+
+        modelBuilder.Entity<UserWord>(entity =>
+        {
+            entity.HasOne(u => u.User).WithMany(u => u.UserWords).HasConstraintName("FK_UserWord_User");
+        });
+
+        modelBuilder.Entity<RoadMapExam>(entity =>
+        {
+            entity.HasOne(c => c.RoadMap).WithMany(c => c.RoadMapExams).HasConstraintName("FK_RoadMapExams_RoadMaps").OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(c => c.ToeicDirection).WithMany(c => c.RoadMapExams).HasConstraintName("FK_RoadMapExams_ToeicDirection");
+
+        });
+
+        modelBuilder.Entity<RoadMap>(entity =>
+        {
+            entity.HasOne(c => c.Course).WithMany(c => c.RoadMaps).HasConstraintName("FK_RoadMaps_Courses").OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ClassMaterial>(entity =>
+        {
+            entity.HasOne(c => c.Class)
+                .WithMany(c => c.ClassMaterials)
+                .HasConstraintName("FK_ClassMaterials_Classes")
+                .OnDelete(DeleteBehavior.NoAction);
+            entity
+                .HasOne(c => c.Lesson)
+                .WithMany(c => c.ClassMaterials)
+                .HasConstraintName("FK_ClassMaterials_Lessons")
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<SubmissionFile>(entity =>
+        {
+            entity.HasOne(s => s.SubmissionTask)
+                .WithMany(l => l.SubmissionFiles)
+                .HasConstraintName("FK_SubmissionTasks_SubmissionFiles");
+
+            entity.HasOne(s => s.Enrollment)
+              .WithMany(l => l.SubmissionFiles)
+              .HasConstraintName("FK_Enrollment_SubmissionFiles")
+              .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        modelBuilder.Entity<SubmissionTask>(entity =>
+        {
+            entity.HasOne(s => s.Lesson)
+                  .WithMany(l => l.SubmissionTasks)
+                  .HasConstraintName("FK_SubmissionTask_Lessons")
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ClassSchedule>(entity =>
+        {
+            entity.HasOne(c => c.Class).WithMany(c => c.ClassSchedules).HasConstraintName("FK_ClassSchedule_Class");
+            entity.HasOne(c => c.ClassRoom).WithMany(c => c.ClassSchedules).HasConstraintName("FK_ClassSchedule_ClassRoom");
+        });
+
+        modelBuilder.Entity<Lesson>(entity =>
+        {
+            entity.HasOne(c => c.Class).WithMany(c => c.Lessons).HasConstraintName("FK_Lessons_Class");
+            entity.HasOne(c => c.ClassRoom).WithMany(c => c.Lessons).HasConstraintName("FK_Lessons_ClassRoom");
+
+        });
+
+        modelBuilder.Entity<Period>(entity =>
+        {
+            entity.Property(e => e.PeriodId)
+                .ValueGeneratedNever();
+        });
+
         modelBuilder.Entity<ChatMessage>(entity =>
         {
             entity.HasOne(c => c.ChatFile).WithOne(f => f.ChatMessage)
@@ -149,7 +267,8 @@ public class EnglishCenterContext : IdentityDbContext<User>
                 .OnDelete(DeleteBehavior.NoAction);
 
             entity.HasOne(c => c.Receiver).WithMany(u => u.ReceivedMessages)
-                .HasConstraintName("FK_ChatMessage_Receiver");
+                .HasConstraintName("FK_ChatMessage_Receiver")
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<ToeicExam>(entity =>
@@ -171,7 +290,7 @@ public class EnglishCenterContext : IdentityDbContext<User>
         {
             entity.Property(c => c.Type).HasDefaultValue(1);
 
-            entity.HasOne(c => c.Course).WithMany(c => c.CourseContents).HasConstraintName("FK_CourseContent_Courses");
+            entity.HasOne(c => c.Course).WithMany(c => c.CourseContents).HasConstraintName("FK_CourseContent_Courses").OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<AssignQue>(entity =>
@@ -185,8 +304,6 @@ public class EnglishCenterContext : IdentityDbContext<User>
             entity.HasOne(d => d.QuesDouble).WithMany(p => p.AssignQues).HasConstraintName("FK_Assign_Ques_Ques_RC_Double");
 
             entity.HasOne(d => d.QuesSentence).WithMany(p => p.AssignQues).HasConstraintName("FK_Assign_Ques_Ques_RC_Sentence");
-
-            entity.HasOne(d => d.QuesSentenceMedia).WithMany(p => p.AssignQues).HasConstraintName("FK_Assign_Ques_Ques_RC_Sentence_Media");
 
             entity.HasOne(d => d.QuesSingle).WithMany(p => p.AssignQues).HasConstraintName("FK_Assign_Ques_Ques_RC_Single");
 
@@ -220,23 +337,27 @@ public class EnglishCenterContext : IdentityDbContext<User>
             entity.HasOne(p => p.SubToeic).WithMany(e => e.ToeicRecords).HasConstraintName("FK_ToeicRecord_SubToeic");
         });
 
-        modelBuilder.Entity<ToeicPracticeRecord>(entity =>
+        modelBuilder.Entity<AttemptRecord>(entity =>
         {
-            entity.HasOne(r => r.SubToeic).WithMany(e => e.ToeicPracticeRecords).HasConstraintName("FK_ToeicPracticeRecord_SubToeic");
-            entity.HasOne(r => r.ToeicAttempt)
-                  .WithMany(e => e.ToeicPracticeRecords)
-                  .HasConstraintName("FK_ToeicPracticeRecords_Attempt")
-                  .OnDelete(DeleteBehavior.NoAction);
+            entity.HasOne(r => r.SubToeic).WithMany(e => e.AttemptRecords).HasConstraintName("FK_AttemptRecords_SubToeic");
+            entity.HasOne(r => r.UserAttempt)
+                  .WithMany(e => e.AttemptRecords)
+                  .HasConstraintName("FK_AttemptRecords_Attempt")
+                  .OnDelete(DeleteBehavior.Cascade);
         });
 
-        modelBuilder.Entity<ToeicAttempt>(entity =>
+        modelBuilder.Entity<UserAttempt>(entity =>
         {
             entity.HasOne(a => a.User)
-                   .WithMany(u => u.ToeicAttempts)
-                   .HasConstraintName("FK_ToeicAttempted_User");
+                   .WithMany(u => u.UserAttempts)
+                   .HasConstraintName("FK_UserAttempted_User");
             entity.HasOne(a => a.ToeicExam)
-                  .WithMany(u => u.ToeicAttempts)
-                  .HasConstraintName("FK_ToeicAttempted_ToeicExams");
+                  .WithMany(u => u.UserAttempts)
+                  .HasConstraintName("FK_UserAttempted_ToeicExams");
+
+            entity.HasOne(a => a.RoadMapExam)
+                  .WithMany(u => u.UserAttempts)
+                  .HasConstraintName("FK_UserAttempted_RoadMapExams");
         });
 
         modelBuilder.Entity<Examination>(entity =>
@@ -288,8 +409,7 @@ public class EnglishCenterContext : IdentityDbContext<User>
 
         modelBuilder.Entity<Homework>(entity =>
         {
-            entity.HasOne(d => d.Class).WithMany(c => c.HomeworkTasks).HasConstraintName("FK_Homework_Class");
-
+            entity.HasOne(d => d.Lesson).WithMany(c => c.HomeworkTasks).HasConstraintName("FK_Homework_Lessons");
             entity.HasMany(d => d.Submissions).WithOne(c => c.Homework).HasConstraintName("FK_HwSubmission_Homework");
         });
 
@@ -303,7 +423,10 @@ public class EnglishCenterContext : IdentityDbContext<User>
 
         modelBuilder.Entity<HwSubRecord>(entity =>
         {
-            entity.HasOne(d => d.HwSubmission).WithMany(c => c.SubRecords).HasConstraintName("FK_HwSubRecord_HwSubmission");
+            entity.HasOne(d => d.HwSubmission)
+                  .WithMany(c => c.SubRecords)
+                  .HasConstraintName("FK_HwSubRecord_HwSubmission")
+                  .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasOne(p => p.HomeQue)
               .WithMany(e => e.SubRecords)
@@ -317,11 +440,10 @@ public class EnglishCenterContext : IdentityDbContext<User>
             entity.HasOne(q => q.QuesAudio).WithMany(q => q.HomeQues).HasConstraintName("FK_Home_Ques_Ques_LC_Audio");
             entity.HasOne(q => q.QuesConversation).WithMany(q => q.HomeQues).HasConstraintName("FK_Home_Ques_Ques_LC_Conversation");
             entity.HasOne(q => q.QuesSentence).WithMany(q => q.HomeQues).HasConstraintName("FK_Home_Ques_Ques_RC_Sentence");
-            entity.HasOne(d => d.QuesSentenceMedia).WithMany(p => p.HomeQues).HasConstraintName("FK_Home_Ques_Ques_RC_Sentence_Media");
             entity.HasOne(q => q.QuesSingle).WithMany(q => q.HomeQues).HasConstraintName("FK_Home_Ques_Ques_RC_Single");
             entity.HasOne(q => q.QuesDouble).WithMany(q => q.HomeQues).HasConstraintName("FK_Home_Ques_Ques_RC_Double");
             entity.HasOne(q => q.QuesTriple).WithMany(q => q.HomeQues).HasConstraintName("FK_Home_Ques_Ques_RC_Triple");
-            entity.HasOne(q => q.Homework).WithMany(q => q.HomeQues).HasConstraintName("FK_Home_Ques_Homework");
+            entity.HasOne(q => q.Homework).WithMany(q => q.HomeQues).HasConstraintName("FK_Home_Ques_Homework").OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Class>(entity =>

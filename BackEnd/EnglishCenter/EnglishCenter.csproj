@@ -38,9 +38,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="DataAccess\Migrations\" />
     <Folder Include="wwwroot\classes\images\" />
-    <Folder Include="wwwroot\notifications\images\" />
+    <Folder Include="wwwroot\dictionary\" />
     <Folder Include="wwwroot\questions\" />
     <Folder Include="wwwroot\toeic\2023\1\Part_6\" />
     <Folder Include="wwwroot\toeic\2023\1\Part_7\" />
@@ -55,6 +54,11 @@
     <Folder Include="wwwroot\toeic\2024\1\Part_3\" />
     <Folder Include="wwwroot\toeic\2024\1\Part_2\" />
     <Folder Include="wwwroot\toeic\2024\1\Part_1\" />
+    <Folder Include="wwwroot\toeic\2024\2\Part_2\" />
+    <Folder Include="wwwroot\toeic\2024\2\Part_3\" />
+    <Folder Include="wwwroot\toeic\2024\2\Part_4\" />
+    <Folder Include="wwwroot\toeic\2024\2\Part_6\" />
+    <Folder Include="wwwroot\toeic\2024\2\Part_7\" />
   </ItemGroup>
 
 </Project>
