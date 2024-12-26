@@ -174,10 +174,8 @@ namespace EnglishCenter.Business.Services.Authorization
                 }
             }
 
-            if (model.EmailConfirm == 0)
-            {
-                userModel.EmailConfirmed = true;
-            }
+
+            userModel.EmailConfirmed = true;
 
             if (model.Locked == 0)
             {
