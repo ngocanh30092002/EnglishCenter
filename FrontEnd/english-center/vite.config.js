@@ -18,6 +18,7 @@ export default defineConfig({
     },
   },
   plugins: [mkcert(), react()],
+  base: "/EnglishCenter/",
   resolve: {
     alias: {
       '~':path.resolve(__dirname),
