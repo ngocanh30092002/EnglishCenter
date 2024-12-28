@@ -12,7 +12,7 @@ namespace EnglishCenter.Presentation.Extensions
                 options.AddPolicy(name: "AllPolicy",
                                   builder =>
                                   {
-                                      builder.WithOrigins("https://localhost:5173")
+                                      builder.WithOrigins("https://localhost:5173", "https://localhost:44314")
                                              .AllowAnyMethod()
                                              .AllowAnyHeader()
                                              .AllowCredentials();

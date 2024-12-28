@@ -59,6 +59,11 @@ namespace EnglishCenter.Presentation.Extensions.Identity
             {
                 options.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
                 options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
+            })
+            .AddFacebook(options =>
+            {
+                options.AppId = builder.Configuration["Authentication:Facebook:AppId"]!;
+                options.AppSecret = builder.Configuration["Authentication:Facebook:AppSecret"]!;
             });
 
             services.AddAuthorization(options =>

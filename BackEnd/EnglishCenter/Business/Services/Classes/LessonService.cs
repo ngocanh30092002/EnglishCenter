@@ -550,6 +550,25 @@ namespace EnglishCenter.Business.Services.Classes
             };
         }
 
+        public Task<Response> GetDateByClassAsync(string classId)
+        {
+            var lessonModels = _unit.Lessons
+                                          .Find(l => l.ClassId == classId && l.Date <= DateOnly.FromDateTime(DateTime.Now))
+                                          .OrderByDescending(l => l.Date)
+                                          .Select(l => new
+                                          {
+                                              LessonId = l.LessonId,
+                                              Date = l.Date.ToString("dd/MM/yyyy")
+                                          })
+                                          .ToList();
+            return Task.FromResult(new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = lessonModels,
+                Success = true
+            });
+        }
+
         public async Task<Response> UpdateAsync(long id, LessonDto lessonModel)
         {
             var lessonEntity = _unit.Lessons.GetById(id);

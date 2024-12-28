@@ -1,6 +1,7 @@
 ﻿using EnglishCenter.DataAccess.Database;
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.IRepositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.DataAccess.Repositories.ClassRepositories
 {
@@ -10,15 +11,24 @@ namespace EnglishCenter.DataAccess.Repositories.ClassRepositories
         {
         }
 
-        public Task<bool> ChangeCapacityAsync(ClassRoom room, int capacity)
+        public async Task<bool> ChangeCapacityAsync(ClassRoom room, int capacity)
         {
-            if (room == null) return Task.FromResult(false);
+            if (room == null) return false;
 
-            if (capacity < 0) return Task.FromResult(false);
+            if (capacity < 0) return false;
+
+            var classes = await context.Lessons
+                                 .Include(l => l.Class)
+                                 .Where(l => l.ClassRoomId == room.ClassRoomId)
+                                 .Select(l => l.Class)
+                                 .ToListAsync();
+
+            var isValidCapacity = classes.Any(c => c.RegisteredNum > capacity);
+            if (isValidCapacity) return false;
 
             room.Capacity = capacity;
 
-            return Task.FromResult(true);
+            return true;
         }
 
         public Task<bool> ChangeLocationAsync(ClassRoom room, string location)

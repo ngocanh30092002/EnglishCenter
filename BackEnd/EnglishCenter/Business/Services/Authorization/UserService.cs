@@ -22,6 +22,7 @@ namespace EnglishCenter.Business.Services.Authorization
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ISubmissionFileService _submissionFileService;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IChatMessageService _chatService;
 
         public UserService(
             UserManager<User> userManager
@@ -29,7 +30,8 @@ namespace EnglishCenter.Business.Services.Authorization
             , RoleManager<IdentityRole> roleManager
             , IUnitOfWork unit
             , IWebHostEnvironment webHostEnvironment
-            , ISubmissionFileService submissionFileService)
+            , ISubmissionFileService submissionFileService,
+            IChatMessageService chatService)
         {
             _unit = unit;
             _userManager = userManager;
@@ -37,6 +39,7 @@ namespace EnglishCenter.Business.Services.Authorization
             _roleManager = roleManager;
             _submissionFileService = submissionFileService;
             _webHostEnvironment = webHostEnvironment;
+            _chatService = chatService;
         }
 
         public async Task<Response> GetAllAsync(string userId)
@@ -174,10 +177,8 @@ namespace EnglishCenter.Business.Services.Authorization
                 }
             }
 
-            if (model.EmailConfirm == 0)
-            {
-                userModel.EmailConfirmed = true;
-            }
+
+            userModel.EmailConfirmed = true;
 
             if (model.Locked == 0)
             {
@@ -362,6 +363,17 @@ namespace EnglishCenter.Business.Services.Authorization
                                    .Find(e => e.UserId == userModel.Id)
                                    .Select(e => e.EnrollId)
                                    .ToList();
+
+            var messageIds = _unit.ChatMessages
+                                  .Find(c => c.SenderId == userModel.Id || c.ReceiverId == userModel.Id)
+                                  .Select(c => c.MessageId)
+                                  .ToList();
+
+            foreach (var messId in messageIds)
+            {
+                var deleteRes = await _chatService.DeleteAsync(messId);
+                if (!deleteRes.Success) return deleteRes;
+            }
 
             foreach (var enrollId in enrollIds)
             {

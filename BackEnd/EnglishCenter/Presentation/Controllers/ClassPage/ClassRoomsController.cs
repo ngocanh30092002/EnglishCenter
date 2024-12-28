@@ -24,6 +24,13 @@ namespace EnglishCenter.Presentation.Controllers.ClassPage
             return await response.ChangeActionAsync();
         }
 
+        [HttpGet("{id}/lessons")]
+        public async Task<IActionResult> GetLessonsAsync([FromRoute] long id)
+        {
+            var response = await _classRoomService.GetLessonsAsync(id);
+            return await response.ChangeActionAsync();
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetAsync(long id)
         {

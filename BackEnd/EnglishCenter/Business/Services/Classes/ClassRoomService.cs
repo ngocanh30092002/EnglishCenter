@@ -2,8 +2,11 @@
 using EnglishCenter.Business.IServices;
 using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.DataAccess.UnitOfWork;
+using EnglishCenter.Presentation.Global.Enum;
 using EnglishCenter.Presentation.Models;
 using EnglishCenter.Presentation.Models.DTOs;
+using EnglishCenter.Presentation.Models.ResDTOs;
+using Microsoft.EntityFrameworkCore;
 
 namespace EnglishCenter.Business.Services.Classes
 {
@@ -199,6 +202,27 @@ namespace EnglishCenter.Business.Services.Classes
             });
         }
 
+        public async Task<Response> GetLessonsAsync(long id)
+        {
+            var lessons = await _unit.Lessons
+                               .Include(l => l.Class)
+                               .Where(l => l.Class.Status != (int)ClassEnum.End && l.ClassRoomId == id)
+                               .OrderBy(l => l.Date)
+                               .ToListAsync();
+
+            var lessonResDtos = _mapper.Map<List<LessonResDto>>(lessons);
+            foreach (var resDto in lessonResDtos)
+            {
+                resDto.StartPeriodTime = _unit.Periods.GetById(resDto.StartPeriod).StartTime;
+                resDto.EndPeriodTime = _unit.Periods.GetById(resDto.EndPeriod).EndTime;
+            }
+            return new Response()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Message = lessonResDtos,
+                Success = true
+            };
+        }
         public async Task<Response> UpdateAsync(long id, ClassRoomDto roomModel)
         {
             var roomEntity = _unit.ClassRooms.GetById(id);

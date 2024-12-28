@@ -1,10 +1,8 @@
 ﻿using EnglishCenter.Business.IServices;
-using EnglishCenter.DataAccess.Entities;
 using EnglishCenter.Presentation.Global;
 using EnglishCenter.Presentation.Helpers;
 using EnglishCenter.Presentation.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EnglishCenter.Presentation.Controllers.AuthenticationPage
@@ -55,5 +53,58 @@ namespace EnglishCenter.Presentation.Controllers.AuthenticationPage
             return await response.ChangeActionAsync();
         }
 
+        [HttpPost("/sign-in-facebook")]
+        public async Task<IActionResult> SignInFacebookAsync([FromBody] string accessToken)
+        {
+            var isValid = await _service.IsFacebookTokenValidAsync(accessToken);
+            if (isValid == false)
+            {
+                var res = new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Invalid token",
+                    Success = false
+                };
+                return await res.ChangeActionAsync();
+            }
+
+            var userInfo = await _service.GetFbUserInfoAsync(accessToken);
+            if (userInfo == null)
+            {
+                var res = new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Message = "Can't find any user information",
+                    Success = false
+                };
+                return await res.ChangeActionAsync();
+            }
+
+            var response = await _service.SignInFacebookAsync(userInfo);
+
+            if (response.Success)
+            {
+                CookieOptions options = new CookieOptions()
+                {
+                    HttpOnly = false,
+                    Secure = true,
+                    SameSite = SameSiteMode.Strict,
+                    Path = "/"
+                };
+
+                CookieHelper.AddCookie(HttpContext, "access-token", response.Token, options);
+                CookieHelper.AddCookie(HttpContext, "refresh-token", response.RefreshToken, options);
+                var res = new Response()
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Message = "",
+                    Success = true
+                };
+
+                return await res.ChangeActionAsync();
+            }
+
+            return await response.ChangeActionAsync();
+        }
     }
 }

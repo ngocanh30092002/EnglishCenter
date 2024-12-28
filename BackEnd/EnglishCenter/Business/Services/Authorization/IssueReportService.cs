@@ -280,7 +280,7 @@ namespace EnglishCenter.Business.Services.Authorization
 
         public async Task<Response> GetAllByAdminAsync()
         {
-            var issueReports = _unit.IssueReports.Include(i => i.IssueResponses).ToList();
+            var issueReports = _unit.IssueReports.Include(i => i.IssueResponses).OrderByDescending(i => i.CreatedAt).ToList();
 
             var resDtos = new List<IssueReportResDto>();
 

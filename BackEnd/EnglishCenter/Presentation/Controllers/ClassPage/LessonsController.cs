@@ -39,6 +39,13 @@ namespace EnglishCenter.Presentation.Controllers.ClassPage
             return await response.ChangeActionAsync();
         }
 
+        [HttpGet("classes/{classId}/date")]
+        public async Task<IActionResult> GetDateByClassAsync([FromRoute] string classId)
+        {
+            var response = await _lessonService.GetDateByClassAsync(classId);
+            return await response.ChangeActionAsync();
+        }
+
         [HttpGet("enrolls/{enrollId}")]
         public async Task<IActionResult> GetByEnrollAsync([FromRoute] long enrollId)
         {
